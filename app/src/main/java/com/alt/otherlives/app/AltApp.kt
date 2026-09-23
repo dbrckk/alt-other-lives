@@ -12,6 +12,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
+import com.alt.otherlives.core.data.HistoryRepository
 import androidx.compose.ui.Modifier
 import com.alt.otherlives.core.data.ScenarioCatalog
 import com.alt.otherlives.core.designsystem.AltBackground
@@ -27,6 +31,9 @@ fun AltApp() {
     var screen by remember { mutableStateOf(Screen.HOME) }
     var photoUri by remember { mutableStateOf<Uri?>(null) }
     var selectedScenario by remember { mutableStateOf(ScenarioCatalog.scenarios.first()) }
+    val context = LocalContext.current
+    val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
+    val scope = rememberCoroutineScope()
 
     AltTheme {
         Surface(modifier = Modifier.fillMaxSize(), color = AltBackground) {
@@ -46,6 +53,7 @@ fun AltApp() {
                         onBack = { screen = Screen.HOME },
                         onSelect = {
                             selectedScenario = it
+                            scope.launch { historyRepository.record(it.id) }
                             screen = Screen.REVEAL
                         }
                     )
