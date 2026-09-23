@@ -73,6 +73,7 @@ fun AltApp() {
                     Screen.REVEAL -> RevealScreen(
                         photoUri = photoUri,
                         scenario = selectedScenario,
+                        generationSettings = generationSettings,
                         onBack = { screen = Screen.SCENARIOS }
                     )
                     Screen.SETTINGS -> GenerationSettingsScreen(
