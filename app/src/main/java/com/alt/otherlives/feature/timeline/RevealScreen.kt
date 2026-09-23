@@ -74,6 +74,7 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
     var aiCompleted by remember { mutableStateOf(0) }
     var aiTotal by remember { mutableStateOf(0) }
     var showRegenerateAllDialog by remember { mutableStateOf(false) }
+    var showClearAiDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(activeTransformer, isExporting) {
         while (isExporting) {
@@ -192,6 +193,37 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
                             fontWeight = FontWeight.Bold
                         )
                     }
+                    if (generatedScenes.isNotEmpty()) {
+                        TextButton(
+                            onClick = { showClearAiDialog = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text("Remove generated AI scenes") }
+                    }
+
+                    if (showClearAiDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showClearAiDialog = false },
+                            title = { Text("Remove AI scenes?") },
+                            text = { Text("The generated chapter images for this timeline will be deleted from this device.") },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        sceneStore.clear(scenario.id)
+                                        generatedScenes = emptyList()
+                                        completedVideoUri = null
+                                        showClearAiDialog = false
+                                        Toast.makeText(context, "AI scenes removed", Toast.LENGTH_SHORT).show()
+                                    }
+                                ) { Text("Remove") }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showClearAiDialog = false }) {
+                                    Text("Cancel")
+                                }
+                            }
+                        )
+                    }
+
                     if (showRegenerateAllDialog) {
                         AlertDialog(
                             onDismissRequest = { showRegenerateAllDialog = false },
