@@ -11,6 +11,7 @@ import androidx.media3.transformer.EditedMediaItem
 import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.ExportResult
 import androidx.media3.transformer.Transformer
+import androidx.media3.transformer.ProgressHolder
 import com.alt.otherlives.core.model.Scenario
 import java.io.File
 
@@ -62,6 +63,14 @@ object CinematicVideoExporter {
 
         transformer.start(edited, outputFile.absolutePath)
         return transformer
+    }
+
+    fun progress(transformer: Transformer): Int? {
+        val holder = ProgressHolder()
+        return when (transformer.getProgress(holder)) {
+            Transformer.PROGRESS_STATE_AVAILABLE -> holder.progress
+            else -> null
+        }
     }
 
     fun share(context: Context, uri: Uri, scenario: Scenario) {
