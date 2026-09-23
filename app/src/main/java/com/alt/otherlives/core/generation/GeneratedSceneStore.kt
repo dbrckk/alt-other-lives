@@ -15,7 +15,6 @@ class GeneratedSceneStore(private val context: Context) {
 
     fun persist(scenarioId: String, scenes: List<GeneratedScene>): List<GeneratedScene> {
         val root = File(context.filesDir, "generated/$scenarioId").apply { mkdirs() }
-        root.listFiles()?.forEach { it.delete() }
 
         return scenes.map { scene ->
             val target = File(root, filenameForChapter(scene.chapterIndex))
