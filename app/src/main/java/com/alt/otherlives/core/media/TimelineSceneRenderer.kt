@@ -19,14 +19,14 @@ object TimelineSceneRenderer {
     private const val WIDTH = 1080
     private const val HEIGHT = 1920
 
-    fun render(context: Context, photoUri: Uri?, scenario: Scenario, chapterImages: List<Uri> = emptyList()): List<Uri> {
+    fun render(context: Context, photoUri: Uri?, scenario: Scenario, chapterImages: Map<Int, Uri> = emptyMap()): List<Uri> {
         cleanupOldScenes(context)
         val chapterScenes = scenario.chapters.take(5).mapIndexed { index, chapter ->
             val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
             canvas.drawColor(Color.rgb(8, 8, 10))
 
-            (chapterImages.getOrNull(index) ?: photoUri)?.let { uri ->
+            (chapterImages[index] ?: photoUri)?.let { uri ->
                 BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)?.let { source ->
                     drawCover(canvas, source, Rect(0, 0, WIDTH, 1180), index)
                     source.recycle()
