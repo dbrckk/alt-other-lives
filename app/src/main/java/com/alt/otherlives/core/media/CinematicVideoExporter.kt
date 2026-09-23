@@ -10,6 +10,7 @@ import androidx.media3.common.Effect
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.transformer.Composition
 import androidx.media3.transformer.EditedMediaItem
+import androidx.media3.transformer.EditedMediaItemSequence
 import androidx.media3.transformer.Effects
 import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.ExportResult
@@ -21,40 +22,48 @@ import java.io.File
 
 @UnstableApi
 object CinematicVideoExporter {
-    private const val DURATION_MS = 7000L
+    private const val SCENE_DURATION_MS = 2400L
     private const val FRAME_RATE = 30
 
     fun export(
         context: Context,
-        imageUri: Uri,
+        imageUris: List<Uri>,
         scenario: Scenario,
         onCompleted: (Uri) -> Unit,
         onError: (Throwable) -> Unit
     ): Transformer {
+        require(imageUris.isNotEmpty()) { "At least one scene is required" }
+
         val outputDir = File(context.cacheDir, "shares").apply { mkdirs() }
         val outputFile = File(outputDir, "alt-" + scenario.id + "-" + System.currentTimeMillis() + ".mp4")
 
-        val mediaItem = MediaItem.Builder()
-            .setUri(imageUri)
-            .setImageDurationMs(DURATION_MS)
-            .build()
+        val editedScenes = imageUris.mapIndexed { index, imageUri ->
+            val mediaItem = MediaItem.Builder()
+                .setUri(imageUri)
+                .setImageDurationMs(SCENE_DURATION_MS)
+                .build()
 
-        val kenBurns = MatrixTransformation { presentationTimeUs ->
-            val progress = (presentationTimeUs / (DURATION_MS * 1000f)).coerceIn(0f, 1f)
-            val eased = progress * progress * (3f - 2f * progress)
-            val scale = 1f + 0.08f * eased
-            val panX = -0.025f + 0.05f * eased
-            val panY = 0.018f - 0.036f * eased
-            Matrix().apply {
-                postScale(scale, scale)
-                postTranslate(panX, panY)
+            val motion = MatrixTransformation { presentationTimeUs ->
+                val progress = (presentationTimeUs / (SCENE_DURATION_MS * 1000f)).coerceIn(0f, 1f)
+                val eased = progress * progress * (3f - 2f * progress)
+                val direction = if (index % 2 == 0) 1f else -1f
+                val scale = 1.02f + 0.07f * eased
+                val panX = direction * (-0.018f + 0.036f * eased)
+                val panY = 0.012f - 0.024f * eased
+                Matrix().apply {
+                    postScale(scale, scale)
+                    postTranslate(panX, panY)
+                }
             }
+
+            EditedMediaItem.Builder(mediaItem)
+                .setFrameRate(FRAME_RATE)
+                .setEffects(Effects(emptyList(), listOf<Effect>(motion)))
+                .build()
         }
 
-        val edited = EditedMediaItem.Builder(mediaItem)
-            .setFrameRate(FRAME_RATE)
-            .setEffects(Effects(emptyList(), listOf<Effect>(kenBurns)))
-            .build()
+        val sequence = EditedMediaItemSequence.withVideoFrom(editedScenes)
+        val composition = Composition.Builder(listOf(sequence)).build()
 
         val transformer = Transformer.Builder(context)
             .addListener(object : Transformer.Listener {
@@ -78,7 +87,7 @@ object CinematicVideoExporter {
             })
             .build()
 
-        transformer.start(edited, outputFile.absolutePath)
+        transformer.start(composition, outputFile.absolutePath)
         return transformer
     }
 
