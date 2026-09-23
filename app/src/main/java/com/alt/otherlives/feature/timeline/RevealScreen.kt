@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
@@ -73,6 +74,16 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
                     shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AltPrimary, contentColor = Color(0xFF16111F))
                 ) { Text("Share this ALT life", fontWeight = FontWeight.Bold) }
+                Spacer(Modifier.height(12.dp))
+                Button(
+                    onClick = {
+                        runCatching { ShareCardRenderer.saveToGallery(context, photoUri, scenario) }
+                            .onSuccess { Toast.makeText(context, "Saved to Pictures/ALT", Toast.LENGTH_SHORT).show() }
+                            .onFailure { Toast.makeText(context, "Could not save image", Toast.LENGTH_SHORT).show() }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(20.dp)
+                ) { Text("Save 9:16 image", fontWeight = FontWeight.Bold) }
                 Spacer(Modifier.height(12.dp))
                 Text(
                     "1080 × 1920 share card • cinematic video comes next",
