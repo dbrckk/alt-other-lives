@@ -32,6 +32,9 @@ import androidx.compose.material3.TextButton
 import androidx.media3.transformer.Transformer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
@@ -68,6 +71,7 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
     var isExporting by remember { mutableStateOf(false) }
     var exportProgress by remember { mutableStateOf<Int?>(null) }
     var activeTransformer by remember { mutableStateOf<Transformer?>(null) }
+    var exportJob by remember { mutableStateOf<Job?>(null) }
     var completedVideoUri by remember { mutableStateOf<Uri?>(null) }
     var generatedScenes by remember(scenario.id) { mutableStateOf(sceneStore.load(scenario.id)) }
     var isGeneratingAi by remember { mutableStateOf(false) }
@@ -84,7 +88,10 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
     }
 
     DisposableEffect(Unit) {
-        onDispose { activeTransformer?.cancel() }
+        onDispose {
+            exportJob?.cancel()
+            activeTransformer?.cancel()
+        }
     }
     LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 40.dp)) {
         item {
@@ -282,8 +289,19 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
                             isExporting = true
                             exportProgress = null
                             completedVideoUri = null
-                            runCatching { TimelineSceneRenderer.render(context, photoUri, scenario, generatedScenes.associate { it.chapterIndex to it.imageUri }) }
-                                .onSuccess { sceneUris ->
+                            exportJob = scope.launch {
+                                val prepared = runCatching {
+                                    withContext(Dispatchers.Default) {
+                                        TimelineSceneRenderer.render(
+                                            context = context,
+                                            photoUri = photoUri,
+                                            scenario = scenario,
+                                            chapterImages = generatedScenes.associate { it.chapterIndex to it.imageUri }
+                                        )
+                                    }
+                                }
+
+                                prepared.onSuccess { sceneUris ->
                                     activeTransformer = CinematicVideoExporter.export(
                                         context = context,
                                         imageUris = sceneUris,
@@ -292,6 +310,7 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
                                             isExporting = false
                                             exportProgress = 100
                                             activeTransformer = null
+                                            exportJob = null
                                             completedVideoUri = videoUri
                                             Toast.makeText(context, "Video ready", Toast.LENGTH_SHORT).show()
                                         },
@@ -299,6 +318,7 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
                                             isExporting = false
                                             exportProgress = null
                                             activeTransformer = null
+                                            exportJob = null
                                             completedVideoUri = null
                                             Toast.makeText(
                                                 context,
@@ -307,18 +327,21 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
                                             ).show()
                                         }
                                     )
-                                }
-                                .onFailure {
+                                }.onFailure {
                                     isExporting = false
                                     exportProgress = null
                                     activeTransformer = null
+                                    exportJob = null
                                     completedVideoUri = null
-                                    Toast.makeText(
-                                        context,
-                                        "Could not prepare video: " + (it.message ?: "unknown error"),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    if (it !is kotlinx.coroutines.CancellationException) {
+                                        Toast.makeText(
+                                            context,
+                                            "Could not prepare video: " + (it.message ?: "unknown error"),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 }
+                            }
                         }
                     },
                     enabled = !isExporting,
@@ -344,6 +367,8 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
                     Spacer(Modifier.height(8.dp))
                     androidx.compose.material3.TextButton(
                         onClick = {
+                            exportJob?.cancel()
+                            exportJob = null
                             activeTransformer?.cancel()
                             activeTransformer = null
                             isExporting = false
