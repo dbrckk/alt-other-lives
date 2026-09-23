@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.*
 import android.net.Uri
+import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import com.alt.otherlives.core.model.Scenario
 import java.io.File
@@ -49,6 +50,28 @@ object ShareCardRenderer {
         FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.JPEG,94,it) }
         bitmap.recycle()
         return FileProvider.getUriForFile(context,context.packageName+".fileprovider",file)
+    }
+    fun saveToGallery(context: Context, photoUri: Uri?, scenario: Scenario): Uri {
+        val rendered = render(context, photoUri, scenario)
+        val values = android.content.ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, "ALT-" + scenario.id + "-" + System.currentTimeMillis() + ".jpg")
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ALT")
+            put(MediaStore.Images.Media.IS_PENDING, 1)
+        }
+        val target = requireNotNull(context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values))
+        try {
+            context.contentResolver.openOutputStream(target)?.use { output ->
+                context.contentResolver.openInputStream(rendered)?.use { input -> input.copyTo(output) }
+            } ?: error("Unable to open gallery output")
+            values.clear()
+            values.put(MediaStore.Images.Media.IS_PENDING, 0)
+            context.contentResolver.update(target, values, null, null)
+            return target
+        } catch (error: Throwable) {
+            context.contentResolver.delete(target, null, null)
+            throw error
+        }
     }
     fun share(context: Context, uri: Uri, scenario: Scenario) {
         val intent=Intent(Intent.ACTION_SEND).apply {
