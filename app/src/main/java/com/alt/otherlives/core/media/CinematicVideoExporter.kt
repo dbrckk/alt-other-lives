@@ -40,6 +40,7 @@ object CinematicVideoExporter {
         require(imageUris.isNotEmpty()) { "At least one scene is required" }
 
         val outputDir = File(context.cacheDir, "shares").apply { mkdirs() }
+        cleanupOldVideos(outputDir)
         val outputFile = File(outputDir, "alt-" + scenario.id + "-" + System.currentTimeMillis() + ".mp4")
 
         val editedScenes = imageUris.mapIndexed { index, imageUri ->
@@ -102,6 +103,15 @@ object CinematicVideoExporter {
 
         transformer.start(composition, outputFile.absolutePath)
         return transformer
+    }
+
+    private fun cleanupOldVideos(outputDir: File) {
+        val cutoff = System.currentTimeMillis() - 24L * 60L * 60L * 1000L
+        outputDir.listFiles()?.forEach { file ->
+            if (file.isFile && file.extension.equals("mp4", ignoreCase = true) && file.lastModified() < cutoff) {
+                file.delete()
+            }
+        }
     }
 
     fun progress(transformer: Transformer): Int? {
