@@ -46,6 +46,7 @@ import com.alt.otherlives.core.designsystem.AltPrimary
 import com.alt.otherlives.core.model.Scenario
 import com.alt.otherlives.core.media.ShareCardRenderer
 import com.alt.otherlives.core.media.CinematicVideoExporter
+import com.alt.otherlives.core.media.TimelineSceneRenderer
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
@@ -115,11 +116,11 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
                     onClick = {
                         if (!isExporting) {
                             isExporting = true
-                            runCatching { ShareCardRenderer.render(context, photoUri, scenario) }
-                                .onSuccess { imageUri ->
+                            runCatching { TimelineSceneRenderer.render(context, photoUri, scenario) }
+                                .onSuccess { sceneUris ->
                                     activeTransformer = CinematicVideoExporter.export(
                                         context = context,
-                                        imageUri = imageUri,
+                                        imageUris = sceneUris,
                                         scenario = scenario,
                                         onCompleted = { videoUri ->
                                             isExporting = false
@@ -149,7 +150,7 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
                 ) {
                     Text(
                         if (isExporting) "Creating video" + (exportProgress?.let { " • $it%" } ?: "…")
-                        else "Create 7s MP4",
+                        else "Create cinematic MP4",
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -166,7 +167,7 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
                 }
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "Local 9:16 image + MP4 export • live export progress",
+                    "Multi-scene 9:16 MP4 • animated chapter sequence",
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                     color = AltDimmed,
