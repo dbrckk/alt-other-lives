@@ -62,7 +62,7 @@ fun GenerationSettingsScreen(
             onValueChange = { workflow = it },
             label = { Text("Workflow API JSON") },
             supportingText = {
-                Text("Use __ALT_SOURCE_IMAGE__ and __ALT_PROMPT__ placeholders.")
+                Text("Required: __ALT_SOURCE_IMAGE__ and __ALT_PROMPT__. Optional: __ALT_SEED__ for consistent sequence seeds.")
             },
             modifier = Modifier.fillMaxWidth(),
             minLines = 12
