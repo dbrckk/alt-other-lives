@@ -21,17 +21,21 @@ class ComfyUiGenerationProvider(
 
         val uploaded = client.uploadImage(request.sourcePhoto)
         val result = mutableListOf<GeneratedScene>()
+        val sessionSeed = (System.currentTimeMillis() and Long.MAX_VALUE).coerceAtLeast(1L)
 
         chapters.forEachIndexed { index, chapter ->
             val prompt = ComfyUiWorkflow.promptFor(
+                scenarioId = request.scenario.id,
                 scenarioTitle = request.scenario.title,
                 chapterLabel = chapter.label,
-                chapterNarrative = chapter.narrative
+                chapterNarrative = chapter.narrative,
+                chapterIndex = index
             )
             val workflow = ComfyUiWorkflowTemplate.prepare(
                 templateJson = workflowTemplateJson,
                 uploaded = uploaded,
-                prompt = prompt
+                prompt = prompt,
+                seed = sessionSeed
             )
             val promptId = client.queuePrompt(workflow)
             val outputs = client.awaitOutputs(promptId)
