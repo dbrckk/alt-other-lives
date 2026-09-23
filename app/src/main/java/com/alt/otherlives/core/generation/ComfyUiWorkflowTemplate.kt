@@ -18,7 +18,8 @@ object ComfyUiWorkflowTemplate {
     fun prepare(
         templateJson: String,
         uploaded: ComfyUiClient.UploadedImage,
-        prompt: String
+        prompt: String,
+        seed: Long
     ): JSONObject {
         validateTemplate(templateJson)
         val root = JSONObject(templateJson)
@@ -27,11 +28,11 @@ object ComfyUiWorkflowTemplate {
         } else {
             uploaded.subfolder.trimEnd('/') + "/" + uploaded.name
         }
-        replace(root, imageValue, prompt)
+        replace(root, imageValue, prompt, seed)
         return root
     }
 
-    private fun replace(value: Any?, imageValue: String, prompt: String) {
+    private fun replace(value: Any?, imageValue: String, prompt: String, seed: Long) {
         when (value) {
             is JSONObject -> {
                 val keys = value.keys().asSequence().toList()
@@ -39,7 +40,8 @@ object ComfyUiWorkflowTemplate {
                     when (val child = value.get(key)) {
                         ComfyUiWorkflow.PLACEHOLDER_SOURCE_IMAGE -> value.put(key, imageValue)
                         ComfyUiWorkflow.PLACEHOLDER_PROMPT -> value.put(key, prompt)
-                        else -> replace(child, imageValue, prompt)
+                        ComfyUiWorkflow.PLACEHOLDER_SEED -> value.put(key, seed)
+                        else -> replace(child, imageValue, prompt, seed)
                     }
                 }
             }
@@ -48,7 +50,8 @@ object ComfyUiWorkflowTemplate {
                     when (val child = value.get(index)) {
                         ComfyUiWorkflow.PLACEHOLDER_SOURCE_IMAGE -> value.put(index, imageValue)
                         ComfyUiWorkflow.PLACEHOLDER_PROMPT -> value.put(index, prompt)
-                        else -> replace(child, imageValue, prompt)
+                        ComfyUiWorkflow.PLACEHOLDER_SEED -> value.put(index, seed)
+                        else -> replace(child, imageValue, prompt, seed)
                     }
                 }
             }
