@@ -208,7 +208,7 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
                             isExporting = true
                             exportProgress = null
                             completedVideoUri = null
-                            runCatching { TimelineSceneRenderer.render(context, photoUri, scenario, generatedScenes.sortedBy { it.chapterIndex }.map { it.imageUri }) }
+                            runCatching { TimelineSceneRenderer.render(context, photoUri, scenario, generatedScenes.associate { it.chapterIndex to it.imageUri }) }
                                 .onSuccess { sceneUris ->
                                     activeTransformer = CinematicVideoExporter.export(
                                         context = context,
