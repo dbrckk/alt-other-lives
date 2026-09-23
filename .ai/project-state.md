@@ -4,16 +4,17 @@
 Android solo-first alternate-life generator. Core loop: photo -> What if scenario -> timeline -> cinematic reveal -> share.
 
 ## Current implementation
-- Android Jetpack Compose scaffold exists.
-- Photo picker exists.
-- Four local scenarios exist.
-- Local five-chapter reveal exists.
-- GitHub Actions builds a debug APK.
-- First CI run failed because Java targeted 1.8 while Kotlin targeted JVM 17.
-- JVM compatibility has been corrected in `app/build.gradle.kts`; CI revalidation is pending.
+- Android Jetpack Compose app uses feature/core package boundaries.
+- Photo picker and eight local alternate-life scenarios work.
+- Timeline reveal is functional.
+- A real 1080x1920 JPEG share-card renderer is implemented.
+- Share cards use Android FileProvider and the standard Sharesheet.
+- Share cards can also be saved to Pictures/ALT through MediaStore.
+- CI validates unit tests, Android lint and debug APK assembly.
+- CI through run #28 is green.
 
 ## Current priority
-Phase 0 from `docs/DEVELOPMENT_PLAN.md`: obtain a green build, then split the monolithic prototype into maintainable package boundaries without breaking the working flow.
+Finish the local/shareable product loop: validate gallery saving, then improve preview/polish and begin the durable local history layer before MP4 export.
 
 ## Selected star-list references
 - android/nowinandroid
