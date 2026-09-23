@@ -116,7 +116,7 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
                 Spacer(Modifier.height(12.dp))
                 Button(
                     onClick = {
-                        if (!isExporting) {
+                        if (!isExporting && activeTransformer == null) {
                             isExporting = true
                             exportProgress = null
                             completedVideoUri = null
@@ -137,7 +137,12 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
                                             isExporting = false
                                             exportProgress = null
                                             activeTransformer = null
-                                            Toast.makeText(context, "Video export failed", Toast.LENGTH_SHORT).show()
+                                            completedVideoUri = null
+                                            Toast.makeText(
+                                                context,
+                                                "Video export failed: " + (it.message ?: "unknown error"),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                     )
                                 }
@@ -145,7 +150,12 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
                                     isExporting = false
                                     exportProgress = null
                                     activeTransformer = null
-                                    Toast.makeText(context, "Could not prepare video", Toast.LENGTH_SHORT).show()
+                                    completedVideoUri = null
+                                    Toast.makeText(
+                                        context,
+                                        "Could not prepare video: " + (it.message ?: "unknown error"),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                         }
                     },
