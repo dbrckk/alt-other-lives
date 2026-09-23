@@ -18,10 +18,12 @@ object ShareCardRenderer {
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         canvas.drawColor(Color.rgb(8, 8, 10))
-        photoUri?.let { uri -> BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)?.let { source ->
-                drawCover(canvas, source, Rect(0, 0, WIDTH, 900)); source.recycle()
+        photoUri?.let { uri ->
+            BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)?.let { source ->
+                drawCover(canvas, source, Rect(0, 0, WIDTH, 900))
+                source.recycle()
             }
-        }}
+        }
         val overlay = Paint().apply { shader = LinearGradient(0f, 280f, 0f, 1050f,
             intArrayOf(Color.TRANSPARENT, Color.argb(180,8,8,10), Color.rgb(8,8,10)), null, Shader.TileMode.CLAMP) }
         canvas.drawRect(0f, 250f, WIDTH.toFloat(), 1100f, overlay)
