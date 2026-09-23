@@ -5,12 +5,12 @@ import org.json.JSONObject
 
 object ComfyUiWorkflowTemplate {
     fun validateTemplate(templateJson: String) {
-        val root = JSONObject(templateJson)
-        val serialized = root.toString()
-        require(serialized.contains(ComfyUiWorkflow.PLACEHOLDER_SOURCE_IMAGE)) {
+        require(templateJson.isNotBlank()) { "Workflow JSON is required" }
+        require(templateJson.trimStart().startsWith("{")) { "Workflow must be a JSON object" }
+        require(templateJson.contains(ComfyUiWorkflow.PLACEHOLDER_SOURCE_IMAGE)) {
             "Workflow must contain " + ComfyUiWorkflow.PLACEHOLDER_SOURCE_IMAGE
         }
-        require(serialized.contains(ComfyUiWorkflow.PLACEHOLDER_PROMPT)) {
+        require(templateJson.contains(ComfyUiWorkflow.PLACEHOLDER_PROMPT)) {
             "Workflow must contain " + ComfyUiWorkflow.PLACEHOLDER_PROMPT
         }
     }
