@@ -55,17 +55,19 @@ import com.alt.otherlives.core.generation.ComfyUiGenerationProvider
 import com.alt.otherlives.core.generation.GenerationRequest
 import com.alt.otherlives.core.generation.GenerationSettings
 import com.alt.otherlives.core.generation.GeneratedScene
+import com.alt.otherlives.core.generation.GeneratedSceneStore
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: GenerationSettings, onBack: () -> Unit) {
     val context = LocalContext.current
+    val sceneStore = remember(context) { GeneratedSceneStore(context.applicationContext) }
     val scope = rememberCoroutineScope()
     var isExporting by remember { mutableStateOf(false) }
     var exportProgress by remember { mutableStateOf<Int?>(null) }
     var activeTransformer by remember { mutableStateOf<Transformer?>(null) }
     var completedVideoUri by remember { mutableStateOf<Uri?>(null) }
-    var generatedScenes by remember(scenario.id) { mutableStateOf<List<GeneratedScene>>(emptyList()) }
+    var generatedScenes by remember(scenario.id) { mutableStateOf(sceneStore.load(scenario.id)) }
     var isGeneratingAi by remember { mutableStateOf(false) }
     var aiCompleted by remember { mutableStateOf(0) }
     var aiTotal by remember { mutableStateOf(0) }
@@ -137,7 +139,7 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
                                             }
                                         )
                                     }.onSuccess {
-                                        generatedScenes = it
+                                        generatedScenes = sceneStore.persist(scenario.id, it)
                                         isGeneratingAi = false
                                         Toast.makeText(context, "AI scenes ready", Toast.LENGTH_SHORT).show()
                                     }.onFailure {
