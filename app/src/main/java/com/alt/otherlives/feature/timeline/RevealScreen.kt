@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -29,6 +29,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.media3.transformer.Transformer
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,15 +50,25 @@ import com.alt.otherlives.core.model.Scenario
 import com.alt.otherlives.core.media.ShareCardRenderer
 import com.alt.otherlives.core.media.CinematicVideoExporter
 import com.alt.otherlives.core.media.TimelineSceneRenderer
+import com.alt.otherlives.core.generation.ComfyUiConfig
+import com.alt.otherlives.core.generation.ComfyUiGenerationProvider
+import com.alt.otherlives.core.generation.GenerationRequest
+import com.alt.otherlives.core.generation.GenerationSettings
+import com.alt.otherlives.core.generation.GeneratedScene
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
+fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: GenerationSettings, onBack: () -> Unit) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var isExporting by remember { mutableStateOf(false) }
     var exportProgress by remember { mutableStateOf<Int?>(null) }
     var activeTransformer by remember { mutableStateOf<Transformer?>(null) }
     var completedVideoUri by remember { mutableStateOf<Uri?>(null) }
+    var generatedScenes by remember(scenario.id) { mutableStateOf<List<GeneratedScene>>(emptyList()) }
+    var isGeneratingAi by remember { mutableStateOf(false) }
+    var aiCompleted by remember { mutableStateOf(0) }
+    var aiTotal by remember { mutableStateOf(0) }
 
     LaunchedEffect(activeTransformer, isExporting) {
         while (isExporting) {
@@ -85,8 +97,17 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
                 }
             }
         }
-        items(scenario.chapters) { chapter ->
+        itemsIndexed(scenario.chapters) { index, chapter ->
             Column(Modifier.padding(horizontal = 24.dp, vertical = 18.dp)) {
+                generatedScenes.firstOrNull { it.chapterIndex == index }?.let { generated ->
+                    AsyncImage(
+                        model = generated.imageUri,
+                        contentDescription = "Generated alternate life scene",
+                        modifier = Modifier.fillMaxWidth().height(240.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(Modifier.height(12.dp))
+                }
                 Text(chapter.label, color = AltAccent, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
                 Text(chapter.narrative, fontSize = 23.sp, lineHeight = 30.sp, fontWeight = FontWeight.Medium)
@@ -94,6 +115,65 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
         }
         item {
             Column(Modifier.padding(24.dp)) {
+                if (generationSettings.isConfigured && photoUri != null) {
+                    Button(
+                        onClick = {
+                            if (!isGeneratingAi) {
+                                isGeneratingAi = true
+                                aiCompleted = 0
+                                aiTotal = scenario.chapters.take(5).size
+                                scope.launch {
+                                    runCatching {
+                                        val provider = ComfyUiGenerationProvider(
+                                            context = context,
+                                            config = ComfyUiConfig(generationSettings.comfyUiBaseUrl),
+                                            workflowTemplateJson = generationSettings.workflowJson
+                                        )
+                                        provider.generate(
+                                            request = GenerationRequest(photoUri, scenario),
+                                            onProgress = { completed, total ->
+                                                aiCompleted = completed
+                                                aiTotal = total
+                                            }
+                                        )
+                                    }.onSuccess {
+                                        generatedScenes = it
+                                        isGeneratingAi = false
+                                        Toast.makeText(context, "AI scenes ready", Toast.LENGTH_SHORT).show()
+                                    }.onFailure {
+                                        isGeneratingAi = false
+                                        Toast.makeText(
+                                            context,
+                                            "AI generation failed: " + (it.message ?: "unknown error"),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            }
+                        },
+                        enabled = !isGeneratingAi,
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(20.dp)
+                    ) {
+                        Text(
+                            if (isGeneratingAi) "Generating AI scenes • $aiCompleted/$aiTotal"
+                            else if (generatedScenes.isEmpty()) "Generate AI scenes"
+                            else "Regenerate AI scenes",
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    if (isGeneratingAi) {
+                        Spacer(Modifier.height(8.dp))
+                        LinearProgressIndicator(
+                            progress = {
+                                if (aiTotal == 0) 0f else aiCompleted.toFloat() / aiTotal.toFloat()
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    Spacer(Modifier.height(12.dp))
+                }
+
                 Button(
                     onClick = {
                         val shareUri = ShareCardRenderer.render(context, photoUri, scenario)
@@ -120,7 +200,7 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
                             isExporting = true
                             exportProgress = null
                             completedVideoUri = null
-                            runCatching { TimelineSceneRenderer.render(context, photoUri, scenario) }
+                            runCatching { TimelineSceneRenderer.render(context, photoUri, scenario, generatedScenes.sortedBy { it.chapterIndex }.map { it.imageUri }) }
                                 .onSuccess { sceneUris ->
                                     activeTransformer = CinematicVideoExporter.export(
                                         context = context,
