@@ -4,11 +4,23 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 object ComfyUiWorkflowTemplate {
+    fun validateTemplate(templateJson: String) {
+        val root = JSONObject(templateJson)
+        val serialized = root.toString()
+        require(serialized.contains(ComfyUiWorkflow.PLACEHOLDER_SOURCE_IMAGE)) {
+            "Workflow must contain " + ComfyUiWorkflow.PLACEHOLDER_SOURCE_IMAGE
+        }
+        require(serialized.contains(ComfyUiWorkflow.PLACEHOLDER_PROMPT)) {
+            "Workflow must contain " + ComfyUiWorkflow.PLACEHOLDER_PROMPT
+        }
+    }
+
     fun prepare(
         templateJson: String,
         uploaded: ComfyUiClient.UploadedImage,
         prompt: String
     ): JSONObject {
+        validateTemplate(templateJson)
         val root = JSONObject(templateJson)
         val imageValue = if (uploaded.subfolder.isBlank()) {
             uploaded.name
