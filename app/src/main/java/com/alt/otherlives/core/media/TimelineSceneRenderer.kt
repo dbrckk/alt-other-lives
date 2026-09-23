@@ -20,6 +20,7 @@ object TimelineSceneRenderer {
     private const val HEIGHT = 1920
 
     fun render(context: Context, photoUri: Uri?, scenario: Scenario): List<Uri> {
+        cleanupOldScenes(context)
         val chapterScenes = scenario.chapters.take(5).mapIndexed { index, chapter ->
             val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
@@ -181,6 +182,17 @@ object TimelineSceneRenderer {
         FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.JPEG, 94, it) }
         bitmap.recycle()
         return FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
+    }
+
+    private fun cleanupOldScenes(context: Context) {
+        val dir = File(context.cacheDir, "shares/scenes")
+        if (!dir.exists()) return
+        val cutoff = System.currentTimeMillis() - 24L * 60L * 60L * 1000L
+        dir.listFiles()?.forEach { file ->
+            if (file.isFile && file.lastModified() < cutoff) {
+                file.delete()
+            }
+        }
     }
 
     private fun drawCover(canvas: Canvas, source: Bitmap, target: Rect, index: Int) {
