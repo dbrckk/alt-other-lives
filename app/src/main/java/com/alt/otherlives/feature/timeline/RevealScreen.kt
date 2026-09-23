@@ -1,6 +1,5 @@
 package com.alt.otherlives.feature.timeline
 
-import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,22 +33,11 @@ import com.alt.otherlives.core.designsystem.AltBackground
 import com.alt.otherlives.core.designsystem.AltDimmed
 import com.alt.otherlives.core.designsystem.AltPrimary
 import com.alt.otherlives.core.model.Scenario
+import com.alt.otherlives.core.media.ShareCardRenderer
 
 @Composable
 fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
     val context = LocalContext.current
-    val shareText = buildString {
-        append("My ALT life: ")
-        append(scenario.title)
-        append("\n\n")
-        scenario.chapters.forEach { chapter ->
-            append(chapter.label)
-            append(" — ")
-            append(chapter.narrative)
-            append("\n")
-        }
-    }
-
     LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 40.dp)) {
         item {
             Box(modifier = Modifier.fillMaxWidth().height(500.dp)) {
@@ -78,11 +66,8 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
             Column(Modifier.padding(24.dp)) {
                 Button(
                     onClick = {
-                        val intent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, shareText)
-                        }
-                        context.startActivity(Intent.createChooser(intent, "Share your ALT life"))
+                        val shareUri = ShareCardRenderer.render(context, photoUri, scenario)
+                        ShareCardRenderer.share(context, shareUri, scenario)
                     },
                     modifier = Modifier.fillMaxWidth().height(58.dp),
                     shape = RoundedCornerShape(20.dp),
@@ -90,7 +75,7 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
                 ) { Text("Share this ALT life", fontWeight = FontWeight.Bold) }
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "Share works now • cinematic 9:16 export comes next",
+                    "1080 × 1920 share card • cinematic video comes next",
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                     color = AltDimmed,
