@@ -1,0 +1,13 @@
+source: dbrckk/repo-standards
+ref: main
+version: 20
+adopted: true
+workflow_mode: unified-single-commit
+repo_brain: dbrckk/repo-brain@main
+hotset_fallback: recent-project-state
+context_budget: confidence-dynamic-3-6-12
+ai_context:
+  index: .ai/index.md
+  project_state: .ai/project-state.md
+  commands: .ai/commands.json
+  session_state: .ai/session-state.json
