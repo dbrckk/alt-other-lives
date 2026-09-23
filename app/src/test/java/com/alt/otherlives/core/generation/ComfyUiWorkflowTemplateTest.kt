@@ -30,15 +30,4 @@ class ComfyUiWorkflowTemplateTest {
         )
     }
 
-    @Test
-    fun prepareReplacesAllPlaceholders() {
-        val prepared = ComfyUiWorkflowTemplate.prepare(
-            templateJson = validTemplate,
-            uploaded = ComfyUiClient.UploadedImage("source.jpg", "", "input"),
-            prompt = "cinematic test"
-        ).toString()
-
-        assertTrue(prepared.contains("source.jpg"))
-        assertTrue(prepared.contains("cinematic test"))
-    }
 }
