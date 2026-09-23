@@ -121,9 +121,18 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
                     Button(
                         onClick = {
                             if (!isGeneratingAi) {
+                                val expectedIndexes = scenario.chapters.take(5).indices.toSet()
+                                val existingIndexes = generatedScenes.map { it.chapterIndex }.toSet()
+                                val missingIndexes = expectedIndexes - existingIndexes
+                                val targetIndexes = if (generatedScenes.isNotEmpty() && missingIndexes.isNotEmpty()) {
+                                    missingIndexes
+                                } else {
+                                    expectedIndexes
+                                }
+
                                 isGeneratingAi = true
                                 aiCompleted = 0
-                                aiTotal = scenario.chapters.take(5).size
+                                aiTotal = targetIndexes.size
                                 scope.launch {
                                     runCatching {
                                         val provider = ComfyUiGenerationProvider(
@@ -132,7 +141,11 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
                                             workflowTemplateJson = generationSettings.workflowJson
                                         )
                                         provider.generate(
-                                            request = GenerationRequest(photoUri, scenario),
+                                            request = GenerationRequest(
+                                                sourcePhoto = photoUri,
+                                                scenario = scenario,
+                                                chapterIndexes = targetIndexes
+                                            ),
                                             onProgress = { completed, total ->
                                                 aiCompleted = completed
                                                 aiTotal = total
@@ -167,7 +180,8 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
                         Text(
                             if (isGeneratingAi) "Generating AI scenes • $aiCompleted/$aiTotal"
                             else if (generatedScenes.isEmpty()) "Generate AI scenes"
-                            else "Regenerate AI scenes",
+                            else if (generatedScenes.size < scenario.chapters.take(5).size) "Generate missing AI scenes"
+                            else "Regenerate all AI scenes",
                             fontWeight = FontWeight.Bold
                         )
                     }
