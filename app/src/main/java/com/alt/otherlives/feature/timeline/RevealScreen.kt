@@ -18,6 +18,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,10 +39,12 @@ import com.alt.otherlives.core.designsystem.AltDimmed
 import com.alt.otherlives.core.designsystem.AltPrimary
 import com.alt.otherlives.core.model.Scenario
 import com.alt.otherlives.core.media.ShareCardRenderer
+import com.alt.otherlives.core.media.CinematicVideoExporter
 
 @Composable
 fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
     val context = LocalContext.current
+    var isExporting by remember { mutableStateOf(false) }
     LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 40.dp)) {
         item {
             Box(modifier = Modifier.fillMaxWidth().height(500.dp)) {
@@ -85,8 +91,39 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
                     shape = RoundedCornerShape(20.dp)
                 ) { Text("Save 9:16 image", fontWeight = FontWeight.Bold) }
                 Spacer(Modifier.height(12.dp))
+                Button(
+                    onClick = {
+                        if (!isExporting) {
+                            isExporting = true
+                            runCatching { ShareCardRenderer.render(context, photoUri, scenario) }
+                                .onSuccess { imageUri ->
+                                    CinematicVideoExporter.export(
+                                        context = context,
+                                        imageUri = imageUri,
+                                        scenario = scenario,
+                                        onCompleted = { videoUri ->
+                                            isExporting = false
+                                            CinematicVideoExporter.share(context, videoUri, scenario)
+                                        },
+                                        onError = {
+                                            isExporting = false
+                                            Toast.makeText(context, "Video export failed", Toast.LENGTH_SHORT).show()
+                                        }
+                                    )
+                                }
+                                .onFailure {
+                                    isExporting = false
+                                    Toast.makeText(context, "Could not prepare video", Toast.LENGTH_SHORT).show()
+                                }
+                        }
+                    },
+                    enabled = !isExporting,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(20.dp)
+                ) { Text(if (isExporting) "Creating video…" else "Create 7s MP4", fontWeight = FontWeight.Bold) }
+                Spacer(Modifier.height(12.dp))
                 Text(
-                    "1080 × 1920 share card • cinematic video comes next",
+                    "Local 9:16 image + first MP4 export • motion pass next",
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                     color = AltDimmed,
