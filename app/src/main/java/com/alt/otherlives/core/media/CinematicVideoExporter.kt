@@ -62,8 +62,8 @@ object CinematicVideoExporter {
                 .build()
         }
 
-        val sequence = EditedMediaItemSequence.withAudioAndVideoFrom(editedScenes)
-        val composition = Composition.Builder(sequence).build()
+        val sequence = EditedMediaItemSequence.Builder(editedScenes).build()
+        val composition = Composition.Builder(listOf(sequence)).build()
 
         val transformer = Transformer.Builder(context)
             .addListener(object : Transformer.Listener {
