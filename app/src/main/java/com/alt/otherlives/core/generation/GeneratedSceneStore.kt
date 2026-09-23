@@ -10,11 +10,11 @@ class GeneratedSceneStore(private val context: Context) {
         val root = File(context.filesDir, "generated/$scenarioId").apply { mkdirs() }
         root.listFiles()?.forEach { it.delete() }
 
-        return scenes.mapIndexed { index, scene ->
-            val target = File(root, "scene-$index.png")
+        return scenes.map { scene ->
+            val target = File(root, "scene-" + scene.chapterIndex + ".png")
             context.contentResolver.openInputStream(scene.imageUri)?.use { input ->
                 target.outputStream().use { output -> input.copyTo(output) }
-            } ?: error("Unable to persist generated scene $index")
+            } ?: error("Unable to persist generated scene " + scene.chapterIndex)
 
             val uri = FileProvider.getUriForFile(
                 context,
@@ -32,9 +32,14 @@ class GeneratedSceneStore(private val context: Context) {
         return root.listFiles()
             ?.filter { it.isFile && it.name.startsWith("scene-") }
             ?.sortedBy { it.name.substringAfter("scene-").substringBefore(".").toIntOrNull() ?: Int.MAX_VALUE }
-            ?.mapIndexed { index, file ->
+            ?.map { file ->
+                val chapterIndex = file.name
+                    .substringAfter("scene-")
+                    .substringBefore(".")
+                    .toIntOrNull()
+                    ?: return@map null
                 GeneratedScene(
-                    chapterIndex = index,
+                    chapterIndex = chapterIndex,
                     imageUri = FileProvider.getUriForFile(
                         context,
                         context.packageName + ".fileprovider",
@@ -42,6 +47,7 @@ class GeneratedSceneStore(private val context: Context) {
                     )
                 )
             }
+            ?.filterNotNull()
             .orEmpty()
     }
 
