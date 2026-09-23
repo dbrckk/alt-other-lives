@@ -18,8 +18,7 @@ object ShareCardRenderer {
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         canvas.drawColor(Color.rgb(8, 8, 10))
-        photoUri?.let { uri -> context.contentResolver.openInputStream(uri)?.use { input ->
-            BitmapFactory.decodeStream(input)?.let { source ->
+        photoUri?.let { uri -> BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)?.let { source ->
                 drawCover(canvas, source, Rect(0, 0, WIDTH, 900)); source.recycle()
             }
         }}
