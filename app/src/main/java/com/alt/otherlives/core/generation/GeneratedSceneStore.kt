@@ -6,12 +6,19 @@ import androidx.core.content.FileProvider
 import java.io.File
 
 class GeneratedSceneStore(private val context: Context) {
+    internal fun filenameForChapter(chapterIndex: Int): String = "scene-" + chapterIndex + ".png"
+
+    internal fun chapterIndexFromFilename(name: String): Int? = name
+        .substringAfter("scene-")
+        .substringBefore(".")
+        .toIntOrNull()
+
     fun persist(scenarioId: String, scenes: List<GeneratedScene>): List<GeneratedScene> {
         val root = File(context.filesDir, "generated/$scenarioId").apply { mkdirs() }
         root.listFiles()?.forEach { it.delete() }
 
         return scenes.map { scene ->
-            val target = File(root, "scene-" + scene.chapterIndex + ".png")
+            val target = File(root, filenameForChapter(scene.chapterIndex))
             context.contentResolver.openInputStream(scene.imageUri)?.use { input ->
                 target.outputStream().use { output -> input.copyTo(output) }
             } ?: error("Unable to persist generated scene " + scene.chapterIndex)
@@ -31,13 +38,9 @@ class GeneratedSceneStore(private val context: Context) {
 
         return root.listFiles()
             ?.filter { it.isFile && it.name.startsWith("scene-") }
-            ?.sortedBy { it.name.substringAfter("scene-").substringBefore(".").toIntOrNull() ?: Int.MAX_VALUE }
+            ?.sortedBy { chapterIndexFromFilename(it.name) ?: Int.MAX_VALUE }
             ?.map { file ->
-                val chapterIndex = file.name
-                    .substringAfter("scene-")
-                    .substringBefore(".")
-                    .toIntOrNull()
-                    ?: return@map null
+                val chapterIndex = chapterIndexFromFilename(file.name) ?: return@map null
                 GeneratedScene(
                     chapterIndex = chapterIndex,
                     imageUri = FileProvider.getUriForFile(
