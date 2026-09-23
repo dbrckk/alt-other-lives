@@ -32,7 +32,7 @@ class GenerationSettingsRepository(private val context: Context) {
         val normalized = baseUrl.trim()
         ComfyUiConfig(normalized).validate()
         require(workflowJson.isNotBlank()) { "Workflow JSON is required" }
-        org.json.JSONObject(workflowJson)
+        ComfyUiWorkflowTemplate.validateTemplate(workflowJson)
 
         context.generationDataStore.edit { prefs ->
             prefs[baseUrlKey] = normalized
