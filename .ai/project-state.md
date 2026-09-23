@@ -17,9 +17,11 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - Optional workflow placeholder: __ALT_SEED__.
 - Generated scenes are persisted privately under app files and restored when reopening a scenario.
 - Scenario-specific prompt profiles and a stable timeline seed improve sequence continuity.
-- Per-chapter ComfyUI generation now retries once on transient failure.
+- Per-chapter ComfyUI generation retries once on transient failure.
+- Partial generation keeps successful chapters and supports targeted generation of only missing chapters.
+- Full regeneration requires confirmation; generated AI scenes can be explicitly removed to return to local rendering.
 - CI validates unit tests, Android lint and debug APK assembly.
-- Latest confirmed green run before the retry change: #95.
+- Latest confirmed green run: #111.
 
 ## Current priority
 Keep the end-to-end AI generation path reliable, then improve identity continuity, partial-failure recovery and production UX before monetization.
