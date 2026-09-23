@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "buildDebug": "gradle :app:assembleDebug --stacktrace",
+  "testUnit": "gradle :app:testDebugUnitTest --stacktrace",
+  "lint": "gradle :app:lintDebug --stacktrace",
+  "ciWorkflow": ".github/workflows/android.yml",
+  "artifact": "app/build/outputs/apk/debug/app-debug.apk"
+}
