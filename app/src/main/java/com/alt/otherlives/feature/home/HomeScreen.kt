@@ -35,7 +35,7 @@ import com.alt.otherlives.core.designsystem.AltPrimary
 import com.alt.otherlives.core.designsystem.AltAccent
 
 @Composable
-fun HomeScreen(photoUri: Uri?, onPhotoSelected: (Uri) -> Unit, onContinue: () -> Unit, onHistory: () -> Unit) {
+fun HomeScreen(photoUri: Uri?, onPhotoSelected: (Uri) -> Unit, onContinue: () -> Unit, onHistory: () -> Unit, onAiSettings: () -> Unit) {
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let(onPhotoSelected)
     }
@@ -93,6 +93,10 @@ fun HomeScreen(photoUri: Uri?, onPhotoSelected: (Uri) -> Unit, onContinue: () ->
                 onClick = onHistory,
                 modifier = Modifier.fillMaxWidth()
             ) { Text("View my other lives", color = AltMuted) }
+            androidx.compose.material3.TextButton(
+                onClick = onAiSettings,
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("AI generation settings", color = AltMuted) }
         }
     }
 }
