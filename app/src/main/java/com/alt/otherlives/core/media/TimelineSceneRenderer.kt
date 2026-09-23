@@ -2,7 +2,6 @@ package com.alt.otherlives.core.media
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
@@ -28,9 +27,8 @@ object TimelineSceneRenderer {
 
             photoUri?.let { uri ->
                 BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)?.let { source ->
-                        drawCover(canvas, source, Rect(0, 0, WIDTH, 1180), index)
-                        source.recycle()
-                    }
+                    drawCover(canvas, source, Rect(0, 0, WIDTH, 1180), index)
+                    source.recycle()
                 }
             }
 
