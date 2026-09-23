@@ -68,8 +68,14 @@ class ComfyUiClient(
     suspend fun awaitOutputs(promptId: String, timeoutMs: Long = 180_000L): List<OutputImage> {
         val started = System.currentTimeMillis()
         while (System.currentTimeMillis() - started < timeoutMs) {
-            val outputs = historyOutputs(promptId)
-            if (outputs.isNotEmpty()) return outputs
+            val snapshot = historySnapshot(promptId)
+            if (snapshot.status == "error") {
+                error(snapshot.errorMessage ?: "ComfyUI generation failed")
+            }
+            if (snapshot.outputs.isNotEmpty()) return snapshot.outputs
+            if (snapshot.completed) {
+                error("ComfyUI completed without image outputs")
+            }
             delay(900)
         }
         error("ComfyUI generation timed out")
@@ -90,14 +96,27 @@ class ComfyUiClient(
         FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
     }
 
-    private suspend fun historyOutputs(promptId: String): List<OutputImage> = withContext(Dispatchers.IO) {
+    private data class HistorySnapshot(
+        val status: String?,
+        val completed: Boolean,
+        val errorMessage: String?,
+        val outputs: List<OutputImage>
+    )
+
+    private suspend fun historySnapshot(promptId: String): HistorySnapshot = withContext(Dispatchers.IO) {
         val connection = open("/history/" + promptId, "GET")
         val json = JSONObject(readResponse(connection))
-        val prompt = json.optJSONObject(promptId) ?: return@withContext emptyList()
-        val outputs = prompt.optJSONObject("outputs") ?: return@withContext emptyList()
+        val prompt = json.optJSONObject(promptId)
+            ?: return@withContext HistorySnapshot(null, false, null, emptyList())
+
+        val statusObject = prompt.optJSONObject("status")
+        val status = statusObject?.optString("status_str")?.takeIf { it.isNotBlank() }
+        val completed = statusObject?.optBoolean("completed", false) ?: false
+        val errorMessage = extractExecutionError(statusObject?.optJSONArray("messages"))
+        val outputs = prompt.optJSONObject("outputs")
         val result = mutableListOf<OutputImage>()
 
-        outputs.keys().forEach { key ->
+        outputs?.keys()?.forEach { key ->
             val node = outputs.optJSONObject(key) ?: return@forEach
             val images = node.optJSONArray("images") ?: JSONArray()
             for (i in 0 until images.length()) {
@@ -109,7 +128,26 @@ class ComfyUiClient(
                 )
             }
         }
-        result
+
+        HistorySnapshot(
+            status = status,
+            completed = completed,
+            errorMessage = errorMessage,
+            outputs = result.sortedWith(compareBy<OutputImage> { it.filename }.thenBy { it.subfolder })
+        )
+    }
+
+    private fun extractExecutionError(messages: JSONArray?): String? {
+        if (messages == null) return null
+        for (index in 0 until messages.length()) {
+            val message = messages.optJSONArray(index) ?: continue
+            if (message.optString(0) != "execution_error") continue
+            val detail = message.optJSONObject(1)
+            return detail?.optString("exception_message")?.takeIf { it.isNotBlank() }
+                ?: detail?.optString("exception_type")?.takeIf { it.isNotBlank() }
+                ?: "ComfyUI execution error"
+        }
+        return null
     }
 
     private fun open(path: String, method: String): HttpURLConnection =
