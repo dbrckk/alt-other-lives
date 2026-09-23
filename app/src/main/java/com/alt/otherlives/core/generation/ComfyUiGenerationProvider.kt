@@ -53,7 +53,7 @@ class ComfyUiGenerationProvider(
         var lastError: Throwable? = null
 
         repeat(MAX_CHAPTER_ATTEMPTS) {
-            val attemptSeed = seed + index
+            val attemptSeed = seed
             val result = runCatching {
                 val workflow = ComfyUiWorkflowTemplate.prepare(
                     templateJson = workflowTemplateJson,
