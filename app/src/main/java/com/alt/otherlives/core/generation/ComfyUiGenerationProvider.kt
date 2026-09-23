@@ -19,13 +19,21 @@ class ComfyUiGenerationProvider(
         val chapters = request.scenario.chapters.take(5)
         require(chapters.isNotEmpty()) { "Scenario has no chapters" }
 
+        val requestedIndexes = request.chapterIndexes
+            ?.filter { it in chapters.indices }
+            ?.toSet()
+            ?: chapters.indices.toSet()
+        require(requestedIndexes.isNotEmpty()) { "No chapters selected for generation" }
+
         val uploaded = client.uploadImage(request.sourcePhoto)
         val result = mutableListOf<GeneratedScene>()
         val sessionSeed = (System.currentTimeMillis() and Long.MAX_VALUE).coerceAtLeast(1L)
 
         val failures = mutableListOf<String>()
+        var processed = 0
 
         chapters.forEachIndexed { index, chapter ->
+            if (index !in requestedIndexes) return@forEachIndexed
             val prompt = ComfyUiWorkflow.promptFor(
                 scenarioId = request.scenario.id,
                 scenarioTitle = request.scenario.title,
@@ -45,7 +53,8 @@ class ComfyUiGenerationProvider(
             }.onFailure { error ->
                 failures += "Chapter " + (index + 1) + ": " + (error.message ?: "unknown error")
             }
-            onProgress(index + 1, chapters.size)
+            processed += 1
+            onProgress(processed, requestedIndexes.size)
         }
 
         if (result.isEmpty()) {
