@@ -1,0 +1,15 @@
+{
+  "project": "ALT — See Your Other Lives",
+  "repo": "dbrckk/alt-other-lives",
+  "phase": "Phase 0 — Stable engineering base",
+  "currentTask": "Restore green Android CI after JVM target mismatch, then refactor prototype structure.",
+  "lastKnownBlocker": "Initial CI failed: compileDebugJavaWithJavac targeted 1.8 while compileDebugKotlin targeted 17.",
+  "fixApplied": "app/build.gradle.kts now sets Java source/target compatibility to Java 17.",
+  "next": [
+    "Verify new CI run",
+    "Fix any remaining compile failures",
+    "Refactor MainActivity prototype into core/feature packages",
+    "Add first unit and Compose smoke tests"
+  ],
+  "updated": "2026-09-23"
+}
