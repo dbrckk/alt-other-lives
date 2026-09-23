@@ -8,9 +8,11 @@ class ComfyUiWorkflowTest {
     @Test
     fun promptIncludesScenarioAndChapterWithoutProviderMarkup() {
         val prompt = ComfyUiWorkflow.promptFor(
+            scenarioId = "japan",
             scenarioTitle = "What if I moved to Japan?",
             chapterLabel = "Year one",
-            chapterNarrative = "A new city starts to feel like home."
+            chapterNarrative = "A new city starts to feel like home.",
+            chapterIndex = 0
         )
 
         assertTrue(prompt.contains("Japan"))
