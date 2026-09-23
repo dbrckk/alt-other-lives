@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.*
 import android.net.Uri
 import android.provider.MediaStore
+import android.os.Build
 import androidx.core.content.FileProvider
 import com.alt.otherlives.core.model.Scenario
 import java.io.File
@@ -52,6 +53,9 @@ object ShareCardRenderer {
         return FileProvider.getUriForFile(context,context.packageName+".fileprovider",file)
     }
     fun saveToGallery(context: Context, photoUri: Uri?, scenario: Scenario): Uri {
+        require(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            "Direct gallery save requires Android 10 or newer"
+        }
         val rendered = render(context, photoUri, scenario)
         val values = android.content.ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, "ALT-" + scenario.id + "-" + System.currentTimeMillis() + ".jpg")
