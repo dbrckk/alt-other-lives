@@ -23,6 +23,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.media3.transformer.Transformer
+import kotlinx.coroutines.delay
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +52,19 @@ import com.alt.otherlives.core.media.CinematicVideoExporter
 fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
     val context = LocalContext.current
     var isExporting by remember { mutableStateOf(false) }
+    var exportProgress by remember { mutableStateOf<Int?>(null) }
+    var activeTransformer by remember { mutableStateOf<Transformer?>(null) }
+
+    LaunchedEffect(activeTransformer, isExporting) {
+        while (isExporting) {
+            activeTransformer?.let { exportProgress = CinematicVideoExporter.progress(it) }
+            delay(200)
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { activeTransformer?.cancel() }
+    }
     LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 40.dp)) {
         item {
             Box(modifier = Modifier.fillMaxWidth().height(500.dp)) {
@@ -99,22 +117,28 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
                             isExporting = true
                             runCatching { ShareCardRenderer.render(context, photoUri, scenario) }
                                 .onSuccess { imageUri ->
-                                    CinematicVideoExporter.export(
+                                    activeTransformer = CinematicVideoExporter.export(
                                         context = context,
                                         imageUri = imageUri,
                                         scenario = scenario,
                                         onCompleted = { videoUri ->
                                             isExporting = false
+                                            exportProgress = 100
+                                            activeTransformer = null
                                             CinematicVideoExporter.share(context, videoUri, scenario)
                                         },
                                         onError = {
                                             isExporting = false
+                                            exportProgress = null
+                                            activeTransformer = null
                                             Toast.makeText(context, "Video export failed", Toast.LENGTH_SHORT).show()
                                         }
                                     )
                                 }
                                 .onFailure {
                                     isExporting = false
+                                    exportProgress = null
+                                    activeTransformer = null
                                     Toast.makeText(context, "Could not prepare video", Toast.LENGTH_SHORT).show()
                                 }
                         }
@@ -122,10 +146,27 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
                     enabled = !isExporting,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(20.dp)
-                ) { Text(if (isExporting) "Creating video…" else "Create 7s MP4", fontWeight = FontWeight.Bold) }
+                ) {
+                    Text(
+                        if (isExporting) "Creating video" + (exportProgress?.let { " • $it%" } ?: "…")
+                        else "Create 7s MP4",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                if (isExporting) {
+                    Spacer(Modifier.height(10.dp))
+                    if (exportProgress != null) {
+                        LinearProgressIndicator(
+                            progress = { exportProgress!!.coerceIn(0, 100) / 100f },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    } else {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+                }
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "Local 9:16 image + first MP4 export • motion pass next",
+                    "Local 9:16 image + MP4 export • live export progress",
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                     color = AltDimmed,
