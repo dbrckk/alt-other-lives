@@ -141,7 +141,13 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
                                     }.onSuccess {
                                         generatedScenes = sceneStore.persist(scenario.id, it)
                                         isGeneratingAi = false
-                                        Toast.makeText(context, "AI scenes ready", Toast.LENGTH_SHORT).show()
+                                        val expected = scenario.chapters.take(5).size
+                                        val message = if (it.size == expected) {
+                                            "AI scenes ready"
+                                        } else {
+                                            "Partial result: " + it.size + "/" + expected + " scenes ready"
+                                        }
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                     }.onFailure {
                                         isGeneratingAi = false
                                         Toast.makeText(
