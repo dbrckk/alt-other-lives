@@ -27,6 +27,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.media3.transformer.Transformer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -71,6 +73,7 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
     var isGeneratingAi by remember { mutableStateOf(false) }
     var aiCompleted by remember { mutableStateOf(0) }
     var aiTotal by remember { mutableStateOf(0) }
+    var showRegenerateAllDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(activeTransformer, isExporting) {
         while (isExporting) {
@@ -118,58 +121,62 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
         item {
             Column(Modifier.padding(24.dp)) {
                 if (generationSettings.isConfigured && photoUri != null) {
+                    val startGeneration: (Set<Int>) -> Unit = { targetIndexes ->
+                        if (!isGeneratingAi) {
+                            isGeneratingAi = true
+                            aiCompleted = 0
+                            aiTotal = targetIndexes.size
+                            scope.launch {
+                                runCatching {
+                                    val provider = ComfyUiGenerationProvider(
+                                        context = context,
+                                        config = ComfyUiConfig(generationSettings.comfyUiBaseUrl),
+                                        workflowTemplateJson = generationSettings.workflowJson
+                                    )
+                                    provider.generate(
+                                        request = GenerationRequest(
+                                            sourcePhoto = photoUri,
+                                            scenario = scenario,
+                                            chapterIndexes = targetIndexes
+                                        ),
+                                        onProgress = { completed, total ->
+                                            aiCompleted = completed
+                                            aiTotal = total
+                                        }
+                                    )
+                                }.onSuccess {
+                                    sceneStore.persist(scenario.id, it)
+                                    generatedScenes = sceneStore.load(scenario.id)
+                                    isGeneratingAi = false
+                                    val expected = scenario.chapters.take(5).size
+                                    val message = if (generatedScenes.size == expected) {
+                                        "AI scenes ready"
+                                    } else {
+                                        "Partial result: " + generatedScenes.size + "/" + expected + " scenes ready"
+                                    }
+                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                }.onFailure {
+                                    isGeneratingAi = false
+                                    Toast.makeText(
+                                        context,
+                                        "AI generation failed: " + (it.message ?: "unknown error"),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        }
+                    }
+
                     Button(
                         onClick = {
                             if (!isGeneratingAi) {
                                 val expectedIndexes = scenario.chapters.take(5).indices.toSet()
                                 val existingIndexes = generatedScenes.map { it.chapterIndex }.toSet()
                                 val missingIndexes = expectedIndexes - existingIndexes
-                                val targetIndexes = if (generatedScenes.isNotEmpty() && missingIndexes.isNotEmpty()) {
-                                    missingIndexes
+                                if (generatedScenes.size >= expectedIndexes.size && expectedIndexes.isNotEmpty()) {
+                                    showRegenerateAllDialog = true
                                 } else {
-                                    expectedIndexes
-                                }
-
-                                isGeneratingAi = true
-                                aiCompleted = 0
-                                aiTotal = targetIndexes.size
-                                scope.launch {
-                                    runCatching {
-                                        val provider = ComfyUiGenerationProvider(
-                                            context = context,
-                                            config = ComfyUiConfig(generationSettings.comfyUiBaseUrl),
-                                            workflowTemplateJson = generationSettings.workflowJson
-                                        )
-                                        provider.generate(
-                                            request = GenerationRequest(
-                                                sourcePhoto = photoUri,
-                                                scenario = scenario,
-                                                chapterIndexes = targetIndexes
-                                            ),
-                                            onProgress = { completed, total ->
-                                                aiCompleted = completed
-                                                aiTotal = total
-                                            }
-                                        )
-                                    }.onSuccess {
-                                        sceneStore.persist(scenario.id, it)
-                                        generatedScenes = sceneStore.load(scenario.id)
-                                        isGeneratingAi = false
-                                        val expected = scenario.chapters.take(5).size
-                                        val message = if (generatedScenes.size == expected) {
-                                            "AI scenes ready"
-                                        } else {
-                                            "Partial result: " + generatedScenes.size + "/" + expected + " scenes ready"
-                                        }
-                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                                    }.onFailure {
-                                        isGeneratingAi = false
-                                        Toast.makeText(
-                                            context,
-                                            "AI generation failed: " + (it.message ?: "unknown error"),
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
+                                    startGeneration(if (missingIndexes.isNotEmpty()) missingIndexes else expectedIndexes)
                                 }
                             }
                         },
@@ -183,6 +190,26 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
                             else if (generatedScenes.size < scenario.chapters.take(5).size) "Generate missing AI scenes"
                             else "Regenerate all AI scenes",
                             fontWeight = FontWeight.Bold
+                        )
+                    }
+                    if (showRegenerateAllDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showRegenerateAllDialog = false },
+                            title = { Text("Regenerate all AI scenes?") },
+                            text = { Text("This will replace every generated chapter in this timeline.") },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        showRegenerateAllDialog = false
+                                        startGeneration(scenario.chapters.take(5).indices.toSet())
+                                    }
+                                ) { Text("Regenerate all") }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showRegenerateAllDialog = false }) {
+                                    Text("Cancel")
+                                }
+                            }
                         )
                     }
                     if (isGeneratingAi) {
