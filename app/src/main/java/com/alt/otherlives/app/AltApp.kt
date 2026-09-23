@@ -17,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import com.alt.otherlives.core.data.HistoryRepository
+import com.alt.otherlives.core.generation.GenerationSettingsRepository
 import androidx.compose.ui.Modifier
 import com.alt.otherlives.core.data.ScenarioCatalog
 import com.alt.otherlives.core.designsystem.AltBackground
@@ -24,9 +25,10 @@ import com.alt.otherlives.core.designsystem.AltTheme
 import com.alt.otherlives.feature.home.HomeScreen
 import com.alt.otherlives.feature.history.HistoryScreen
 import com.alt.otherlives.feature.scenarios.ScenarioScreen
+import com.alt.otherlives.feature.settings.GenerationSettingsScreen
 import com.alt.otherlives.feature.timeline.RevealScreen
 
-private enum class Screen { HOME, SCENARIOS, REVEAL, HISTORY }
+private enum class Screen { HOME, SCENARIOS, REVEAL, HISTORY, SETTINGS }
 
 @Composable
 fun AltApp() {
@@ -35,8 +37,14 @@ fun AltApp() {
     var selectedScenario by remember { mutableStateOf(ScenarioCatalog.scenarios.first()) }
     val context = LocalContext.current
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
+    val generationSettingsRepository = remember(context) {
+        GenerationSettingsRepository(context.applicationContext)
+    }
     val scope = rememberCoroutineScope()
     val history by historyRepository.history.collectAsState(initial = emptyList())
+    val generationSettings by generationSettingsRepository.settings.collectAsState(
+        initial = com.alt.otherlives.core.generation.GenerationSettings()
+    )
 
     AltTheme {
         Surface(modifier = Modifier.fillMaxSize(), color = AltBackground) {
@@ -50,7 +58,8 @@ fun AltApp() {
                         photoUri = photoUri,
                         onPhotoSelected = { photoUri = it },
                         onContinue = { screen = Screen.SCENARIOS },
-                        onHistory = { screen = Screen.HISTORY }
+                        onHistory = { screen = Screen.HISTORY },
+                        onAiSettings = { screen = Screen.SETTINGS }
                     )
                     Screen.SCENARIOS -> ScenarioScreen(
                         scenarios = ScenarioCatalog.scenarios,
@@ -65,6 +74,20 @@ fun AltApp() {
                         photoUri = photoUri,
                         scenario = selectedScenario,
                         onBack = { screen = Screen.SCENARIOS }
+                    )
+                    Screen.SETTINGS -> GenerationSettingsScreen(
+                        settings = generationSettings,
+                        onBack = { screen = Screen.HOME },
+                        onSave = { baseUrl, workflowJson ->
+                            scope.launch {
+                                runCatching {
+                                    generationSettingsRepository.save(baseUrl, workflowJson)
+                                }
+                            }
+                        },
+                        onClear = {
+                            scope.launch { generationSettingsRepository.clear() }
+                        }
                     )
                     Screen.HISTORY -> HistoryScreen(
                         entries = history,
