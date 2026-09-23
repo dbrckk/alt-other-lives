@@ -27,8 +27,7 @@ object TimelineSceneRenderer {
             canvas.drawColor(Color.rgb(8, 8, 10))
 
             photoUri?.let { uri ->
-                context.contentResolver.openInputStream(uri)?.use { input ->
-                    BitmapFactory.decodeStream(input)?.let { source ->
+                BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)?.let { source ->
                         drawCover(canvas, source, Rect(0, 0, WIDTH, 1180), index)
                         source.recycle()
                     }
