@@ -1,5 +1,6 @@
 package com.alt.otherlives.feature.timeline
 
+import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -35,6 +37,19 @@ import com.alt.otherlives.core.model.Scenario
 
 @Composable
 fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
+    val context = LocalContext.current
+    val shareText = buildString {
+        append("My ALT life: ")
+        append(scenario.title)
+        append("\n\n")
+        scenario.chapters.forEach { chapter ->
+            append(chapter.label)
+            append(" — ")
+            append(chapter.narrative)
+            append("\n")
+        }
+    }
+
     LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 40.dp)) {
         item {
             Box(modifier = Modifier.fillMaxWidth().height(500.dp)) {
@@ -62,14 +77,20 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
         item {
             Column(Modifier.padding(24.dp)) {
                 Button(
-                    onClick = {},
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, shareText)
+                        }
+                        context.startActivity(Intent.createChooser(intent, "Share your ALT life"))
+                    },
                     modifier = Modifier.fillMaxWidth().height(58.dp),
                     shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AltPrimary, contentColor = Color(0xFF16111F))
-                ) { Text("Create share story", fontWeight = FontWeight.Bold) }
+                ) { Text("Share this ALT life", fontWeight = FontWeight.Bold) }
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "Local timeline prototype • cinematic export comes next",
+                    "Share works now • cinematic 9:16 export comes next",
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                     color = AltDimmed,
