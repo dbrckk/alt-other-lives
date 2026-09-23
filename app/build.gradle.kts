@@ -42,6 +42,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("androidx.media3:media3-transformer:1.6.1")
+    implementation("androidx.media3:media3-effect:1.6.1")
+    implementation("androidx.media3:media3-common:1.6.1")
     implementation("io.coil-kt.coil3:coil-compose:3.0.4")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
