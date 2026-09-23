@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import com.alt.otherlives.core.data.HistoryRepository
@@ -21,10 +22,11 @@ import com.alt.otherlives.core.data.ScenarioCatalog
 import com.alt.otherlives.core.designsystem.AltBackground
 import com.alt.otherlives.core.designsystem.AltTheme
 import com.alt.otherlives.feature.home.HomeScreen
+import com.alt.otherlives.feature.history.HistoryScreen
 import com.alt.otherlives.feature.scenarios.ScenarioScreen
 import com.alt.otherlives.feature.timeline.RevealScreen
 
-private enum class Screen { HOME, SCENARIOS, REVEAL }
+private enum class Screen { HOME, SCENARIOS, REVEAL, HISTORY }
 
 @Composable
 fun AltApp() {
@@ -34,6 +36,7 @@ fun AltApp() {
     val context = LocalContext.current
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
     val scope = rememberCoroutineScope()
+    val history by historyRepository.history.collectAsState(initial = emptyList())
 
     AltTheme {
         Surface(modifier = Modifier.fillMaxSize(), color = AltBackground) {
@@ -46,7 +49,8 @@ fun AltApp() {
                     Screen.HOME -> HomeScreen(
                         photoUri = photoUri,
                         onPhotoSelected = { photoUri = it },
-                        onContinue = { screen = Screen.SCENARIOS }
+                        onContinue = { screen = Screen.SCENARIOS },
+                        onHistory = { screen = Screen.HISTORY }
                     )
                     Screen.SCENARIOS -> ScenarioScreen(
                         scenarios = ScenarioCatalog.scenarios,
@@ -61,6 +65,16 @@ fun AltApp() {
                         photoUri = photoUri,
                         scenario = selectedScenario,
                         onBack = { screen = Screen.SCENARIOS }
+                    )
+                    Screen.HISTORY -> HistoryScreen(
+                        entries = history,
+                        scenarios = ScenarioCatalog.scenarios,
+                        onBack = { screen = Screen.HOME },
+                        onOpen = {
+                            selectedScenario = it
+                            screen = Screen.REVEAL
+                        },
+                        onClear = { scope.launch { historyRepository.clear() } }
                     )
                 }
             }
