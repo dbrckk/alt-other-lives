@@ -1,6 +1,7 @@
 package com.alt.otherlives.feature.timeline
 
 import android.net.Uri
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -55,6 +56,7 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
     var isExporting by remember { mutableStateOf(false) }
     var exportProgress by remember { mutableStateOf<Int?>(null) }
     var activeTransformer by remember { mutableStateOf<Transformer?>(null) }
+    var completedVideoUri by remember { mutableStateOf<Uri?>(null) }
 
     LaunchedEffect(activeTransformer, isExporting) {
         while (isExporting) {
@@ -116,6 +118,8 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
                     onClick = {
                         if (!isExporting) {
                             isExporting = true
+                            exportProgress = null
+                            completedVideoUri = null
                             runCatching { TimelineSceneRenderer.render(context, photoUri, scenario) }
                                 .onSuccess { sceneUris ->
                                     activeTransformer = CinematicVideoExporter.export(
@@ -126,7 +130,8 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
                                             isExporting = false
                                             exportProgress = 100
                                             activeTransformer = null
-                                            CinematicVideoExporter.share(context, videoUri, scenario)
+                                            completedVideoUri = videoUri
+                                            Toast.makeText(context, "Video ready", Toast.LENGTH_SHORT).show()
                                         },
                                         onError = {
                                             isExporting = false
@@ -163,6 +168,41 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
                         )
                     } else {
                         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    androidx.compose.material3.TextButton(
+                        onClick = {
+                            activeTransformer?.cancel()
+                            activeTransformer = null
+                            isExporting = false
+                            exportProgress = null
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text("Cancel export") }
+                }
+
+                completedVideoUri?.let { videoUri ->
+                    Spacer(Modifier.height(12.dp))
+                    Button(
+                        onClick = { CinematicVideoExporter.share(context, videoUri, scenario) },
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(20.dp)
+                    ) { Text("Share MP4", fontWeight = FontWeight.Bold) }
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        Spacer(Modifier.height(8.dp))
+                        androidx.compose.material3.TextButton(
+                            onClick = {
+                                runCatching {
+                                    CinematicVideoExporter.saveToGallery(context, videoUri, scenario)
+                                }.onSuccess {
+                                    Toast.makeText(context, "Saved to Movies/ALT", Toast.LENGTH_SHORT).show()
+                                }.onFailure {
+                                    Toast.makeText(context, "Could not save video", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text("Save MP4 to gallery") }
                     }
                 }
                 Spacer(Modifier.height(12.dp))
