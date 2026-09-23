@@ -23,6 +23,8 @@ class ComfyUiGenerationProvider(
         val result = mutableListOf<GeneratedScene>()
         val sessionSeed = (System.currentTimeMillis() and Long.MAX_VALUE).coerceAtLeast(1L)
 
+        val failures = mutableListOf<String>()
+
         chapters.forEachIndexed { index, chapter ->
             val prompt = ComfyUiWorkflow.promptFor(
                 scenarioId = request.scenario.id,
@@ -31,14 +33,26 @@ class ComfyUiGenerationProvider(
                 chapterNarrative = chapter.narrative,
                 chapterIndex = index
             )
-            val generated = generateChapterWithRetry(
-                index = index,
-                uploaded = uploaded,
-                prompt = prompt,
-                seed = sessionSeed
+            runCatching {
+                generateChapterWithRetry(
+                    index = index,
+                    uploaded = uploaded,
+                    prompt = prompt,
+                    seed = sessionSeed
+                )
+            }.onSuccess { generated ->
+                result += generated
+            }.onFailure { error ->
+                failures += "Chapter " + (index + 1) + ": " + (error.message ?: "unknown error")
+            }
+            onProgress(index + 1, chapters.size)
+        }
+
+        if (result.isEmpty()) {
+            error(
+                "ComfyUI could not generate any chapter" +
+                    if (failures.isEmpty()) "" else ": " + failures.joinToString(" | ")
             )
-            result += generated
-            onProgress(result.size, chapters.size)
         }
 
         return result
