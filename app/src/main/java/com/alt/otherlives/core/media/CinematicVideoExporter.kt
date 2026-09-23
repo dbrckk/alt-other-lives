@@ -2,9 +2,12 @@ package com.alt.otherlives.core.media
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Matrix
 import android.net.Uri
 import androidx.core.content.FileProvider
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Effect
+import androidx.media3.common.Effects
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.transformer.Composition
 import androidx.media3.transformer.EditedMediaItem
@@ -12,6 +15,7 @@ import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.ExportResult
 import androidx.media3.transformer.Transformer
 import androidx.media3.transformer.ProgressHolder
+import androidx.media3.effect.MatrixTransformation
 import com.alt.otherlives.core.model.Scenario
 import java.io.File
 
@@ -35,8 +39,21 @@ object CinematicVideoExporter {
             .setImageDurationMs(DURATION_MS)
             .build()
 
+        val kenBurns = MatrixTransformation { presentationTimeUs ->
+            val progress = (presentationTimeUs / (DURATION_MS * 1000f)).coerceIn(0f, 1f)
+            val eased = progress * progress * (3f - 2f * progress)
+            val scale = 1f + 0.08f * eased
+            val panX = -0.025f + 0.05f * eased
+            val panY = 0.018f - 0.036f * eased
+            Matrix().apply {
+                postScale(scale, scale)
+                postTranslate(panX, panY)
+            }
+        }
+
         val edited = EditedMediaItem.Builder(mediaItem)
             .setFrameRate(FRAME_RATE)
+            .setEffects(Effects(emptyList(), listOf<Effect>(kenBurns)))
             .build()
 
         val transformer = Transformer.Builder(context)
