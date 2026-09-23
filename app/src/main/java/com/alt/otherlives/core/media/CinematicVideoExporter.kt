@@ -22,7 +22,9 @@ import java.io.File
 
 @UnstableApi
 object CinematicVideoExporter {
-    private const val SCENE_DURATION_MS = 2400L
+    private const val INTRO_DURATION_MS = 1800L
+    private const val CHAPTER_DURATION_MS = 2200L
+    private const val OUTRO_DURATION_MS = 1600L
     private const val FRAME_RATE = 30
 
     fun export(
@@ -38,18 +40,26 @@ object CinematicVideoExporter {
         val outputFile = File(outputDir, "alt-" + scenario.id + "-" + System.currentTimeMillis() + ".mp4")
 
         val editedScenes = imageUris.mapIndexed { index, imageUri ->
+            val durationMs = when (index) {
+                0 -> INTRO_DURATION_MS
+                imageUris.lastIndex -> OUTRO_DURATION_MS
+                else -> CHAPTER_DURATION_MS
+            }
+
             val mediaItem = MediaItem.Builder()
                 .setUri(imageUri)
-                .setImageDurationMs(SCENE_DURATION_MS)
+                .setImageDurationMs(durationMs)
                 .build()
 
             val motion = MatrixTransformation { presentationTimeUs ->
-                val progress = (presentationTimeUs / (SCENE_DURATION_MS * 1000f)).coerceIn(0f, 1f)
+                val progress = (presentationTimeUs / (durationMs * 1000f)).coerceIn(0f, 1f)
                 val eased = progress * progress * (3f - 2f * progress)
                 val direction = if (index % 2 == 0) 1f else -1f
-                val scale = 1.02f + 0.07f * eased
-                val panX = direction * (-0.018f + 0.036f * eased)
-                val panY = 0.012f - 0.024f * eased
+                val isEdgeScene = index == 0 || index == imageUris.lastIndex
+                val scaleRange = if (isEdgeScene) 0.035f else 0.07f
+                val scale = 1.015f + scaleRange * eased
+                val panX = direction * if (isEdgeScene) 0.010f * eased else (-0.018f + 0.036f * eased)
+                val panY = if (isEdgeScene) 0f else 0.012f - 0.024f * eased
                 Matrix().apply {
                     postScale(scale, scale)
                     postTranslate(panX, panY)
