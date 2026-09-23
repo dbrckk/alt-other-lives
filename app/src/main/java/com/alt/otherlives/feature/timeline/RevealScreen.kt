@@ -18,6 +18,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.media3.common.util.UnstableApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +42,7 @@ import com.alt.otherlives.core.model.Scenario
 import com.alt.otherlives.core.media.ShareCardRenderer
 import com.alt.otherlives.core.media.CinematicVideoExporter
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun RevealScreen(photoUri: Uri?, scenario: Scenario, onBack: () -> Unit) {
     val context = LocalContext.current
