@@ -13,6 +13,21 @@ class GeneratedSceneStore(private val context: Context) {
         .substringBefore(".")
         .toIntOrNull()
 
+    fun getOrCreateSeed(timelineKey: String): Long {
+        val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
+        val seedFile = File(root, "seed.txt")
+        seedFile.takeIf { it.exists() }
+            ?.readText()
+            ?.trim()
+            ?.toLongOrNull()
+            ?.takeIf { it > 0L }
+            ?.let { return it }
+
+        val seed = (System.currentTimeMillis() and Long.MAX_VALUE).coerceAtLeast(1L)
+        seedFile.writeText(seed.toString())
+        return seed
+    }
+
     fun persist(timelineKey: String, scenes: List<GeneratedScene>): List<GeneratedScene> {
         val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
 
