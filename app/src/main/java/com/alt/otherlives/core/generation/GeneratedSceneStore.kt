@@ -51,23 +51,43 @@ class GeneratedSceneStore(private val context: Context) {
                 error("Unable to prepare timeline seed replacement")
             }
             if (!temporary.renameTo(target)) {
-                if (backup.exists()) {
-                    backup.renameTo(target)
-                }
+                restoreBackupOrThrow(
+                    target = target,
+                    backup = backup,
+                    message = "Unable to restore previous timeline seed"
+                )
                 error("Unable to finalize timeline seed")
             }
             backup.delete()
         } catch (error: Throwable) {
             temporary.delete()
-            if (!target.exists() && backup.exists()) {
-                backup.renameTo(target)
+            runCatching {
+                restoreBackupOrThrow(
+                    target = target,
+                    backup = backup,
+                    message = "Unable to restore previous timeline seed"
+                )
+            }.onFailure { restoreError ->
+                restoreError.addSuppressed(error)
+                throw restoreError
             }
             throw error
         }
     }
 
+    private fun restoreBackupOrThrow(
+        target: File,
+        backup: File,
+        message: String
+    ) {
+        if (!target.exists() && backup.exists() && !backup.renameTo(target)) {
+            error(message)
+        }
+    }
+
     fun persist(timelineKey: String, scenes: List<GeneratedScene>): List<GeneratedScene> {
         val root = timelineRoot(timelineKey).apply { mkdirs() }
+        recoverInterruptedWrites(root)
 
         return scenes.map { scene ->
             val mimeType = context.contentResolver.getType(scene.imageUri)
@@ -85,7 +105,11 @@ class GeneratedSceneStore(private val context: Context) {
             )
             val backup = File(root, "." + target.name + ".bak")
             val previousFiles = root.listFiles()
-                ?.filter { it.isFile && chapterIndexFromFilename(it.name) == scene.chapterIndex }
+                ?.filter {
+                    it.isFile &&
+                        it.name.startsWith("scene-") &&
+                        chapterIndexFromFilename(it.name) == scene.chapterIndex
+                }
                 .orEmpty()
 
             try {
@@ -95,6 +119,9 @@ class GeneratedSceneStore(private val context: Context) {
                 require(temporary.length() > 0L) {
                     "Generated scene copy is empty for chapter " + (scene.chapterIndex + 1)
                 }
+                require(isValidImage(temporary)) {
+                    "Generated scene is invalid for chapter " + (scene.chapterIndex + 1)
+                }
 
                 backup.delete()
                 val currentTarget = previousFiles.firstOrNull { it.absolutePath == target.absolutePath }
@@ -103,9 +130,11 @@ class GeneratedSceneStore(private val context: Context) {
                 }
 
                 if (!temporary.renameTo(target)) {
-                    if (backup.exists()) {
-                        backup.renameTo(target)
-                    }
+                    restoreBackupOrThrow(
+                        target = target,
+                        backup = backup,
+                        message = "Unable to restore previous generated scene"
+                    )
                     error("Unable to finalize generated scene replacement")
                 }
 
@@ -115,8 +144,15 @@ class GeneratedSceneStore(private val context: Context) {
                 backup.delete()
             } catch (error: Throwable) {
                 temporary.delete()
-                if (!target.exists() && backup.exists()) {
-                    backup.renameTo(target)
+                runCatching {
+                    restoreBackupOrThrow(
+                        target = target,
+                        backup = backup,
+                        message = "Unable to restore previous generated scene"
+                    )
+                }.onFailure { restoreError ->
+                    restoreError.addSuppressed(error)
+                    throw restoreError
                 }
                 throw error
             }
