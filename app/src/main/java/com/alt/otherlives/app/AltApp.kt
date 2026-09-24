@@ -81,7 +81,8 @@ fun AltApp() {
         hasRestoredStartupPhoto = true
     }
 
-    LaunchedEffect(history) {
+    LaunchedEffect(history, screen) {
+        if (screen != Screen.HISTORY) return@LaunchedEffect
         val photoFileNames = history.mapNotNull { it.photoFileName }.distinct()
         val preflight = withContext(Dispatchers.IO) {
             val availablePhotos = photoFileNames.mapNotNull { fileName ->
