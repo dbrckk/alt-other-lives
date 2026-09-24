@@ -9,12 +9,10 @@ import java.io.File
 
 class GeneratedSceneStore(private val context: Context) {
     internal fun filenameForChapter(chapterIndex: Int, extension: String = "png"): String =
-        "scene-" + chapterIndex + "." + extension
+        GeneratedSceneFileName.forChapter(chapterIndex, extension)
 
-    internal fun chapterIndexFromFilename(name: String): Int? = name
-        .substringAfter("scene-")
-        .substringBefore(".")
-        .toIntOrNull()
+    internal fun chapterIndexFromFilename(name: String): Int? =
+        GeneratedSceneFileName.chapterIndex(name)
 
     fun getOrCreateSeed(timelineKey: String): Long {
         val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
