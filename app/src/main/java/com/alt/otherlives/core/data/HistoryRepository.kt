@@ -26,12 +26,15 @@ class HistoryRepository(private val context: Context) {
         scenarioId: String,
         photoFileName: String? = null,
         createdAt: Long = System.currentTimeMillis()
-    ) {
+    ): Set<String> {
+        var referencedPhotoFileNames = emptySet<String>()
         context.altDataStore.edit { prefs ->
             val current = decode(prefs[historyKey].orEmpty())
             val updated = (listOf(HistoryEntry(scenarioId, createdAt, photoFileName)) + current).take(MAX_ENTRIES)
             prefs[historyKey] = encode(updated)
+            referencedPhotoFileNames = updated.mapNotNull { it.photoFileName }.toSet()
         }
+        return referencedPhotoFileNames
     }
 
     suspend fun clear() {
