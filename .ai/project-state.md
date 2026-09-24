@@ -24,6 +24,9 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - Source photos are copied atomically into private app storage with UUID names, validated on import and restore, restored after restart, and associated with history entries.
 - Source-photo and generated-scene orphan cleanup prevents private storage from growing indefinitely.
 - Generated-scene replacement and timeline-seed writes are rollback-safe and recover after interrupted writes.
+- Full AI regeneration commits scenes and seed in one atomic batch transaction; interrupted commits roll back together, completed commits are preserved, and rollback recovery is idempotent.
+- Atomic batch recovery rebuilds missing manifests from staged/backed-up files when possible and validates chapter indexes before commit.
+- Pure JVM tests cover batch recovery planning, completed-commit preservation, scene batch index validation, and the production scene filename codec.
 - Persisted AI scenes are revalidated on load, corrupted files are purged, and duplicate chapter files are deduplicated to the newest valid copy.
 - Media export falls back to generated scenes when a source photo is missing, and disables export when no visual asset remains.
 - History cards show local private thumbnails when available and fall back to persisted AI scenes when the original photo is missing.
@@ -37,7 +40,7 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - Persisted Reveal scenes are restored off the main thread with explicit restore progress, and generation callbacks can persist completed chapters asynchronously without blocking Compose.
 - Timeline seed reads/writes and generated-scene persistence are dispatched to IO; AI scene removal and exported MP4 gallery copies are also performed asynchronously.
 - CI validates unit tests, Android lint and debug APK assembly.
-- Latest confirmed green run: #246. Runs #247–#248 validate asynchronous AI-scene removal and MP4 gallery saving.
+- Latest confirmed green run: #275. Runs #276–#278 validate the shared production scene filename codec and its tests.
 
 ## Current priority
 Keep the end-to-end AI generation path reliable, then improve identity continuity, partial-failure recovery and production UX before monetization.
