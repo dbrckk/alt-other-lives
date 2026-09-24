@@ -355,6 +355,36 @@ fun RevealScreen(
                             fontWeight = FontWeight.Bold
                         )
                     }
+                    val existingChapterIndexes =
+                        generatedScenes.map { it.chapterIndex }.toSet()
+                    val retryableFailedIndexes = aiChapterFailures.keys
+                        .filterNot { it in existingChapterIndexes }
+                        .toSet()
+                    if (retryableFailedIndexes.isNotEmpty()) {
+                        TextButton(
+                            onClick = {
+                                startGeneration(
+                                    retryableFailedIndexes,
+                                    false
+                                )
+                            },
+                            enabled = !isLoadingStoredScenes &&
+                                !isClearingAi &&
+                                !isSavingVideoToGallery &&
+                                !isGeneratingAi &&
+                                !isExporting &&
+                                !isRenderingShareImage,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                "Retry failed chapters " +
+                                    retryableFailedIndexes
+                                        .sorted()
+                                        .joinToString(", ") { (it + 1).toString() }
+                            )
+                        }
+                    }
+
                     if (generatedScenes.isNotEmpty()) {
                         TextButton(
                             onClick = { showClearAiDialog = true },
