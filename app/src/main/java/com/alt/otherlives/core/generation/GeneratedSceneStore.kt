@@ -343,8 +343,22 @@ class GeneratedSceneStore(private val context: Context) {
                         File(root, "seed.txt").delete()
                     }
 
-                    backupDir.listFiles()?.forEach { backup ->
-                        backup.renameTo(File(root, backup.name))
+                    val restoreSucceeded = backupDir.listFiles()
+                        .orEmpty()
+                        .all { backup ->
+                            val target = File(root, backup.name)
+                            runCatching {
+                                backup.inputStream().use { input ->
+                                    target.outputStream().use { output ->
+                                        input.copyTo(output)
+                                    }
+                                }
+                                target.length() == backup.length() && target.length() > 0L
+                            }.getOrDefault(false)
+                        }
+
+                    if (!restoreSucceeded) {
+                        return@forEach
                     }
                 }
 
