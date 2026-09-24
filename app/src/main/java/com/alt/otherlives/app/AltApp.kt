@@ -16,7 +16,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.alt.otherlives.core.data.HistoryRepository
+import com.alt.otherlives.core.data.SourcePhotoStore
 import com.alt.otherlives.core.generation.GenerationSettingsRepository
 import androidx.compose.ui.Modifier
 import com.alt.otherlives.core.data.ScenarioCatalog
@@ -34,9 +37,11 @@ private enum class Screen { HOME, SCENARIOS, REVEAL, HISTORY, SETTINGS }
 fun AltApp() {
     var screen by remember { mutableStateOf(Screen.HOME) }
     var photoUri by remember { mutableStateOf<Uri?>(null) }
+    var photoFileName by remember { mutableStateOf<String?>(null) }
     var selectedScenario by remember { mutableStateOf(ScenarioCatalog.scenarios.first()) }
     val context = LocalContext.current
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
+    val sourcePhotoStore = remember(context) { SourcePhotoStore(context.applicationContext) }
     val generationSettingsRepository = remember(context) {
         GenerationSettingsRepository(context.applicationContext)
     }
@@ -56,7 +61,18 @@ fun AltApp() {
                 when (current) {
                     Screen.HOME -> HomeScreen(
                         photoUri = photoUri,
-                        onPhotoSelected = { photoUri = it },
+                        onPhotoSelected = { selectedUri ->
+                            scope.launch {
+                                runCatching {
+                                    withContext(Dispatchers.IO) {
+                                        sourcePhotoStore.import(selectedUri)
+                                    }
+                                }.onSuccess { stored ->
+                                    photoUri = stored.uri
+                                    photoFileName = stored.fileName
+                                }
+                            }
+                        },
                         onContinue = { screen = Screen.SCENARIOS },
                         onHistory = { screen = Screen.HISTORY },
                         onAiSettings = { screen = Screen.SETTINGS }
@@ -66,7 +82,7 @@ fun AltApp() {
                         onBack = { screen = Screen.HOME },
                         onSelect = {
                             selectedScenario = it
-                            scope.launch { historyRepository.record(it.id) }
+                            scope.launch { historyRepository.record(it.id, photoFileName) }
                             screen = Screen.REVEAL
                         }
                     )
@@ -94,11 +110,25 @@ fun AltApp() {
                         entries = history,
                         scenarios = ScenarioCatalog.scenarios,
                         onBack = { screen = Screen.HOME },
-                        onOpen = {
-                            selectedScenario = it
+                        onOpen = { scenario, entry ->
+                            selectedScenario = scenario
+                            entry.photoFileName?.let { fileName ->
+                                runCatching { sourcePhotoStore.uriFor(fileName) }
+                                    .onSuccess {
+                                        photoUri = it
+                                        photoFileName = fileName
+                                    }
+                            }
                             screen = Screen.REVEAL
                         },
-                        onClear = { scope.launch { historyRepository.clear() } }
+                        onClear = {
+                            scope.launch {
+                                historyRepository.clear()
+                                withContext(Dispatchers.IO) { sourcePhotoStore.clearAll() }
+                                photoUri = null
+                                photoFileName = null
+                            }
+                        }
                     )
                 }
             }
