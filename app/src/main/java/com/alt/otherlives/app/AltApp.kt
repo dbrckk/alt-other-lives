@@ -95,7 +95,7 @@ fun AltApp() {
                     ?.let { fileName to it }
             }.toMap()
             val generatedPreviews = recentEntries.mapNotNull { entry ->
-                val timelineKey = entry.scenarioId + "-" + entry.createdAt
+                val timelineKey = entry.timelineKey
                 generatedSceneStore.load(timelineKey)
                     .minByOrNull { it.chapterIndex }
                     ?.imageUri
@@ -288,7 +288,7 @@ fun AltApp() {
 
                                     removal.onSuccess { keep ->
                                         val deletedTimelineKey =
-                                            entry.scenarioId + "-" + entry.createdAt
+                                            entry.timelineKey
                                         historyGeneratedPreviewUris =
                                             historyGeneratedPreviewUris - deletedTimelineKey
                                         entry.photoFileName?.let { deletedPhotoFileName ->
