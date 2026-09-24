@@ -76,7 +76,9 @@ class SourcePhotoStore(private val context: Context) {
     }
 
     private fun storedFile(fileName: String): File {
-        require(fileName.isNotBlank()) { "Stored photo filename is required" }
+        require(SourcePhotoFileName.isValid(fileName)) {
+            "Invalid stored photo filename"
+        }
         require(File(fileName).name == fileName) { "Invalid stored photo filename" }
         val dir = File(context.filesDir, "source-photos")
         val file = File(dir, fileName)
@@ -90,7 +92,7 @@ class SourcePhotoStore(private val context: Context) {
         val dir = File(context.filesDir, "source-photos")
         cleanupInterruptedImports(dir)
         val files = dir.listFiles()
-            ?.filter { it.isFile && it.name.startsWith("source-") }
+            ?.filter { it.isFile && SourcePhotoFileName.isValid(it.name) }
             ?.sortedByDescending { it.lastModified() }
             .orEmpty()
 
