@@ -3,6 +3,7 @@ package com.alt.otherlives.core.generation
 import android.content.Context
 import android.net.Uri
 import androidx.core.content.FileProvider
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -133,9 +134,22 @@ class ComfyUiClient(
     }
 
     suspend fun awaitOutputs(promptId: String, timeoutMs: Long = 180_000L): List<OutputImage> {
-        val started = System.currentTimeMillis()
-        while (System.currentTimeMillis() - started < timeoutMs) {
-            val snapshot = historySnapshot(promptId)
+        require(timeoutMs > 0L) { "ComfyUI generation timeout must be positive" }
+        val startedNanos = System.nanoTime()
+
+        while ((System.nanoTime() - startedNanos) / 1_000_000L < timeoutMs) {
+            val snapshot = try {
+                historySnapshot(promptId)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Throwable) {
+                if (!ComfyUiRetryPolicy.shouldRetry(error)) {
+                    throw error
+                }
+                delay(POLL_INTERVAL_MS)
+                continue
+            }
+
             if (snapshot.status == "error") {
                 error(snapshot.errorMessage ?: "ComfyUI generation failed")
             }
@@ -143,7 +157,7 @@ class ComfyUiClient(
             if (snapshot.completed) {
                 error("ComfyUI completed without image outputs")
             }
-            delay(900)
+            delay(POLL_INTERVAL_MS)
         }
         error("ComfyUI generation timed out")
     }
@@ -336,6 +350,7 @@ class ComfyUiClient(
         const val MAX_ERROR_BODY_CHARS = 500
         const val MAX_ERROR_BODY_READ_CHARS = 4_096
         const val MAX_RESPONSE_BODY_CHARS = 4_000_000
+        const val POLL_INTERVAL_MS = 900L
         const val MAX_UPLOAD_IMAGE_BYTES = 50L * 1024L * 1024L
         const val MAX_GENERATED_IMAGE_BYTES = 100L * 1024L * 1024L
     }
