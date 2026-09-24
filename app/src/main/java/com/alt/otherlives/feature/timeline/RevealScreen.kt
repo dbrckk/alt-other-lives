@@ -159,6 +159,10 @@ fun RevealScreen(
                                         onProgress = { completed, total ->
                                             aiCompleted = completed
                                             aiTotal = total
+                                        },
+                                        onSceneGenerated = { generated ->
+                                            sceneStore.persist(timelineKey, listOf(generated))
+                                            generatedScenes = sceneStore.load(timelineKey)
                                         }
                                     )
                                 }.onSuccess {
