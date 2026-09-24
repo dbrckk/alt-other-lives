@@ -86,7 +86,11 @@ object TimelineSceneRenderer {
             )
         }
 
-        return listOf(renderIntro(context, photoUri, scenario)) +
+        val introImage = photoUri ?: chapterImages.entries
+            .minByOrNull { it.key }
+            ?.value
+
+        return listOf(renderIntro(context, introImage, scenario)) +
             chapterScenes +
             listOf(renderOutro(context, scenario))
     }
