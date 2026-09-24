@@ -28,11 +28,15 @@ object ComfyUiWorkflow {
     ): String =
         buildString {
             append("cinematic portrait photography, same person and facial identity, ")
+            append("use the source photo as the immutable identity anchor for every chapter, ")
+            append("preserve identity-defining facial geometry, eye color, skin tone, hairline and hair texture, ")
+            append("preserve apparent gender presentation and distinctive facial features unless the narrative explicitly requires a change, ")
+            append("no identity swap, no lookalike drift, no face replacement, ")
+            append("age progression only when narratively justified and always recognizably the same person, ")
             append("premium editorial lighting, realistic skin, coherent anatomy, ")
             append("vertical 9:16 composition, no text, no watermark, ")
-            append("consistent facial identity, age progression only when narratively justified, ")
-            append("consistent eye color, hair identity and facial proportions across the sequence, ")
-            append("cinematic continuity, premium color grading, natural depth of field, ")
+            append("cinematic continuity, consistent lens language and premium color grading across the sequence, ")
+            append("natural depth of field, ")
             append(styleForScenario(scenarioId))
             append(", sequence chapter ")
             append(chapterIndex + 1)
