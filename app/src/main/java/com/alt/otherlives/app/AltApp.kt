@@ -19,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import com.alt.otherlives.core.data.HistoryRepository
 import com.alt.otherlives.core.data.SourcePhotoStore
@@ -48,6 +49,7 @@ fun AltApp() {
     var generationSettingsMessage by remember { mutableStateOf<String?>(null) }
     var isImportingPhoto by remember { mutableStateOf(false) }
     var isTestingConnection by remember { mutableStateOf(false) }
+    var connectionTestJob by remember { mutableStateOf<Job?>(null) }
     var hasRestoredStartupPhoto by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
@@ -169,6 +171,9 @@ fun AltApp() {
                     Screen.SETTINGS -> GenerationSettingsScreen(
                         settings = generationSettings,
                         onBack = {
+                            connectionTestJob?.cancel()
+                            connectionTestJob = null
+                            isTestingConnection = false
                             generationSettingsMessage = null
                             screen = Screen.HOME
                         },
@@ -186,7 +191,7 @@ fun AltApp() {
                         onTestConnection = { baseUrl ->
                             if (!isTestingConnection) {
                                 isTestingConnection = true
-                                scope.launch {
+                                connectionTestJob = scope.launch {
                                     generationSettingsMessage = "Testing ComfyUI connection…"
                                     runCatching {
                                         ComfyUiClient(
@@ -199,6 +204,7 @@ fun AltApp() {
                                         generationSettingsMessage = it.message ?: "Could not connect to ComfyUI"
                                     }
                                     isTestingConnection = false
+                                    connectionTestJob = null
                                 }
                             }
                         },
