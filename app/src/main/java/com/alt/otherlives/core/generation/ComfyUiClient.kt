@@ -97,7 +97,9 @@ class ComfyUiClient(
                 subfolder = ComfyUiRemotePath.validateSubfolder(
                     json.optString("subfolder", "")
                 ),
-                type = json.optString("type", "input").ifBlank { "input" }
+                type = ComfyUiRemotePath.validateType(
+                    json.optString("type", "input").ifBlank { "input" }
+                )
             )
         } finally {
             connection.disconnect()
@@ -241,7 +243,9 @@ class ComfyUiClient(
                     subfolder = ComfyUiRemotePath.validateSubfolder(
                         image.optString("subfolder", "")
                     ),
-                    type = image.optString("type", "output"),
+                    type = ComfyUiRemotePath.validateType(
+                        image.optString("type", "output").ifBlank { "output" }
+                    ),
                     nodeId = key
                 )
             }
