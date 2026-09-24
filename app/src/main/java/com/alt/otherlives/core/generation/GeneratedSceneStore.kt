@@ -13,8 +13,8 @@ class GeneratedSceneStore(private val context: Context) {
         .substringBefore(".")
         .toIntOrNull()
 
-    fun persist(scenarioId: String, scenes: List<GeneratedScene>): List<GeneratedScene> {
-        val root = File(context.filesDir, "generated/$scenarioId").apply { mkdirs() }
+    fun persist(timelineKey: String, scenes: List<GeneratedScene>): List<GeneratedScene> {
+        val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
 
         return scenes.map { scene ->
             val target = File(root, filenameForChapter(scene.chapterIndex))
@@ -31,8 +31,8 @@ class GeneratedSceneStore(private val context: Context) {
         }
     }
 
-    fun load(scenarioId: String): List<GeneratedScene> {
-        val root = File(context.filesDir, "generated/$scenarioId")
+    fun load(timelineKey: String): List<GeneratedScene> {
+        val root = File(context.filesDir, "generated/$timelineKey")
         if (!root.exists()) return emptyList()
 
         return root.listFiles()
@@ -53,7 +53,11 @@ class GeneratedSceneStore(private val context: Context) {
             .orEmpty()
     }
 
-    fun clear(scenarioId: String) {
-        File(context.filesDir, "generated/$scenarioId").deleteRecursively()
+    fun clear(timelineKey: String) {
+        File(context.filesDir, "generated/$timelineKey").deleteRecursively()
+    }
+
+    fun clearAll() {
+        File(context.filesDir, "generated").deleteRecursively()
     }
 }
