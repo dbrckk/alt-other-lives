@@ -313,7 +313,13 @@ class GeneratedSceneStore(private val context: Context) {
                 val commitStarted = File(transaction, "commit.started").exists()
                 val commitCompleted = File(transaction, "commit.completed").exists()
 
-                if (!commitStarted) {
+                if (
+                    SceneTransactionRecoveryPlan.shouldRestoreBackupsBeforeCommit(
+                        commitStarted = commitStarted,
+                        commitCompleted = commitCompleted,
+                        hasBackups = backupDir.listFiles()?.isNotEmpty() == true
+                    )
+                ) {
                     val restoreSucceeded = backupDir.listFiles()
                         .orEmpty()
                         .all { backup ->
@@ -335,6 +341,11 @@ class GeneratedSceneStore(private val context: Context) {
                     if (restoreSucceeded) {
                         transaction.deleteRecursively()
                     }
+                    return@forEach
+                }
+
+                if (!commitStarted) {
+                    transaction.deleteRecursively()
                     return@forEach
                 }
 
