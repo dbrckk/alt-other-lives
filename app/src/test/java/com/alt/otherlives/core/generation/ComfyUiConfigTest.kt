@@ -31,4 +31,11 @@ class ComfyUiConfigTest {
     fun rejectsFragment() {
         ComfyUiConfig("https://example.com/#section").validate()
     }
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsOversizedBaseUrl() {
+        ComfyUiConfig(
+            "https://" + "a".repeat(GenerationSettingsValidation.MAX_BASE_URL_CHARS)
+        ).validate()
+    }
 }
+
