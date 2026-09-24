@@ -10,6 +10,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import com.alt.otherlives.core.io.BoundedStreamCopy
+import com.alt.otherlives.core.io.BoundedTextRead
 import com.alt.otherlives.core.media.ImageBoundsValidation
 import java.net.HttpURLConnection
 import java.net.URLEncoder
@@ -289,7 +290,9 @@ class ComfyUiClient(
     private fun readResponse(connection: HttpURLConnection): String {
         return try {
             ensureSuccess(connection)
-            connection.inputStream.bufferedReader().use { it.readText() }
+            connection.inputStream.bufferedReader().use {
+                BoundedTextRead.read(it, MAX_RESPONSE_BODY_CHARS)
+            }
         } finally {
             connection.disconnect()
         }
@@ -299,7 +302,9 @@ class ComfyUiClient(
         val code = connection.responseCode
         if (code !in 200..299) {
             val body = runCatching {
-                connection.errorStream?.bufferedReader()?.use { it.readText() }
+                connection.errorStream?.bufferedReader()?.use {
+                    BoundedTextRead.read(it, MAX_ERROR_BODY_READ_CHARS)
+                }
             }.getOrNull().orEmpty()
             val safeBody = body
                 .replace(Regex("\\s+"), " ")
@@ -325,6 +330,8 @@ class ComfyUiClient(
     private companion object {
         const val CACHE_MAX_AGE_MS = 24L * 60L * 60L * 1000L
         const val MAX_ERROR_BODY_CHARS = 500
+        const val MAX_ERROR_BODY_READ_CHARS = 4_096
+        const val MAX_RESPONSE_BODY_CHARS = 4_000_000
         const val MAX_UPLOAD_IMAGE_BYTES = 50L * 1024L * 1024L
         const val MAX_GENERATED_IMAGE_BYTES = 100L * 1024L * 1024L
     }
