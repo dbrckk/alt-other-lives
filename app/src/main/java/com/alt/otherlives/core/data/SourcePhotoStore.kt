@@ -6,6 +6,7 @@ import androidx.core.content.FileProvider
 import android.webkit.MimeTypeMap
 import android.graphics.BitmapFactory
 import java.io.File
+import java.util.UUID
 
 data class StoredPhoto(
     val fileName: String,
@@ -21,18 +22,31 @@ class SourcePhotoStore(private val context: Context) {
             .getExtensionFromMimeType(mimeType)
             ?.takeIf { it.isNotBlank() }
             ?: "jpg"
-        val fileName = "source-" + System.currentTimeMillis() + "." + extension
+        cleanupInterruptedImports(dir)
+        val id = UUID.randomUUID().toString()
+        val fileName = "source-" + id + "." + extension
         val target = File(dir, fileName)
+        val temporary = File(dir, ".source-" + id + ".tmp")
 
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            target.outputStream().use { output -> input.copyTo(output) }
-        } ?: error("Unable to read selected photo")
+        try {
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                temporary.outputStream().use { output -> input.copyTo(output) }
+            } ?: error("Unable to read selected photo")
 
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(target.absolutePath, bounds)
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
+            require(temporary.length() > 0L) { "Selected image copy is empty" }
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(temporary.absolutePath, bounds)
+            require(bounds.outWidth > 0 && bounds.outHeight > 0) {
+                "Selected image is invalid or unsupported"
+            }
+
+            if (!temporary.renameTo(target)) {
+                error("Unable to finalize selected photo import")
+            }
+        } catch (error: Throwable) {
+            temporary.delete()
             target.delete()
-            error("Selected image is invalid or unsupported")
+            throw error
         }
 
         return StoredPhoto(fileName, uriFor(fileName))
@@ -50,13 +64,20 @@ class SourcePhotoStore(private val context: Context) {
 
     fun latestStoredPhoto(): StoredPhoto? {
         val dir = File(context.filesDir, "source-photos")
+        cleanupInterruptedImports(dir)
         val file = dir.listFiles()
-            ?.filter { it.isFile }
+            ?.filter { it.isFile && it.name.startsWith("source-") }
             ?.maxByOrNull { it.lastModified() }
             ?: return null
         return runCatching {
             StoredPhoto(file.name, uriFor(file.name))
         }.getOrNull()
+    }
+
+    private fun cleanupInterruptedImports(dir: File) {
+        dir.listFiles()
+            ?.filter { it.isFile && it.name.startsWith(".source-") && it.name.endsWith(".tmp") }
+            ?.forEach { it.delete() }
     }
 
     fun deleteUnreferenced(keepFileNames: Set<String>) {
