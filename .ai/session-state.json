@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 4 — Reliable AI generation and history UX",
-  "currentTask": "Harden AI continuity, partial-failure recovery, media bounds, and user-visible recovery states.",
-  "lastKnownBlocker": "Intermediate interface commits can fail CI before their matching implementation commit lands; current cumulative runs after those pairs are green.",
-  "fixApplied": "Reveal now surfaces failed chapters, full regeneration keeps existing scenes on partial failure, retries back off briefly, cancellation remains locked until completion, identity prompts include an optional negative prompt, ComfyUI paths/extensions are validated, media copies and dimensions are bounded, and timeline/photo/history flows recover cleanly from storage failures.",
+  "currentTask": "Harden ComfyUI network retry semantics and media cache lifecycle without creating duplicate remote jobs.",
+  "lastKnownBlocker": "Transient polling/download failures could escalate into a second queued prompt, and interrupted media renders could leave stale partial cache files.",
+  "fixApplied": "Polling now retries in-place, global generation timeouts do not auto-requeue, ambiguous queue POST I/O failures require manual retry, image downloads retry the same output, remote identifiers/types/text sizes are validated, share/timeline JPEG writes are atomic and unique, cancelled MP4s are deleted, and partial generation avoids duplicate persistence.",
   "next": [
-    "Verify cumulative CI runs #347–#351",
-    "Continue production UX polish around partial AI retries",
-    "Audit remaining export/cache cleanup paths for stale partial files",
-    "Preserve atomic full-regeneration and deterministic ComfyUI output guarantees"
+    "Verify cumulative CI runs #386–#388",
+    "Continue auditing network stages for duplicate-job ambiguity",
+    "Polish targeted chapter retry feedback after CI remains green",
+    "Preserve atomic full-regeneration and deterministic output selection guarantees"
   ],
   "updated": "2026-09-24"
 }
