@@ -497,10 +497,18 @@ class GeneratedSceneStore(private val context: Context) {
 
     fun deleteUnreferenced(keepTimelineKeys: Set<String>) {
         val root = File(context.filesDir, "generated")
+        val canonicalRoot = root.canonicalFile
+        val validatedKeep = keepTimelineKeys
+            .map { GeneratedTimelineKey.validate(it) }
+            .toSet()
+
         root.listFiles()?.forEach { dir ->
-            if (dir.isDirectory && dir.name !in keepTimelineKeys) {
-                dir.deleteRecursively()
+            if (!dir.isDirectory || dir.name in validatedKeep) return@forEach
+            val canonicalDir = dir.canonicalFile
+            require(canonicalDir.parentFile == canonicalRoot) {
+                "Generated cleanup path escapes private storage"
             }
+            dir.deleteRecursively()
         }
     }
 
