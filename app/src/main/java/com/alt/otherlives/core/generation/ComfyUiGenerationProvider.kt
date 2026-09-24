@@ -90,9 +90,10 @@ class ComfyUiGenerationProvider(
                     prompt = prompt,
                     seed = attemptSeed
                 )
+                val preferredOutputNodeId = ComfyUiWorkflowTemplate.preferredOutputNodeId(workflow)
                 val promptId = client.queuePrompt(workflow)
                 val outputs = client.awaitOutputs(promptId)
-                val selected = selectOutput(outputs)
+                val selected = selectOutput(outputs, preferredOutputNodeId)
                     ?: error("ComfyUI returned no image for chapter " + (index + 1))
                 val uri = client.download(selected, index)
                 return GeneratedScene(chapterIndex = index, imageUri = uri)
@@ -112,17 +113,27 @@ class ComfyUiGenerationProvider(
     internal companion object {
         const val MAX_CHAPTER_ATTEMPTS = 2
 
-        fun selectOutput(outputs: List<ComfyUiClient.OutputImage>): ComfyUiClient.OutputImage? =
-            outputs
-                .filter { it.filename.isNotBlank() }
-                .maxWithOrNull(
-                    compareBy<ComfyUiClient.OutputImage> {
-                        if (it.type.equals("output", ignoreCase = true)) 1 else 0
-                    }.thenBy {
-                        it.nodeId.toIntOrNull() ?: Int.MIN_VALUE
-                    }.thenBy {
-                        it.filename
-                    }
-                )
+        fun selectOutput(
+            outputs: List<ComfyUiClient.OutputImage>,
+            preferredNodeId: String? = null
+        ): ComfyUiClient.OutputImage? {
+            val usable = outputs.filter { it.filename.isNotBlank() }
+            preferredNodeId
+                ?.let { preferred -> usable.filter { it.nodeId == preferred } }
+                ?.maxWithOrNull(compareBy<ComfyUiClient.OutputImage> {
+                    if (it.type.equals("output", ignoreCase = true)) 1 else 0
+                }.thenBy { it.filename })
+                ?.let { return it }
+
+            return usable.maxWithOrNull(
+                compareBy<ComfyUiClient.OutputImage> {
+                    if (it.type.equals("output", ignoreCase = true)) 1 else 0
+                }.thenBy {
+                    it.nodeId.toIntOrNull() ?: Int.MIN_VALUE
+                }.thenBy {
+                    it.filename
+                }
+            )
+        }
     }
 }
