@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.core.content.FileProvider
 import android.webkit.MimeTypeMap
+import android.graphics.BitmapFactory
 import java.io.File
 
 class GeneratedSceneStore(private val context: Context) {
@@ -114,6 +115,10 @@ class GeneratedSceneStore(private val context: Context) {
             ?.sortedBy { chapterIndexFromFilename(it.name) ?: Int.MAX_VALUE }
             ?.map { file ->
                 val chapterIndex = chapterIndexFromFilename(file.name) ?: return@map null
+                if (!isValidImage(file)) {
+                    file.delete()
+                    return@map null
+                }
                 GeneratedScene(
                     chapterIndex = chapterIndex,
                     imageUri = FileProvider.getUriForFile(
@@ -125,6 +130,13 @@ class GeneratedSceneStore(private val context: Context) {
             }
             ?.filterNotNull()
             .orEmpty()
+    }
+
+    private fun isValidImage(file: File): Boolean {
+        if (!file.exists() || file.length() <= 0L) return false
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        return bounds.outWidth > 0 && bounds.outHeight > 0
     }
 
     private fun recoverInterruptedWrites(root: File) {
