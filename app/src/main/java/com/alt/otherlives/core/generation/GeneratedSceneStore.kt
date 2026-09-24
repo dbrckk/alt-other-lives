@@ -52,19 +52,46 @@ class GeneratedSceneStore(private val context: Context) {
                     ?.substringAfterLast(".", "")
                     ?.takeIf { it.isNotBlank() }
                 ?: "png"
-            root.listFiles()
-                ?.filter { it.isFile && chapterIndexFromFilename(it.name) == scene.chapterIndex }
-                ?.forEach { it.delete() }
             val target = File(root, filenameForChapter(scene.chapterIndex, extension))
+            val temporary = File(
+                root,
+                ".scene-" + scene.chapterIndex + "-" + System.nanoTime() + ".tmp"
+            )
+            val backup = File(root, ".scene-" + scene.chapterIndex + ".bak")
+            val previousFiles = root.listFiles()
+                ?.filter { it.isFile && chapterIndexFromFilename(it.name) == scene.chapterIndex }
+                .orEmpty()
+
             try {
                 context.contentResolver.openInputStream(scene.imageUri)?.use { input ->
-                    target.outputStream().use { output -> input.copyTo(output) }
+                    temporary.outputStream().use { output -> input.copyTo(output) }
                 } ?: error("Unable to persist generated scene " + scene.chapterIndex)
-                require(target.length() > 0L) {
+                require(temporary.length() > 0L) {
                     "Generated scene copy is empty for chapter " + (scene.chapterIndex + 1)
                 }
+
+                backup.delete()
+                val currentTarget = previousFiles.firstOrNull { it.absolutePath == target.absolutePath }
+                if (currentTarget != null && !currentTarget.renameTo(backup)) {
+                    error("Unable to prepare generated scene replacement")
+                }
+
+                if (!temporary.renameTo(target)) {
+                    if (backup.exists()) {
+                        backup.renameTo(target)
+                    }
+                    error("Unable to finalize generated scene replacement")
+                }
+
+                previousFiles
+                    .filter { it.absolutePath != target.absolutePath }
+                    .forEach { it.delete() }
+                backup.delete()
             } catch (error: Throwable) {
-                target.delete()
+                temporary.delete()
+                if (!target.exists() && backup.exists()) {
+                    backup.renameTo(target)
+                }
                 throw error
             }
 
