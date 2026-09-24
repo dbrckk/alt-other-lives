@@ -219,6 +219,13 @@ fun AltApp() {
                             }
                             photoUri = restored?.first
                             photoFileName = restored?.second
+                            if (entry.photoFileName != null && restored == null) {
+                                Toast.makeText(
+                                    context,
+                                    "This timeline's source photo is no longer available",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                             screen = Screen.REVEAL
                         },
                         onClear = {
