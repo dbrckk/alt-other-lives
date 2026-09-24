@@ -172,7 +172,7 @@ class ComfyUiClient(
             )
             file = File(
                 dir,
-                "scene-" + System.currentTimeMillis() + "-" + index + "." + extension
+                "scene-" + UUID.randomUUID() + "-" + index + "." + extension
             )
             connection.inputStream.buffered().use { input ->
                 file.outputStream().use { outputStream ->
