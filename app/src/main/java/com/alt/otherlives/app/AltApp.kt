@@ -266,9 +266,14 @@ fun AltApp() {
                             photoUri = restored?.first
                             photoFileName = restored?.second
                             if (entry.photoFileName != null && restored == null) {
+                                val hasAiPreview = entry.timelineKey in historyGeneratedPreviewUris
                                 Toast.makeText(
                                     context,
-                                    "This timeline's source photo is no longer available",
+                                    if (hasAiPreview) {
+                                        "Original photo unavailable • opening saved AI timeline"
+                                    } else {
+                                        "This timeline's source photo is no longer available"
+                                    },
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
