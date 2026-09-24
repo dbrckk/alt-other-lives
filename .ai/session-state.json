@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 4 — Reliable AI generation and history UX",
-  "currentTask": "Harden persisted media/history UX while keeping the ComfyUI generation path deterministic and recoverable.",
-  "lastKnownBlocker": "Intermediate history-preview commits failed when caller parameters landed before matching HistoryScreen parameters; the paired commits now contain both sides.",
-  "fixApplied": "History preflight is wired to HistoryScreen, private path validation is enforced, local thumbnails and AI fallback previews are supported, and preview scanning runs only when History is open.",
+  "currentTask": "Remove main-thread media/storage work from Reveal while preserving atomic AI generation and export consistency.",
+  "lastKnownBlocker": "The async scene callback interface produced one expected intermediate CI failure before the ComfyUI implementation was updated.",
+  "fixApplied": "Persisted scenes now restore on IO, generated chapters persist asynchronously, seed access is off-main, AI scene removal is asynchronous, restore progress is visible, and MP4 gallery saves run on IO.",
   "next": [
-    "Verify cumulative CI after history preview commits",
-    "Continue premium history/reveal polish only after CI is green",
-    "Keep ComfyUI output selection deterministic with ALT OUTPUT marker fallback",
-    "Preserve atomic media/seed storage and crash recovery guarantees"
+    "Verify cumulative CI for asynchronous AI scene removal and MP4 gallery saving",
+    "Audit remaining Reveal actions for main-thread disk work",
+    "Continue premium Reveal polish only after CI remains green",
+    "Preserve deterministic ComfyUI output selection and atomic regeneration guarantees"
   ],
   "updated": "2026-09-24"
 }
