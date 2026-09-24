@@ -87,6 +87,7 @@ fun RevealScreen(
     var aiTotal by remember { mutableStateOf(0) }
     var showRegenerateAllDialog by remember { mutableStateOf(false) }
     var showClearAiDialog by remember { mutableStateOf(false) }
+    val hasVisualAsset = photoUri != null || generatedScenes.isNotEmpty()
 
     LaunchedEffect(activeTransformer, isExporting) {
         while (isExporting) {
@@ -349,7 +350,7 @@ fun RevealScreen(
                             }
                         }
                     },
-                    enabled = !isRenderingShareImage,
+                    enabled = !isRenderingShareImage && hasVisualAsset,
                     modifier = Modifier.fillMaxWidth().height(58.dp),
                     shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AltPrimary, contentColor = Color(0xFF16111F))
@@ -389,7 +390,7 @@ fun RevealScreen(
                                 }
                             }
                         },
-                        enabled = !isRenderingShareImage,
+                        enabled = !isRenderingShareImage && hasVisualAsset,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) { Text("Save 9:16 image", fontWeight = FontWeight.Bold) }
@@ -456,7 +457,7 @@ fun RevealScreen(
                             }
                         }
                     },
-                    enabled = !isExporting,
+                    enabled = !isExporting && hasVisualAsset,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(20.dp)
                 ) {
@@ -513,6 +514,16 @@ fun RevealScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) { Text("Save MP4 to gallery") }
                     }
+                }
+                if (!hasVisualAsset) {
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        "No visual source is available for this timeline. Share and video export are disabled.",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        color = AltDimmed,
+                        fontSize = 12.sp
+                    )
                 }
                 Spacer(Modifier.height(12.dp))
                 Text(
