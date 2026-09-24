@@ -313,6 +313,31 @@ class GeneratedSceneStore(private val context: Context) {
                 val commitStarted = File(transaction, "commit.started").exists()
                 val commitCompleted = File(transaction, "commit.completed").exists()
 
+                if (!commitStarted) {
+                    val restoreSucceeded = backupDir.listFiles()
+                        .orEmpty()
+                        .all { backup ->
+                            val target = File(root, backup.name)
+                            if (target.exists()) {
+                                true
+                            } else {
+                                runCatching {
+                                    backup.inputStream().use { input ->
+                                        target.outputStream().use { output ->
+                                            input.copyTo(output)
+                                        }
+                                    }
+                                    target.length() == backup.length() && target.length() > 0L
+                                }.getOrDefault(false)
+                            }
+                        }
+
+                    if (restoreSucceeded) {
+                        transaction.deleteRecursively()
+                    }
+                    return@forEach
+                }
+
                 val affectedFile = File(transaction, "affected.txt")
                 val fallbackAffectedIndexes = buildSet {
                     stagedDir.listFiles()?.forEach { file ->
