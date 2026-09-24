@@ -150,11 +150,11 @@ class ComfyUiClient(
                 ?.substringBefore(";")
                 ?.trim()
                 ?.takeIf { it.startsWith("image/") }
-            val extension = contentType
-                ?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
-                ?.takeIf { it.isNotBlank() }
-                ?: output.filename.substringAfterLast(".", "png").takeIf { it.isNotBlank() }
-                ?: "png"
+            val extension = GeneratedImageExtension.normalize(
+                mimeExtension = contentType
+                    ?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) },
+                filename = output.filename
+            )
             file = File(
                 dir,
                 "scene-" + System.currentTimeMillis() + "-" + index + "." + extension
