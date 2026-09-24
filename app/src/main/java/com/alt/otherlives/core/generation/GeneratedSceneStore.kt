@@ -220,9 +220,7 @@ class GeneratedSceneStore(private val context: Context) {
                 throw error
             }
 
-            File(transaction, "commit.completed").writeText("1")
-            transaction.deleteRecursively()
-            return staged.map { (chapterIndex, stagedFile) ->
+            val result = staged.map { (chapterIndex, stagedFile) ->
                 val target = File(root, stagedFile.name)
                 GeneratedScene(
                     chapterIndex,
@@ -233,6 +231,16 @@ class GeneratedSceneStore(private val context: Context) {
                     )
                 )
             }
+
+            File(transaction, "commit.completed").writeText("1")
+            val completedTransaction = File(
+                root,
+                ".batch-completed-" + transaction.name.removePrefix(".batch-")
+            )
+            if (transaction.renameTo(completedTransaction)) {
+                completedTransaction.deleteRecursively()
+            }
+            return result
         } catch (error: Throwable) {
             backupDir.listFiles()?.forEach { backup ->
                 val target = File(root, backup.name)
@@ -294,6 +302,11 @@ class GeneratedSceneStore(private val context: Context) {
         root.listFiles()
             ?.filter { it.isDirectory && it.name.startsWith(".batch-") }
             ?.forEach { transaction ->
+                if (transaction.name.startsWith(".batch-completed-")) {
+                    transaction.deleteRecursively()
+                    return@forEach
+                }
+
                 val stagedDir = File(transaction, "staged")
                 val backupDir = File(transaction, "backup")
                 val commitStarted = File(transaction, "commit.started").exists()
