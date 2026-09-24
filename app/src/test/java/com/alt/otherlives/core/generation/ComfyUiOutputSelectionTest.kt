@@ -42,6 +42,19 @@ class ComfyUiOutputSelectionTest {
     }
 
     @Test
+    fun explicitPreferredNodeWinsOverHigherFallbackNode() {
+        val selected = ComfyUiGenerationProvider.selectOutput(
+            outputs = listOf(
+                ComfyUiClient.OutputImage("marked.png", "", "output", "12"),
+                ComfyUiClient.OutputImage("higher.png", "", "output", "99")
+            ),
+            preferredNodeId = "12"
+        )
+
+        assertEquals("marked.png", selected?.filename)
+    }
+
+    @Test
     fun returnsNullWhenNoUsableOutputExists() {
         val selected = ComfyUiGenerationProvider.selectOutput(
             listOf(
