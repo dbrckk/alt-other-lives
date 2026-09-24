@@ -17,6 +17,7 @@ data class ComfyUiConfig(
 object ComfyUiWorkflow {
     const val PLACEHOLDER_SOURCE_IMAGE = "__ALT_SOURCE_IMAGE__"
     const val PLACEHOLDER_PROMPT = "__ALT_PROMPT__"
+    const val PLACEHOLDER_NEGATIVE_PROMPT = "__ALT_NEGATIVE_PROMPT__"
     const val PLACEHOLDER_SEED = "__ALT_SEED__"
 
     fun promptFor(
@@ -47,6 +48,12 @@ object ComfyUiWorkflow {
             append(". ")
             append(chapterNarrative)
         }
+
+    fun negativePrompt(): String =
+        "different person, identity drift, identity swap, face replacement, altered facial geometry, " +
+            "inconsistent eye color, inconsistent skin tone, malformed face, deformed anatomy, " +
+            "extra fingers, extra limbs, duplicate person, low-detail skin, plastic skin, " +
+            "text, caption, logo, watermark, frame, collage"
 
     private fun styleForScenario(scenarioId: String): String = when (scenarioId) {
         "wealth" -> "luxury editorial realism, restrained wealth, architectural interiors, quiet confidence"
