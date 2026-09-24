@@ -94,6 +94,11 @@ object CinematicVideoExporter {
             .addListener(object : Transformer.Listener {
                 override fun onCompleted(composition: Composition, result: ExportResult) {
                     transformerHolder[0]?.let { activeOutputs.remove(it) }
+                    if (!outputFile.exists() || outputFile.length() <= 0L) {
+                        outputFile.delete()
+                        onError(IllegalStateException("Video export completed without a valid MP4 file"))
+                        return
+                    }
                     val uri = FileProvider.getUriForFile(
                         context,
                         context.packageName + ".fileprovider",
