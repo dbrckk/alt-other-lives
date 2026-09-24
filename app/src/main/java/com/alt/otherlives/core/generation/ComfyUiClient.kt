@@ -73,8 +73,13 @@ class ComfyUiClient(
             write("--$boundary\r\n")
             write("Content-Disposition: form-data; name=\"image\"; filename=\"$filename\"\r\n")
             write("Content-Type: " + mimeType + "\r\n\r\n")
-            context.contentResolver.openInputStream(uri)?.use { input -> input.copyTo(output) }
-                ?: error("Unable to read selected image")
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                BoundedStreamCopy.copy(
+                    input = input,
+                    output = output,
+                    maxBytes = MAX_UPLOAD_IMAGE_BYTES
+                )
+            } ?: error("Unable to read selected image")
             write("\r\n--$boundary\r\n")
             write("Content-Disposition: form-data; name=\"overwrite\"\r\n\r\n")
             write("true\r\n")
@@ -311,6 +316,7 @@ class ComfyUiClient(
     private companion object {
         const val CACHE_MAX_AGE_MS = 24L * 60L * 60L * 1000L
         const val MAX_ERROR_BODY_CHARS = 500
+        const val MAX_UPLOAD_IMAGE_BYTES = 50L * 1024L * 1024L
         const val MAX_GENERATED_IMAGE_BYTES = 100L * 1024L * 1024L
     }
 }
