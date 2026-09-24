@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.first
 import com.alt.otherlives.core.data.HistoryRepository
 import com.alt.otherlives.core.data.SourcePhotoStore
 import com.alt.otherlives.core.generation.GenerationSettingsRepository
@@ -52,7 +53,6 @@ fun AltApp() {
     var isImportingPhoto by remember { mutableStateOf(false) }
     var isTestingConnection by remember { mutableStateOf(false) }
     var connectionTestJob by remember { mutableStateOf<Job?>(null) }
-    var hasRestoredStartupPhoto by remember { mutableStateOf(false) }
     var unavailablePhotoFileNames by remember { mutableStateOf<Set<String>>(emptySet()) }
     var historyPhotoUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
     var historyGeneratedPreviewUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
@@ -81,7 +81,24 @@ fun AltApp() {
                 photoFileName = stored.fileName
             }
         }
-        hasRestoredStartupPhoto = true
+
+        val startupHistory = historyRepository.history.first()
+        startupHistory.firstOrNull()?.let { latest ->
+            ScenarioCatalog.scenarios.firstOrNull { it.id == latest.scenarioId }?.let { scenario ->
+                selectedScenario = scenario
+                activeTimelineKey = latest.timelineKey
+                if (photoUri == null) {
+                    latest.photoFileName?.let { fileName ->
+                        runCatching { sourcePhotoStore.uriFor(fileName) }
+                            .getOrNull()
+                            ?.let { uri ->
+                                photoUri = uri
+                                photoFileName = fileName
+                            }
+                    }
+                }
+            }
+        }
     }
 
     LaunchedEffect(history, screen) {
@@ -108,26 +125,6 @@ fun AltApp() {
         unavailablePhotoFileNames = photoFileNames
             .filterNot { it in preflight.first }
             .toSet()
-    }
-
-    LaunchedEffect(history, hasRestoredStartupPhoto) {
-        if (hasRestoredStartupPhoto && activeTimelineKey == null && history.isNotEmpty()) {
-            val latest = history.first()
-            ScenarioCatalog.scenarios.firstOrNull { it.id == latest.scenarioId }?.let { scenario ->
-                selectedScenario = scenario
-                activeTimelineKey = scenario.id + "-" + latest.createdAt
-                if (photoUri == null) {
-                    latest.photoFileName?.let { fileName ->
-                        runCatching { sourcePhotoStore.uriFor(fileName) }
-                            .getOrNull()
-                            ?.let { uri ->
-                                photoUri = uri
-                                photoFileName = fileName
-                            }
-                    }
-                }
-            }
-        }
     }
 
 
