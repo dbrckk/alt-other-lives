@@ -509,7 +509,12 @@ class GeneratedSceneStore(private val context: Context) {
     }
 
     fun clear(timelineKey: String) {
-        timelineRoot(timelineKey).deleteRecursively()
+        val root = timelineRoot(timelineKey)
+        if (root.exists()) {
+            check(root.deleteRecursively()) {
+                "Unable to clear generated timeline scenes"
+            }
+        }
     }
 
     fun deleteUnreferenced(keepTimelineKeys: Set<String>) {
@@ -525,12 +530,19 @@ class GeneratedSceneStore(private val context: Context) {
             require(canonicalDir.parentFile == canonicalRoot) {
                 "Generated cleanup path escapes private storage"
             }
-            dir.deleteRecursively()
+            check(dir.deleteRecursively()) {
+                "Unable to delete unreferenced generated timeline"
+            }
         }
     }
 
     fun clearAll() {
-        File(context.filesDir, "generated").deleteRecursively()
+        val root = File(context.filesDir, "generated")
+        if (root.exists()) {
+            check(root.deleteRecursively()) {
+                "Unable to clear generated timeline storage"
+            }
+        }
     }
 
     private fun timelineRoot(timelineKey: String): File {
