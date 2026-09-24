@@ -60,43 +60,47 @@ class ComfyUiClient(
             doOutput = true
         }
 
-        val mimeType = context.contentResolver.getType(uri)
-            ?.takeIf { it.startsWith("image/") }
-            ?: "image/jpeg"
-        val extension = MimeTypeMap.getSingleton()
-            .getExtensionFromMimeType(mimeType)
-            ?.takeIf { it.isNotBlank() }
-            ?: "jpg"
-        val filename = "alt-source-" + System.currentTimeMillis() + "." + extension
-        connection.outputStream.buffered().use { output ->
-            fun write(value: String) = output.write(value.toByteArray(Charsets.UTF_8))
-            write("--$boundary\r\n")
-            write("Content-Disposition: form-data; name=\"image\"; filename=\"$filename\"\r\n")
-            write("Content-Type: " + mimeType + "\r\n\r\n")
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                BoundedStreamCopy.copy(
-                    input = input,
-                    output = output,
-                    maxBytes = MAX_UPLOAD_IMAGE_BYTES
-                )
-            } ?: error("Unable to read selected image")
-            write("\r\n--$boundary\r\n")
-            write("Content-Disposition: form-data; name=\"overwrite\"\r\n\r\n")
-            write("true\r\n")
-            write("--$boundary--\r\n")
-        }
+        try {
+            val mimeType = context.contentResolver.getType(uri)
+                ?.takeIf { it.startsWith("image/") }
+                ?: "image/jpeg"
+            val extension = MimeTypeMap.getSingleton()
+                .getExtensionFromMimeType(mimeType)
+                ?.takeIf { it.isNotBlank() }
+                ?: "jpg"
+            val filename = "alt-source-" + System.currentTimeMillis() + "." + extension
+            connection.outputStream.buffered().use { output ->
+                fun write(value: String) = output.write(value.toByteArray(Charsets.UTF_8))
+                write("--$boundary\r\n")
+                write("Content-Disposition: form-data; name=\"image\"; filename=\"$filename\"\r\n")
+                write("Content-Type: " + mimeType + "\r\n\r\n")
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    BoundedStreamCopy.copy(
+                        input = input,
+                        output = output,
+                        maxBytes = MAX_UPLOAD_IMAGE_BYTES
+                    )
+                } ?: error("Unable to read selected image")
+                write("\r\n--$boundary\r\n")
+                write("Content-Disposition: form-data; name=\"overwrite\"\r\n\r\n")
+                write("true\r\n")
+                write("--$boundary--\r\n")
+            }
 
-        val body = readResponse(connection)
-        val json = parseJsonObject(body, "upload")
-        val name = json.optString("name").takeIf { it.isNotBlank() }
-            ?: error("ComfyUI upload response is missing image name")
-        UploadedImage(
-            name = ComfyUiRemotePath.validateFilename(name),
-            subfolder = ComfyUiRemotePath.validateSubfolder(
-                json.optString("subfolder", "")
-            ),
-            type = json.optString("type", "input").ifBlank { "input" }
-        )
+            val body = readResponse(connection)
+            val json = parseJsonObject(body, "upload")
+            val name = json.optString("name").takeIf { it.isNotBlank() }
+                ?: error("ComfyUI upload response is missing image name")
+            UploadedImage(
+                name = ComfyUiRemotePath.validateFilename(name),
+                subfolder = ComfyUiRemotePath.validateSubfolder(
+                    json.optString("subfolder", "")
+                ),
+                type = json.optString("type", "input").ifBlank { "input" }
+            )
+        } finally {
+            connection.disconnect()
+        }
     }
 
     suspend fun queuePrompt(workflow: JSONObject): String = withContext(Dispatchers.IO) {
@@ -109,15 +113,19 @@ class ComfyUiClient(
             setRequestProperty("Content-Type", "application/json")
             doOutput = true
         }
-        val payload = JSONObject()
-            .put("prompt", workflow)
-            .put("client_id", config.clientId)
-            .toString()
-        connection.outputStream.use { it.write(payload.toByteArray(Charsets.UTF_8)) }
-        val body = readResponse(connection)
-        val json = parseJsonObject(body, "queue")
-        json.optString("prompt_id").takeIf { it.isNotBlank() }
-            ?: error("ComfyUI queue response is missing prompt_id")
+        try {
+            val payload = JSONObject()
+                .put("prompt", workflow)
+                .put("client_id", config.clientId)
+                .toString()
+            connection.outputStream.use { it.write(payload.toByteArray(Charsets.UTF_8)) }
+            val body = readResponse(connection)
+            val json = parseJsonObject(body, "queue")
+            json.optString("prompt_id").takeIf { it.isNotBlank() }
+                ?: error("ComfyUI queue response is missing prompt_id")
+        } finally {
+            connection.disconnect()
+        }
     }
 
     suspend fun awaitOutputs(promptId: String, timeoutMs: Long = 180_000L): List<OutputImage> {
