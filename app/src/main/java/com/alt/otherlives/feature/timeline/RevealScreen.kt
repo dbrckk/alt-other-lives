@@ -105,7 +105,12 @@ fun RevealScreen(
     LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 40.dp)) {
         item {
             Box(modifier = Modifier.fillMaxWidth().height(500.dp)) {
-                AsyncImage(model = photoUri, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                AsyncImage(
+                    model = photoUri ?: generatedScenes.minByOrNull { it.chapterIndex }?.imageUri,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
                 Box(
                     modifier = Modifier.fillMaxSize().background(
                         Brush.verticalGradient(listOf(Color.Transparent, AltBackground), startY = 120f)
@@ -323,7 +328,12 @@ fun RevealScreen(
                             scope.launch {
                                 val rendered = runCatching {
                                     withContext(Dispatchers.Default) {
-                                        ShareCardRenderer.render(context, photoUri, scenario)
+                                        ShareCardRenderer.render(
+                                            context = context,
+                                            photoUri = photoUri,
+                                            scenario = scenario,
+                                            fallbackImageUri = generatedScenes.minByOrNull { it.chapterIndex }?.imageUri
+                                        )
                                     }
                                 }
                                 isRenderingShareImage = false
@@ -358,7 +368,12 @@ fun RevealScreen(
                                 scope.launch {
                                     val saved = runCatching {
                                         withContext(Dispatchers.IO) {
-                                            ShareCardRenderer.saveToGallery(context, photoUri, scenario)
+                                            ShareCardRenderer.saveToGallery(
+                                                context = context,
+                                                photoUri = photoUri,
+                                                scenario = scenario,
+                                                fallbackImageUri = generatedScenes.minByOrNull { it.chapterIndex }?.imageUri
+                                            )
                                         }
                                     }
                                     isRenderingShareImage = false
