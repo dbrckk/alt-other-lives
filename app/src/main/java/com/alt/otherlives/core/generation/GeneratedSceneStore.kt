@@ -134,7 +134,8 @@ class GeneratedSceneStore(private val context: Context) {
 
     fun replaceBatchAtomically(
         timelineKey: String,
-        scenes: List<GeneratedScene>
+        scenes: List<GeneratedScene>,
+        seed: Long? = null
     ): List<GeneratedScene> {
         if (scenes.isEmpty()) return emptyList()
         val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
@@ -164,6 +165,14 @@ class GeneratedSceneStore(private val context: Context) {
             }
 
             val affectedIndexes = staged.map { it.first }.toSet()
+            File(transaction, "affected.txt").writeText(
+                affectedIndexes.sorted().joinToString(",")
+            )
+            if (seed != null) {
+                require(seed > 0L) { "Seed must be positive" }
+                File(transaction, "seed.pending").writeText(seed.toString())
+            }
+
             val previousFiles = root.listFiles()
                 ?.filter {
                     it.isFile &&
@@ -178,6 +187,12 @@ class GeneratedSceneStore(private val context: Context) {
                     error("Unable to prepare atomic scene replacement")
                 }
             }
+            val seedTarget = File(root, "seed.txt")
+            if (seed != null && seedTarget.exists()) {
+                if (!seedTarget.renameTo(File(backupDir, "seed.txt"))) {
+                    error("Unable to prepare atomic seed replacement")
+                }
+            }
             File(transaction, "commit.started").writeText("1")
 
             val committed = mutableListOf<File>()
@@ -188,6 +203,13 @@ class GeneratedSceneStore(private val context: Context) {
                         error("Unable to commit atomic scene replacement")
                     }
                     committed += target
+                }
+                if (seed != null) {
+                    val pendingSeed = File(transaction, "seed.pending")
+                    if (!pendingSeed.renameTo(seedTarget)) {
+                        error("Unable to commit atomic timeline seed")
+                    }
+                    committed += seedTarget
                 }
             } catch (error: Throwable) {
                 committed.forEach { it.delete() }
@@ -275,14 +297,13 @@ class GeneratedSceneStore(private val context: Context) {
                 val commitStarted = File(transaction, "commit.started").exists()
 
                 if (commitStarted) {
-                    val affectedIndexes = buildSet {
-                        stagedDir.listFiles()?.forEach { file ->
-                            chapterIndexFromFilename(file.name)?.let(::add)
-                        }
-                        backupDir.listFiles()?.forEach { file ->
-                            chapterIndexFromFilename(file.name)?.let(::add)
-                        }
-                    }
+                    val affectedIndexes = File(transaction, "affected.txt")
+                        .takeIf { it.exists() }
+                        ?.readText()
+                        ?.split(",")
+                        ?.mapNotNull { it.trim().toIntOrNull() }
+                        ?.toSet()
+                        .orEmpty()
                     root.listFiles()
                         ?.filter {
                             it.isFile &&
@@ -290,6 +311,13 @@ class GeneratedSceneStore(private val context: Context) {
                                 chapterIndexFromFilename(it.name) in affectedIndexes
                         }
                         ?.forEach { it.delete() }
+
+                    val seedWasPartOfTransaction =
+                        File(transaction, "seed.pending").exists() ||
+                            File(backupDir, "seed.txt").exists()
+                    if (seedWasPartOfTransaction) {
+                        File(root, "seed.txt").delete()
+                    }
 
                     backupDir.listFiles()?.forEach { backup ->
                         backup.renameTo(File(root, backup.name))
