@@ -134,15 +134,30 @@ class GeneratedSceneStore(private val context: Context) {
         if (!root.exists()) return emptyList()
         recoverInterruptedWrites(root)
 
-        return root.listFiles()
+        val canonicalFiles = root.listFiles()
             ?.filter { it.isFile && it.name.startsWith("scene-") }
-            ?.sortedBy { chapterIndexFromFilename(it.name) ?: Int.MAX_VALUE }
-            ?.map { file ->
-                val chapterIndex = chapterIndexFromFilename(file.name) ?: return@map null
+            ?.mapNotNull { file ->
+                val chapterIndex = chapterIndexFromFilename(file.name) ?: return@mapNotNull null
                 if (!isValidImage(file)) {
                     file.delete()
-                    return@map null
+                    return@mapNotNull null
                 }
+                chapterIndex to file
+            }
+            ?.groupBy({ it.first }, { it.second })
+            ?.mapValues { (_, files) ->
+                val canonical = files.maxWithOrNull(
+                    compareBy<File> { it.lastModified() }.thenBy { it.name }
+                )
+                files.filter { it != canonical }.forEach { it.delete() }
+                canonical
+            }
+            .orEmpty()
+
+        return canonicalFiles
+            .toSortedMap()
+            .mapNotNull { (chapterIndex, file) ->
+                file ?: return@mapNotNull null
                 GeneratedScene(
                     chapterIndex = chapterIndex,
                     imageUri = FileProvider.getUriForFile(
@@ -152,8 +167,6 @@ class GeneratedSceneStore(private val context: Context) {
                     )
                 )
             }
-            ?.filterNotNull()
-            .orEmpty()
     }
 
     private fun isValidImage(file: File): Boolean {
