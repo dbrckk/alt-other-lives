@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.alt.otherlives.core.designsystem.AltMuted
 import com.alt.otherlives.core.generation.GenerationSettings
+import com.alt.otherlives.core.generation.GenerationSettingsValidation
 
 @Composable
 fun GenerationSettingsScreen(
@@ -62,7 +63,11 @@ fun GenerationSettingsScreen(
 
         OutlinedTextField(
             value = baseUrl,
-            onValueChange = { baseUrl = it },
+            onValueChange = {
+                if (it.length <= GenerationSettingsValidation.MAX_BASE_URL_CHARS) {
+                    baseUrl = it
+                }
+            },
             label = { Text("ComfyUI base URL") },
             placeholder = { Text("https://your-comfyui.example") },
             modifier = Modifier.fillMaxWidth(),
@@ -71,10 +76,18 @@ fun GenerationSettingsScreen(
         Spacer(Modifier.height(16.dp))
         OutlinedTextField(
             value = workflow,
-            onValueChange = { workflow = it },
+            onValueChange = {
+                if (it.length <= GenerationSettingsValidation.MAX_WORKFLOW_CHARS) {
+                    workflow = it
+                }
+            },
             label = { Text("Workflow API JSON") },
             supportingText = {
-                Text("Required: __ALT_SOURCE_IMAGE__ and __ALT_PROMPT__. Optional: __ALT_NEGATIVE_PROMPT__ and __ALT_SEED__. For workflows with multiple image outputs, name the preferred node ALT OUTPUT.")
+                Text(
+                    "Required: __ALT_SOURCE_IMAGE__ and __ALT_PROMPT__. Optional: __ALT_NEGATIVE_PROMPT__ and __ALT_SEED__. " +
+                        "For workflows with multiple image outputs, name the preferred node ALT OUTPUT. " +
+                        "${workflow.length}/${GenerationSettingsValidation.MAX_WORKFLOW_CHARS} chars"
+                )
             },
             modifier = Modifier.fillMaxWidth(),
             minLines = 12
