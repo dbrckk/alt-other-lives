@@ -175,6 +175,7 @@ class GeneratedSceneStore(private val context: Context) {
                     error("Unable to prepare atomic scene replacement")
                 }
             }
+            File(transaction, "commit.started").writeText("1")
 
             val committed = mutableListOf<File>()
             try {
@@ -262,7 +263,43 @@ class GeneratedSceneStore(private val context: Context) {
         return bounds.outWidth > 0 && bounds.outHeight > 0
     }
 
+    private fun recoverInterruptedBatchWrites(root: File) {
+        root.listFiles()
+            ?.filter { it.isDirectory && it.name.startsWith(".batch-") }
+            ?.forEach { transaction ->
+                val stagedDir = File(transaction, "staged")
+                val backupDir = File(transaction, "backup")
+                val commitStarted = File(transaction, "commit.started").exists()
+
+                if (commitStarted) {
+                    val affectedIndexes = buildSet {
+                        stagedDir.listFiles()?.forEach { file ->
+                            chapterIndexFromFilename(file.name)?.let(::add)
+                        }
+                        backupDir.listFiles()?.forEach { file ->
+                            chapterIndexFromFilename(file.name)?.let(::add)
+                        }
+                    }
+                    root.listFiles()
+                        ?.filter {
+                            it.isFile &&
+                                it.name.startsWith("scene-") &&
+                                chapterIndexFromFilename(it.name) in affectedIndexes
+                        }
+                        ?.forEach { it.delete() }
+
+                    backupDir.listFiles()?.forEach { backup ->
+                        backup.renameTo(File(root, backup.name))
+                    }
+                }
+
+                transaction.deleteRecursively()
+            }
+    }
+
     private fun recoverInterruptedWrites(root: File) {
+        recoverInterruptedBatchWrites(root)
+
         root.listFiles()
             ?.filter { it.isFile && it.name.startsWith(".seed-") && it.name.endsWith(".tmp") }
             ?.forEach { it.delete() }
