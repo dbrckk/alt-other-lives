@@ -23,7 +23,7 @@ fun HistoryScreen(
     entries: List<HistoryEntry>,
     scenarios: List<Scenario>,
     onBack: () -> Unit,
-    onOpen: (Scenario) -> Unit,
+    onOpen: (Scenario, HistoryEntry) -> Unit,
     onClear: () -> Unit
 ) {
     Column(Modifier.fillMaxSize().padding(top = 42.dp)) {
@@ -50,7 +50,7 @@ fun HistoryScreen(
                     val scenario = scenarios.firstOrNull { it.id == entry.scenarioId }
                     if (scenario != null) {
                         Card(
-                            modifier = Modifier.fillMaxWidth().clickable { onOpen(scenario) },
+                            modifier = Modifier.fillMaxWidth().clickable { onOpen(scenario, entry) },
                             shape = RoundedCornerShape(22.dp),
                             colors = CardDefaults.cardColors(containerColor = AltCard)
                         ) {
