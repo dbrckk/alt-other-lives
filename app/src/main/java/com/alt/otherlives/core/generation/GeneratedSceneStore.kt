@@ -190,13 +190,11 @@ class GeneratedSceneStore(private val context: Context) {
         try {
             scenes.forEach { scene ->
                 val mimeType = context.contentResolver.getType(scene.imageUri)
-                val extension = mimeType
-                    ?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
-                    ?.takeIf { it.isNotBlank() }
-                    ?: scene.imageUri.lastPathSegment
-                        ?.substringAfterLast(".", "")
-                        ?.takeIf { it.isNotBlank() }
-                    ?: "png"
+                val extension = GeneratedImageExtension.normalize(
+                    mimeExtension = mimeType
+                        ?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) },
+                    filename = scene.imageUri.lastPathSegment
+                )
                 val stagedFile = File(stagedDir, filenameForChapter(scene.chapterIndex, extension))
                 context.contentResolver.openInputStream(scene.imageUri)?.use { input ->
                     stagedFile.outputStream().use { output ->
