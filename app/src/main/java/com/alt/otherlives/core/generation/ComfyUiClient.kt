@@ -13,6 +13,7 @@ import java.net.HttpURLConnection
 import java.net.URLEncoder
 import java.net.URL
 import java.util.UUID
+import android.webkit.MimeTypeMap
 
 class ComfyUiClient(
     private val context: Context,
@@ -30,12 +31,19 @@ class ComfyUiClient(
             doOutput = true
         }
 
-        val filename = "alt-source-" + System.currentTimeMillis() + ".jpg"
+        val mimeType = context.contentResolver.getType(uri)
+            ?.takeIf { it.startsWith("image/") }
+            ?: "image/jpeg"
+        val extension = MimeTypeMap.getSingleton()
+            .getExtensionFromMimeType(mimeType)
+            ?.takeIf { it.isNotBlank() }
+            ?: "jpg"
+        val filename = "alt-source-" + System.currentTimeMillis() + "." + extension
         connection.outputStream.buffered().use { output ->
             fun write(value: String) = output.write(value.toByteArray(Charsets.UTF_8))
             write("--$boundary\r\n")
             write("Content-Disposition: form-data; name=\"image\"; filename=\"$filename\"\r\n")
-            write("Content-Type: image/jpeg\r\n\r\n")
+            write("Content-Type: " + mimeType + "\r\n\r\n")
             context.contentResolver.openInputStream(uri)?.use { input -> input.copyTo(output) }
                 ?: error("Unable to read selected image")
             write("\r\n--$boundary\r\n")
