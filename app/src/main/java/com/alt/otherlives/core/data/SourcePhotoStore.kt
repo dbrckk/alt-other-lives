@@ -3,6 +3,7 @@ package com.alt.otherlives.core.data
 import android.content.Context
 import android.net.Uri
 import androidx.core.content.FileProvider
+import android.webkit.MimeTypeMap
 import java.io.File
 
 data class StoredPhoto(
@@ -13,7 +14,12 @@ data class StoredPhoto(
 class SourcePhotoStore(private val context: Context) {
     fun import(uri: Uri): StoredPhoto {
         val dir = File(context.filesDir, "source-photos").apply { mkdirs() }
-        val fileName = "source-" + System.currentTimeMillis() + ".jpg"
+        val mimeType = context.contentResolver.getType(uri)
+        val extension = MimeTypeMap.getSingleton()
+            .getExtensionFromMimeType(mimeType)
+            ?.takeIf { it.isNotBlank() }
+            ?: "jpg"
+        val fileName = "source-" + System.currentTimeMillis() + "." + extension
         val target = File(dir, fileName)
 
         context.contentResolver.openInputStream(uri)?.use { input ->
