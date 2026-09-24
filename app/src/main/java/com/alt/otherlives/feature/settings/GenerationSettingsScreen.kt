@@ -30,7 +30,8 @@ fun GenerationSettingsScreen(
     onSave: (String, String) -> Unit,
     onTestConnection: (String) -> Unit,
     onClear: () -> Unit,
-    statusMessage: String? = null
+    statusMessage: String? = null,
+    isTestingConnection: Boolean = false
 ) {
     var baseUrl by remember(settings.comfyUiBaseUrl) { mutableStateOf(settings.comfyUiBaseUrl) }
     var workflow by remember(settings.workflowJson) { mutableStateOf(settings.workflowJson) }
@@ -79,9 +80,9 @@ fun GenerationSettingsScreen(
         Spacer(Modifier.height(10.dp))
         TextButton(
             onClick = { onTestConnection(baseUrl) },
-            enabled = baseUrl.isNotBlank(),
+            enabled = baseUrl.isNotBlank() && !isTestingConnection,
             modifier = Modifier.fillMaxWidth()
-        ) { Text("Test connection") }
+        ) { Text(if (isTestingConnection) "Testing connection…" else "Test connection") }
 
         statusMessage?.let {
             Spacer(Modifier.height(10.dp))
