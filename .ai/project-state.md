@@ -26,10 +26,12 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - Generated-scene replacement and timeline-seed writes are rollback-safe and recover after interrupted writes.
 - Persisted AI scenes are revalidated on load, corrupted files are purged, and duplicate chapter files are deduplicated to the newest valid copy.
 - Media export falls back to generated scenes when a source photo is missing, and disables export when no visual asset remains.
+- History cards show local private thumbnails when available and fall back to persisted AI scenes when the original photo is missing.
+- History photo availability is preflighted only when the History screen is opened, avoiding startup scans across old timelines.
 - ComfyUI endpoints require HTTPS, support a short-timeout validated connection test, preserve source and output image formats, reject invalid downloaded images, and surface configuration errors in the UI.
 - Heavy JPEG/MP4 preparation work runs off the main UI thread.
 - CI validates unit tests, Android lint and debug APK assembly.
-- Latest confirmed green run: #185. Run #186 validates restored-source-photo integrity checks.
+- Latest confirmed green run: #205. Runs #206+ validate history thumbnail and source-availability hardening.n #186 validates restored-source-photo integrity checks.
 
 ## Current priority
 Keep the end-to-end AI generation path reliable, then improve identity continuity, partial-failure recovery and production UX before monetization.
