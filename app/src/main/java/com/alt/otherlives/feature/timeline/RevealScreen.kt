@@ -154,7 +154,8 @@ fun RevealScreen(
                                         request = GenerationRequest(
                                             sourcePhoto = photoUri,
                                             scenario = scenario,
-                                            chapterIndexes = targetIndexes
+                                            chapterIndexes = targetIndexes,
+                                            seed = sceneStore.getOrCreateSeed(timelineKey)
                                         ),
                                         onProgress = { completed, total ->
                                             aiCompleted = completed
