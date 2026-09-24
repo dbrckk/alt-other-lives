@@ -78,7 +78,7 @@ fun RevealScreen(
     var exportProgress by remember { mutableStateOf<Int?>(null) }
     var activeTransformer by remember { mutableStateOf<Transformer?>(null) }
     var exportJob by remember { mutableStateOf<Job?>(null) }
-    var completedVideoUri by remember { mutableStateOf<Uri?>(null) }
+    var completedVideoUri by remember(timelineKey) { mutableStateOf<Uri?>(null) }
     var isRenderingShareImage by remember { mutableStateOf(false) }
     var generatedScenes by remember(timelineKey) { mutableStateOf(sceneStore.load(timelineKey)) }
     var isGeneratingAi by remember { mutableStateOf(false) }
@@ -93,6 +93,10 @@ fun RevealScreen(
     val revealHeroUri = primaryGeneratedSceneUri ?: photoUri
     val hasVisualAsset = revealHeroUri != null
 
+    LaunchedEffect(photoUri, generatedScenes) {
+        completedVideoUri = null
+    }
+
     LaunchedEffect(activeTransformer, isExporting) {
         while (isExporting) {
             activeTransformer?.let { exportProgress = CinematicVideoExporter.progress(it) }
@@ -100,7 +104,7 @@ fun RevealScreen(
         }
     }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(timelineKey) {
         onDispose {
             aiGenerationJob?.cancel()
             exportJob?.cancel()
