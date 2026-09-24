@@ -29,9 +29,7 @@ internal object HistoryEntryValidation {
         if (createdAt <= 0L) return false
         if (scenarioId !in scenarioIds) return false
         if (photoFileName == null) return true
-        if (photoFileName.isBlank()) return false
-        if (java.io.File(photoFileName).name != photoFileName) return false
-        return photoFileName.startsWith("source-")
+        return SourcePhotoFileName.isValid(photoFileName)
     }
 }
 
