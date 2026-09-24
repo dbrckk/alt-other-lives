@@ -30,13 +30,15 @@ class GenerationSettingsRepository(private val context: Context) {
 
     suspend fun save(baseUrl: String, workflowJson: String) {
         val normalized = baseUrl.trim()
+        val trimmedWorkflow = workflowJson.trim()
+        GenerationSettingsValidation.validateLengths(normalized, trimmedWorkflow)
         ComfyUiConfig(normalized).validate()
-        require(workflowJson.isNotBlank()) { "Workflow JSON is required" }
-        ComfyUiWorkflowTemplate.validateTemplate(workflowJson)
+        require(trimmedWorkflow.isNotBlank()) { "Workflow JSON is required" }
+        ComfyUiWorkflowTemplate.validateTemplate(trimmedWorkflow)
 
         context.generationDataStore.edit { prefs ->
             prefs[baseUrlKey] = normalized
-            prefs[workflowKey] = workflowJson.trim()
+            prefs[workflowKey] = trimmedWorkflow
         }
     }
 
