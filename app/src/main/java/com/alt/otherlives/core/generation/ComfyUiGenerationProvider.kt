@@ -92,8 +92,17 @@ class ComfyUiGenerationProvider(
                 )
                 val promptId = client.queuePrompt(workflow)
                 val outputs = client.awaitOutputs(promptId)
-                val selected = outputs.firstOrNull { it.type == "output" && it.filename.isNotBlank() }
-                    ?: outputs.firstOrNull { it.filename.isNotBlank() }
+                val selected = outputs
+                    .filter { it.filename.isNotBlank() }
+                    .maxWithOrNull(
+                        compareBy<ComfyUiClient.OutputImage> {
+                            if (it.type.equals("output", ignoreCase = true)) 1 else 0
+                        }.thenBy {
+                            it.nodeId.toIntOrNull() ?: Int.MIN_VALUE
+                        }.thenBy {
+                            it.filename
+                        }
+                    )
                     ?: error("ComfyUI returned no image for chapter " + (index + 1))
                 val uri = client.download(selected, index)
                 return GeneratedScene(chapterIndex = index, imageUri = uri)
