@@ -1,23 +1,31 @@
 package com.alt.otherlives.feature.history
 
 import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import coil3.compose.AsyncImage
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.alt.otherlives.core.data.HistoryEntry
+import com.alt.otherlives.core.designsystem.AltAccent
 import com.alt.otherlives.core.designsystem.AltCard
 import com.alt.otherlives.core.designsystem.AltMuted
+import com.alt.otherlives.core.designsystem.AltSurface
 import com.alt.otherlives.core.model.Scenario
 import java.text.DateFormat
 import java.util.Date
@@ -33,16 +41,44 @@ fun HistoryScreen(
     photoUrisByFileName: Map<String, Uri> = emptyMap(),
     generatedPreviewUrisByTimelineKey: Map<String, Uri> = emptyMap()
 ) {
+    var showClearConfirmation by remember { mutableStateOf(false) }
+
     Column(Modifier.fillMaxSize().padding(top = 42.dp)) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text("‹", fontSize = 36.sp, modifier = Modifier.clickable(onClick = onBack))
             Column(Modifier.padding(start = 12.dp).weight(1f)) {
                 Text("Your other lives", fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
-                Text("Stored privately on this device", color = AltMuted, fontSize = 13.sp)
+                Text(
+                    if (entries.isEmpty()) {
+                        "Stored privately on this device"
+                    } else {
+                        "${entries.size} saved ${if (entries.size == 1) "life" else "lives"} • private to this device"
+                    },
+                    color = AltMuted,
+                    fontSize = 13.sp
+                )
             }
         }
+
         if (entries.isEmpty()) {
-            Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(86.dp)
+                        .clip(RoundedCornerShape(28.dp))
+                        .background(AltCard),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("ALT", color = AltAccent, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.height(20.dp))
                 Text("No alternate lives yet.", fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(8.dp))
                 Text("Create one and it will appear here.", color = AltMuted)
@@ -50,34 +86,59 @@ fun HistoryScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(24.dp),
+                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(entries, key = { it.scenarioId + ":" + it.createdAt }) { entry ->
                     val scenario = scenarios.firstOrNull { it.id == entry.scenarioId }
                     if (scenario != null) {
+                        val timelineKey = entry.scenarioId + "-" + entry.createdAt
+                        val hasAiPreview = timelineKey in generatedPreviewUrisByTimelineKey
+                        val previewUri = entry.photoFileName
+                            ?.let { photoUrisByFileName[it] }
+                            ?: generatedPreviewUrisByTimelineKey[timelineKey]
+                        val mediaStatus = when {
+                            entry.photoFileName == null && hasAiPreview -> "AI preview"
+                            entry.photoFileName == null -> "No original photo"
+                            entry.photoFileName in unavailablePhotoFileNames && hasAiPreview -> "AI preview"
+                            entry.photoFileName in unavailablePhotoFileNames -> "Photo unavailable"
+                            else -> null
+                        }
+
                         Card(
-                            modifier = Modifier.fillMaxWidth().clickable { onOpen(scenario, entry) },
-                            shape = RoundedCornerShape(22.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onOpen(scenario, entry) },
+                            shape = RoundedCornerShape(24.dp),
                             colors = CardDefaults.cardColors(containerColor = AltCard)
                         ) {
                             Row(
-                                modifier = Modifier.padding(16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                modifier = Modifier.padding(14.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                val timelineKey = entry.scenarioId + "-" + entry.createdAt
-                                val previewUri = entry.photoFileName
-                                    ?.let { photoUrisByFileName[it] }
-                                    ?: generatedPreviewUrisByTimelineKey[timelineKey]
-                                previewUri?.let { imageUri ->
-                                    AsyncImage(
-                                        model = imageUri,
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(88.dp)
-                                            .clip(RoundedCornerShape(18.dp)),
-                                        contentScale = ContentScale.Crop
-                                    )
+                                Box(
+                                    modifier = Modifier
+                                        .size(92.dp)
+                                        .clip(RoundedCornerShape(20.dp))
+                                        .background(AltSurface),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (previewUri != null) {
+                                        AsyncImage(
+                                            model = previewUri,
+                                            contentDescription = "Preview for ${scenario.title}",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    } else {
+                                        Text(
+                                            scenario.title.take(1).uppercase(),
+                                            color = AltAccent,
+                                            fontSize = 28.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
                                 }
 
                                 Column(
@@ -85,7 +146,11 @@ fun HistoryScreen(
                                         .weight(1f)
                                         .padding(vertical = 4.dp)
                                 ) {
-                                    Text(scenario.title, fontSize = 19.sp, fontWeight = FontWeight.SemiBold)
+                                    Text(
+                                        scenario.title,
+                                        fontSize = 19.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
                                     Spacer(Modifier.height(6.dp))
                                     Text(
                                         DateFormat.getDateTimeInstance(
@@ -95,41 +160,61 @@ fun HistoryScreen(
                                         color = AltMuted,
                                         fontSize = 13.sp
                                     )
-                                    when {
-                                        entry.photoFileName == null -> {
-                                            Spacer(Modifier.height(6.dp))
+                                    if (mediaStatus != null) {
+                                        Spacer(Modifier.height(9.dp))
+                                        Surface(
+                                            shape = RoundedCornerShape(999.dp),
+                                            color = AltSurface
+                                        ) {
                                             Text(
-                                                if (timelineKey in generatedPreviewUrisByTimelineKey) {
-                                                    "Original photo not stored • AI preview"
-                                                } else {
-                                                    "Original photo not stored"
-                                                },
+                                                mediaStatus,
+                                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                                                 color = AltMuted,
-                                                fontSize = 12.sp
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Medium
                                             )
-                                        }
-                                        entry.photoFileName in unavailablePhotoFileNames -> {
-                                            Spacer(Modifier.height(6.dp))
-                                            Text(
-                                            if (timelineKey in generatedPreviewUrisByTimelineKey) {
-                                                "Original photo unavailable • AI preview"
-                                            } else {
-                                                "Original photo unavailable"
-                                            },
-                                            color = AltMuted,
-                                            fontSize = 12.sp
-                                        )
                                         }
                                     }
                                 }
+
+                                Text("›", color = AltMuted, fontSize = 28.sp)
                             }
                         }
                     }
                 }
             }
-            TextButton(onClick = onClear, modifier = Modifier.fillMaxWidth().padding(12.dp)) {
+
+            TextButton(
+                onClick = { showClearConfirmation = true },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)
+            ) {
                 Text("Clear local history")
             }
         }
+    }
+
+    if (showClearConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showClearConfirmation = false },
+            title = { Text("Clear local history?") },
+            text = {
+                Text("This removes your saved alternate lives from this device. This action cannot be undone.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showClearConfirmation = false
+                        onClear()
+                    }
+                ) {
+                    Text("Clear")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearConfirmation = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
