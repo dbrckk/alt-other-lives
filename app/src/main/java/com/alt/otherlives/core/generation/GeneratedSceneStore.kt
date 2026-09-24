@@ -107,6 +107,7 @@ class GeneratedSceneStore(private val context: Context) {
     fun load(timelineKey: String): List<GeneratedScene> {
         val root = File(context.filesDir, "generated/$timelineKey")
         if (!root.exists()) return emptyList()
+        recoverInterruptedWrites(root)
 
         return root.listFiles()
             ?.filter { it.isFile && it.name.startsWith("scene-") }
@@ -124,6 +125,40 @@ class GeneratedSceneStore(private val context: Context) {
             }
             ?.filterNotNull()
             .orEmpty()
+    }
+
+    private fun recoverInterruptedWrites(root: File) {
+        root.listFiles()
+            ?.filter { it.isFile && it.name.startsWith(".scene-") && it.name.endsWith(".tmp") }
+            ?.forEach { it.delete() }
+
+        root.listFiles()
+            ?.filter { it.isFile && it.name.startsWith(".scene-") && it.name.endsWith(".bak") }
+            ?.forEach { backup ->
+                val chapterIndex = backup.name
+                    .removePrefix(".scene-")
+                    .removeSuffix(".bak")
+                    .toIntOrNull()
+                    ?: run {
+                        backup.delete()
+                        return@forEach
+                    }
+                val hasScene = root.listFiles()
+                    ?.any { file ->
+                        file.isFile &&
+                            file.name.startsWith("scene-") &&
+                            chapterIndexFromFilename(file.name) == chapterIndex
+                    }
+                    ?: false
+                if (hasScene) {
+                    backup.delete()
+                } else {
+                    val restored = File(root, filenameForChapter(chapterIndex))
+                    if (!backup.renameTo(restored)) {
+                        backup.delete()
+                    }
+                }
+            }
     }
 
     fun clear(timelineKey: String) {
