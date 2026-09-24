@@ -23,7 +23,12 @@ class ComfyUiClient(
     init { config.validate() }
 
     data class UploadedImage(val name: String, val subfolder: String, val type: String)
-    data class OutputImage(val filename: String, val subfolder: String, val type: String)
+    data class OutputImage(
+        val filename: String,
+        val subfolder: String,
+        val type: String,
+        val nodeId: String
+    )
 
     suspend fun testConnection(): Unit = withContext(Dispatchers.IO) {
         val connection = open(
@@ -200,7 +205,8 @@ class ComfyUiClient(
                 result += OutputImage(
                     filename = image.getString("filename"),
                     subfolder = image.optString("subfolder", ""),
-                    type = image.optString("type", "output")
+                    type = image.optString("type", "output"),
+                    nodeId = key
                 )
             }
         }
@@ -209,7 +215,7 @@ class ComfyUiClient(
             status = status,
             completed = completed,
             errorMessage = errorMessage,
-            outputs = result.sortedWith(compareBy<OutputImage> { it.filename }.thenBy { it.subfolder })
+            outputs = result
         )
     }
 
