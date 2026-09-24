@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory
 import java.io.File
 import java.util.UUID
 import com.alt.otherlives.core.io.BoundedStreamCopy
+import com.alt.otherlives.core.media.ImageBoundsValidation
 
 data class StoredPhoto(
     val fileName: String,
@@ -43,8 +44,13 @@ class SourcePhotoStore(private val context: Context) {
             require(temporary.length() > 0L) { "Selected image copy is empty" }
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(temporary.absolutePath, bounds)
-            require(bounds.outWidth > 0 && bounds.outHeight > 0) {
-                "Selected image is invalid or unsupported"
+            require(
+                ImageBoundsValidation.isReasonable(
+                    bounds.outWidth,
+                    bounds.outHeight
+                )
+            ) {
+                "Selected image is invalid, unsupported, or too large"
             }
 
             if (!temporary.renameTo(target)) {
@@ -117,7 +123,10 @@ class SourcePhotoStore(private val context: Context) {
         if (!file.exists() || file.length() <= 0L) return false
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.absolutePath, bounds)
-        return bounds.outWidth > 0 && bounds.outHeight > 0
+        return ImageBoundsValidation.isReasonable(
+            bounds.outWidth,
+            bounds.outHeight
+        )
     }
 
     private fun cleanupInterruptedImports(dir: File) {
