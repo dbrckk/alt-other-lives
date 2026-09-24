@@ -24,7 +24,8 @@ fun HistoryScreen(
     scenarios: List<Scenario>,
     onBack: () -> Unit,
     onOpen: (Scenario, HistoryEntry) -> Unit,
-    onClear: () -> Unit
+    onClear: () -> Unit,
+    unavailablePhotoFileNames: Set<String> = emptySet()
 ) {
     Column(Modifier.fillMaxSize().padding(top = 42.dp)) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
@@ -58,6 +59,16 @@ fun HistoryScreen(
                                 Text(scenario.title, fontSize = 19.sp, fontWeight = FontWeight.SemiBold)
                                 Spacer(Modifier.height(6.dp))
                                 Text(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(entry.createdAt)), color = AltMuted, fontSize = 13.sp)
+                                when {
+                                    entry.photoFileName == null -> {
+                                        Spacer(Modifier.height(6.dp))
+                                        Text("Original photo not stored", color = AltMuted, fontSize = 12.sp)
+                                    }
+                                    entry.photoFileName in unavailablePhotoFileNames -> {
+                                        Spacer(Modifier.height(6.dp))
+                                        Text("Original photo unavailable", color = AltMuted, fontSize = 12.sp)
+                                    }
+                                }
                             }
                         }
                     }
