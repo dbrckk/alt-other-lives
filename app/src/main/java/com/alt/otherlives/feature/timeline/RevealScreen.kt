@@ -80,7 +80,8 @@ fun RevealScreen(
     var exportJob by remember { mutableStateOf<Job?>(null) }
     var completedVideoUri by remember(timelineKey) { mutableStateOf<Uri?>(null) }
     var isRenderingShareImage by remember { mutableStateOf(false) }
-    var generatedScenes by remember(timelineKey) { mutableStateOf(sceneStore.load(timelineKey)) }
+    var generatedScenes by remember(timelineKey) { mutableStateOf<List<GeneratedScene>>(emptyList()) }
+    var isLoadingStoredScenes by remember(timelineKey) { mutableStateOf(true) }
     var isGeneratingAi by remember { mutableStateOf(false) }
     var aiGenerationJob by remember { mutableStateOf<Job?>(null) }
     var aiCompleted by remember { mutableStateOf(0) }
@@ -92,6 +93,14 @@ fun RevealScreen(
         ?.imageUri
     val revealHeroUri = primaryGeneratedSceneUri ?: photoUri
     val hasVisualAsset = revealHeroUri != null
+
+    LaunchedEffect(timelineKey) {
+        isLoadingStoredScenes = true
+        generatedScenes = withContext(Dispatchers.IO) {
+            sceneStore.load(timelineKey)
+        }
+        isLoadingStoredScenes = false
+    }
 
     LaunchedEffect(photoUri, generatedScenes) {
         completedVideoUri = null
@@ -252,7 +261,7 @@ fun RevealScreen(
                                 }
                             }
                         },
-                        enabled = !isGeneratingAi && !isExporting && !isRenderingShareImage,
+                        enabled = !isLoadingStoredScenes && !isGeneratingAi && !isExporting && !isRenderingShareImage,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) {
@@ -267,7 +276,7 @@ fun RevealScreen(
                     if (generatedScenes.isNotEmpty()) {
                         TextButton(
                             onClick = { showClearAiDialog = true },
-                            enabled = !isGeneratingAi && !isExporting && !isRenderingShareImage,
+                            enabled = !isLoadingStoredScenes && !isGeneratingAi && !isExporting && !isRenderingShareImage,
                             modifier = Modifier.fillMaxWidth()
                         ) { Text("Remove generated AI scenes") }
                     }
@@ -369,7 +378,7 @@ fun RevealScreen(
                             }
                         }
                     },
-                    enabled = !isRenderingShareImage && !isGeneratingAi && !isExporting && hasVisualAsset,
+                    enabled = !isLoadingStoredScenes && !isRenderingShareImage && !isGeneratingAi && !isExporting && hasVisualAsset,
                     modifier = Modifier.fillMaxWidth().height(58.dp),
                     shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AltPrimary, contentColor = Color(0xFF16111F))
@@ -409,7 +418,7 @@ fun RevealScreen(
                                 }
                             }
                         },
-                        enabled = !isRenderingShareImage && !isGeneratingAi && !isExporting && hasVisualAsset,
+                        enabled = !isLoadingStoredScenes && !isRenderingShareImage && !isGeneratingAi && !isExporting && hasVisualAsset,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) { Text("Save 9:16 image", fontWeight = FontWeight.Bold) }
@@ -476,7 +485,7 @@ fun RevealScreen(
                             }
                         }
                     },
-                    enabled = !isExporting && !isGeneratingAi && !isRenderingShareImage && hasVisualAsset,
+                    enabled = !isLoadingStoredScenes && !isExporting && !isGeneratingAi && !isRenderingShareImage && hasVisualAsset,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(20.dp)
                 ) {
@@ -514,7 +523,7 @@ fun RevealScreen(
                     Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = { CinematicVideoExporter.share(context, videoUri, scenario) },
-                        enabled = !isGeneratingAi && !isExporting,
+                        enabled = !isLoadingStoredScenes && !isGeneratingAi && !isExporting,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) { Text("Share MP4", fontWeight = FontWeight.Bold) }
@@ -522,7 +531,7 @@ fun RevealScreen(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         Spacer(Modifier.height(8.dp))
                         androidx.compose.material3.TextButton(
-                            enabled = !isGeneratingAi && !isExporting,
+                            enabled = !isLoadingStoredScenes && !isGeneratingAi && !isExporting,
                             onClick = {
                                 runCatching {
                                     CinematicVideoExporter.saveToGallery(context, videoUri, scenario)
