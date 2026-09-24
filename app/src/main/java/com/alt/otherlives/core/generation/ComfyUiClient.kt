@@ -74,11 +74,14 @@ class ComfyUiClient(
             write("--$boundary--\r\n")
         }
 
-        val json = JSONObject(readResponse(connection))
+        val body = readResponse(connection)
+        val json = parseJsonObject(body, "upload")
+        val name = json.optString("name").takeIf { it.isNotBlank() }
+            ?: error("ComfyUI upload response is missing image name")
         UploadedImage(
-            name = json.getString("name"),
+            name = name,
             subfolder = json.optString("subfolder", ""),
-            type = json.optString("type", "input")
+            type = json.optString("type", "input").ifBlank { "input" }
         )
     }
 
@@ -97,7 +100,10 @@ class ComfyUiClient(
             .put("client_id", config.clientId)
             .toString()
         connection.outputStream.use { it.write(payload.toByteArray(Charsets.UTF_8)) }
-        JSONObject(readResponse(connection)).getString("prompt_id")
+        val body = readResponse(connection)
+        val json = parseJsonObject(body, "queue")
+        json.optString("prompt_id").takeIf { it.isNotBlank() }
+            ?: error("ComfyUI queue response is missing prompt_id")
     }
 
     suspend fun awaitOutputs(promptId: String, timeoutMs: Long = 180_000L): List<OutputImage> {
@@ -175,7 +181,7 @@ class ComfyUiClient(
             connectTimeoutMs = 8_000,
             readTimeoutMs = 15_000
         )
-        val json = JSONObject(readResponse(connection))
+        val json = parseJsonObject(readResponse(connection), "history")
         val prompt = json.optJSONObject(promptId)
             ?: return@withContext HistorySnapshot(null, false, null, emptyList())
 
@@ -205,6 +211,12 @@ class ComfyUiClient(
             errorMessage = errorMessage,
             outputs = result.sortedWith(compareBy<OutputImage> { it.filename }.thenBy { it.subfolder })
         )
+    }
+
+    private fun parseJsonObject(body: String, operation: String): JSONObject {
+        require(body.isNotBlank()) { "ComfyUI $operation response was empty" }
+        return runCatching { JSONObject(body) }
+            .getOrElse { error("ComfyUI $operation response was not valid JSON") }
     }
 
     private fun extractExecutionError(messages: JSONArray?): String? {
