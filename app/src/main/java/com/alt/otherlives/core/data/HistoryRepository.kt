@@ -47,6 +47,29 @@ class HistoryRepository(private val context: Context) {
         )
     }
 
+    suspend fun remove(entry: HistoryEntry): RecordResult {
+        var referencedPhotoFileNames = emptySet<String>()
+        var referencedTimelineKeys = emptySet<String>()
+        context.altDataStore.edit { prefs ->
+            val current = decode(prefs[historyKey].orEmpty())
+            val updated = current.filterNot {
+                it.scenarioId == entry.scenarioId &&
+                    it.createdAt == entry.createdAt
+            }
+            if (updated.isEmpty()) {
+                prefs.remove(historyKey)
+            } else {
+                prefs[historyKey] = encode(updated)
+            }
+            referencedPhotoFileNames = updated.mapNotNull { it.photoFileName }.toSet()
+            referencedTimelineKeys = updated.map { it.scenarioId + "-" + it.createdAt }.toSet()
+        }
+        return RecordResult(
+            photoFileNames = referencedPhotoFileNames,
+            timelineKeys = referencedTimelineKeys
+        )
+    }
+
     suspend fun clear() {
         context.altDataStore.edit { it.remove(historyKey) }
     }
