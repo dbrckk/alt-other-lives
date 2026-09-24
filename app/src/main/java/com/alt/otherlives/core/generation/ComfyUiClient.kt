@@ -43,7 +43,12 @@ class ComfyUiClient(
 
     suspend fun uploadImage(uri: Uri): UploadedImage = withContext(Dispatchers.IO) {
         val boundary = "ALT-" + UUID.randomUUID()
-        val connection = open("/upload/image", "POST").apply {
+        val connection = open(
+            path = "/upload/image",
+            method = "POST",
+            connectTimeoutMs = 15_000,
+            readTimeoutMs = 60_000
+        ).apply {
             setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
             doOutput = true
         }
@@ -78,7 +83,12 @@ class ComfyUiClient(
     }
 
     suspend fun queuePrompt(workflow: JSONObject): String = withContext(Dispatchers.IO) {
-        val connection = open("/prompt", "POST").apply {
+        val connection = open(
+            path = "/prompt",
+            method = "POST",
+            connectTimeoutMs = 10_000,
+            readTimeoutMs = 30_000
+        ).apply {
             setRequestProperty("Content-Type", "application/json")
             doOutput = true
         }
@@ -110,7 +120,12 @@ class ComfyUiClient(
         val query = "?filename=" + encode(output.filename) +
             "&subfolder=" + encode(output.subfolder) +
             "&type=" + encode(output.type)
-        val connection = open("/view" + query, "GET")
+        val connection = open(
+            path = "/view" + query,
+            method = "GET",
+            connectTimeoutMs = 15_000,
+            readTimeoutMs = 60_000
+        )
         ensureSuccess(connection)
 
         val dir = File(context.cacheDir, "generation").apply { mkdirs() }
@@ -150,7 +165,12 @@ class ComfyUiClient(
     )
 
     private suspend fun historySnapshot(promptId: String): HistorySnapshot = withContext(Dispatchers.IO) {
-        val connection = open("/history/" + promptId, "GET")
+        val connection = open(
+            path = "/history/" + promptId,
+            method = "GET",
+            connectTimeoutMs = 8_000,
+            readTimeoutMs = 15_000
+        )
         val json = JSONObject(readResponse(connection))
         val prompt = json.optJSONObject(promptId)
             ?: return@withContext HistorySnapshot(null, false, null, emptyList())
