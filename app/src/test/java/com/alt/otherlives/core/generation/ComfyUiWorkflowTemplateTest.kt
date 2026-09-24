@@ -59,4 +59,46 @@ class ComfyUiWorkflowTemplateTest {
         assertEquals("9", ComfyUiWorkflowTemplate.preferredOutputNodeId(workflow))
     }
 
+    @Test
+    fun prepareInjectsOptionalNegativePromptAndSeed() {
+        val workflow = """
+            {
+              "1": {"inputs": {"image": "__ALT_SOURCE_IMAGE__"}},
+              "2": {"inputs": {"text": "__ALT_PROMPT__"}},
+              "3": {"inputs": {"negative": "__ALT_NEGATIVE_PROMPT__"}},
+              "4": {"inputs": {"seed": "__ALT_SEED__"}}
+            }
+        """.trimIndent()
+
+        val prepared = ComfyUiWorkflowTemplate.prepare(
+            templateJson = workflow,
+            uploaded = ComfyUiClient.UploadedImage(
+                name = "source.png",
+                subfolder = "",
+                type = "input"
+            ),
+            prompt = "chapter prompt",
+            seed = 1234L
+        )
+
+        assertEquals(
+            "source.png",
+            prepared.getJSONObject("1").getJSONObject("inputs").getString("image")
+        )
+        assertEquals(
+            "chapter prompt",
+            prepared.getJSONObject("2").getJSONObject("inputs").getString("text")
+        )
+        assertTrue(
+            prepared.getJSONObject("3")
+                .getJSONObject("inputs")
+                .getString("negative")
+                .contains("identity drift")
+        )
+        assertEquals(
+            1234L,
+            prepared.getJSONObject("4").getJSONObject("inputs").getLong("seed")
+        )
+    }
+
 }
