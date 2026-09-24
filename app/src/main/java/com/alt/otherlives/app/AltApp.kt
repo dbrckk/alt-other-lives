@@ -39,6 +39,8 @@ import com.alt.otherlives.feature.timeline.RevealScreen
 
 private enum class Screen { HOME, SCENARIOS, REVEAL, HISTORY, SETTINGS }
 
+private const val HISTORY_PREVIEW_LIMIT = 16
+
 @Composable
 fun AltApp() {
     var screen by remember { mutableStateOf(Screen.HOME) }
@@ -85,12 +87,14 @@ fun AltApp() {
         if (screen != Screen.HISTORY) return@LaunchedEffect
         val photoFileNames = history.mapNotNull { it.photoFileName }.distinct()
         val preflight = withContext(Dispatchers.IO) {
-            val availablePhotos = photoFileNames.mapNotNull { fileName ->
+            val recentEntries = history.take(HISTORY_PREVIEW_LIMIT)
+            val recentPhotoFileNames = recentEntries.mapNotNull { it.photoFileName }.distinct()
+            val availablePhotos = recentPhotoFileNames.mapNotNull { fileName ->
                 runCatching { sourcePhotoStore.uriFor(fileName) }
                     .getOrNull()
                     ?.let { fileName to it }
             }.toMap()
-            val generatedPreviews = history.mapNotNull { entry ->
+            val generatedPreviews = recentEntries.mapNotNull { entry ->
                 val timelineKey = entry.scenarioId + "-" + entry.createdAt
                 generatedSceneStore.load(timelineKey)
                     .minByOrNull { it.chapterIndex }
@@ -101,7 +105,10 @@ fun AltApp() {
         }
         historyPhotoUris = preflight.first
         historyGeneratedPreviewUris = preflight.second
-        unavailablePhotoFileNames = photoFileNames.filterNot { it in preflight.first }.toSet()
+        unavailablePhotoFileNames = photoFileNames
+            .filter { it in history.take(HISTORY_PREVIEW_LIMIT).mapNotNull { entry -> entry.photoFileName } }
+            .filterNot { it in preflight.first }
+            .toSet()
     }
 
     LaunchedEffect(history, hasRestoredStartupPhoto) {
