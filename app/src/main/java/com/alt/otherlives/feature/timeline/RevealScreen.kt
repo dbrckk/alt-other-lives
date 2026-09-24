@@ -138,7 +138,7 @@ fun RevealScreen(
         item {
             Column(Modifier.padding(24.dp)) {
                 if (generationSettings.isConfigured && photoUri != null) {
-                    val startGeneration: (Set<Int>) -> Unit = { targetIndexes ->
+                    val startGeneration: (Set<Int>, Boolean) -> Unit = { targetIndexes, resetSeed ->
                         if (!isGeneratingAi) {
                             isGeneratingAi = true
                             aiCompleted = 0
@@ -155,7 +155,11 @@ fun RevealScreen(
                                             sourcePhoto = photoUri,
                                             scenario = scenario,
                                             chapterIndexes = targetIndexes,
-                                            seed = sceneStore.getOrCreateSeed(timelineKey)
+                                            seed = if (resetSeed) {
+                                                sceneStore.resetSeed(timelineKey)
+                                            } else {
+                                                sceneStore.getOrCreateSeed(timelineKey)
+                                            }
                                         ),
                                         onProgress = { completed, total ->
                                             aiCompleted = completed
@@ -202,7 +206,10 @@ fun RevealScreen(
                                 if (generatedScenes.size >= expectedIndexes.size && expectedIndexes.isNotEmpty()) {
                                     showRegenerateAllDialog = true
                                 } else {
-                                    startGeneration(if (missingIndexes.isNotEmpty()) missingIndexes else expectedIndexes)
+                                    startGeneration(
+                                        if (missingIndexes.isNotEmpty()) missingIndexes else expectedIndexes,
+                                        false
+                                    )
                                 }
                             }
                         },
@@ -253,12 +260,15 @@ fun RevealScreen(
                         AlertDialog(
                             onDismissRequest = { showRegenerateAllDialog = false },
                             title = { Text("Regenerate all AI scenes?") },
-                            text = { Text("This will replace every generated chapter in this timeline.") },
+                            text = { Text("This will create a new visual variation for the full timeline. Existing scenes are kept if a replacement fails.") },
                             confirmButton = {
                                 TextButton(
                                     onClick = {
                                         showRegenerateAllDialog = false
-                                        startGeneration(scenario.chapters.take(5).indices.toSet())
+                                        startGeneration(
+                                            scenario.chapters.take(5).indices.toSet(),
+                                            true
+                                        )
                                     }
                                 ) { Text("Regenerate all") }
                             },
