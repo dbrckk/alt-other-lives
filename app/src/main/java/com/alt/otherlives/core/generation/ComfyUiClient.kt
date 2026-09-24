@@ -10,6 +10,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import com.alt.otherlives.core.io.BoundedStreamCopy
+import com.alt.otherlives.core.media.ImageBoundsValidation
 import java.net.HttpURLConnection
 import java.net.URLEncoder
 import java.net.URL
@@ -170,8 +171,11 @@ class ComfyUiClient(
 
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(file.absolutePath, bounds)
-            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
-                error("ComfyUI returned an invalid image for chapter " + (index + 1))
+            if (!ImageBoundsValidation.isReasonable(bounds.outWidth, bounds.outHeight)) {
+                error(
+                    "ComfyUI returned an invalid or unreasonable image for chapter " +
+                        (index + 1)
+                )
             }
 
             FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
