@@ -34,7 +34,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.rememberCoroutineScope
@@ -217,7 +216,7 @@ fun RevealScreen(
                                     }
                                     val generationSeed = if (resetSeed) {
                                         withContext(Dispatchers.IO) {
-                                            sceneStore.resetSeed(timelineKey)
+                                            sceneStore.createSeed()
                                         }
                                     } else {
                                         previousSeed
@@ -258,14 +257,14 @@ fun RevealScreen(
                                                     timelineKey,
                                                     newScenes
                                                 )
+                                                sceneStore.setSeed(
+                                                    timelineKey,
+                                                    generationSeed
+                                                )
                                             } else {
                                                 sceneStore.persist(timelineKey, newScenes)
                                             }
                                             sceneStore.load(timelineKey)
-                                        }
-                                    } else if (resetSeed) {
-                                        withContext(Dispatchers.IO) {
-                                            sceneStore.setSeed(timelineKey, previousSeed)
                                         }
                                     }
 
@@ -280,22 +279,8 @@ fun RevealScreen(
                                     }
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 } catch (cancelled: CancellationException) {
-                                    val seedToRestore = previousSeed
-                                    if (resetSeed && seedToRestore != null) {
-                                        withContext(NonCancellable + Dispatchers.IO) {
-                                            sceneStore.setSeed(timelineKey, seedToRestore)
-                                        }
-                                    }
                                     throw cancelled
                                 } catch (error: Throwable) {
-                                    val seedToRestore = previousSeed
-                                    if (resetSeed && seedToRestore != null) {
-                                        runCatching {
-                                            withContext(Dispatchers.IO) {
-                                                sceneStore.setSeed(timelineKey, seedToRestore)
-                                            }
-                                        }
-                                    }
                                     Toast.makeText(
                                         context,
                                         "AI generation failed: " +
