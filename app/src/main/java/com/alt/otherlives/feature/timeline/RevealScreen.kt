@@ -283,8 +283,6 @@ fun RevealScreen(
                                                     scenes = newScenes,
                                                     seed = generationSeed
                                                 )
-                                            } else {
-                                                sceneStore.persist(timelineKey, newScenes)
                                             }
                                             sceneStore.load(timelineKey)
                                         }
