@@ -121,13 +121,13 @@ fun AltApp() {
                         onBack = { screen = Screen.HOME },
                         onOpen = { scenario, entry ->
                             selectedScenario = scenario
-                            entry.photoFileName?.let { fileName ->
+                            val restored = entry.photoFileName?.let { fileName ->
                                 runCatching { sourcePhotoStore.uriFor(fileName) }
-                                    .onSuccess {
-                                        photoUri = it
-                                        photoFileName = fileName
-                                    }
+                                    .getOrNull()
+                                    ?.let { uri -> uri to fileName }
                             }
+                            photoUri = restored?.first
+                            photoFileName = restored?.second
                             screen = Screen.REVEAL
                         },
                         onClear = {
