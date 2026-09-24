@@ -113,7 +113,10 @@ fun HistoryScreen(
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { onOpen(scenario, entry) },
+                                .clickable(
+                                    enabled = !isDeleting,
+                                    onClick = { onOpen(scenario, entry) }
+                                ),
                             shape = RoundedCornerShape(24.dp),
                             colors = CardDefaults.cardColors(containerColor = AltCard)
                         ) {
@@ -207,6 +210,7 @@ fun HistoryScreen(
 
             TextButton(
                 onClick = { showClearConfirmation = true },
+                enabled = deletingEntryKey == null,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
                 Text("Clear local history")
