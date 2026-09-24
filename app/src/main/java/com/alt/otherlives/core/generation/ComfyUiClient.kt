@@ -170,7 +170,35 @@ class ComfyUiClient(
         error("ComfyUI generation timed out")
     }
 
-    suspend fun download(output: OutputImage, index: Int): Uri = withContext(Dispatchers.IO) {
+    suspend fun download(output: OutputImage, index: Int): Uri {
+        var lastError: Throwable? = null
+
+        repeat(MAX_DOWNLOAD_ATTEMPTS) { attempt ->
+            try {
+                return downloadOnce(output, index)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Throwable) {
+                lastError = error
+                if (!ComfyUiRetryPolicy.shouldRetry(error)) {
+                    throw error
+                }
+                if (attempt < MAX_DOWNLOAD_ATTEMPTS - 1) {
+                    delay(DOWNLOAD_RETRY_DELAY_MS)
+                }
+            }
+        }
+
+        throw IllegalStateException(
+            "ComfyUI image download failed after $MAX_DOWNLOAD_ATTEMPTS attempts",
+            lastError
+        )
+    }
+
+    private suspend fun downloadOnce(
+        output: OutputImage,
+        index: Int
+    ): Uri = withContext(Dispatchers.IO) {
         val query = "?filename=" + encode(output.filename) +
             "&subfolder=" + encode(output.subfolder) +
             "&type=" + encode(output.type)
@@ -359,6 +387,8 @@ class ComfyUiClient(
         const val MAX_ERROR_BODY_READ_CHARS = 4_096
         const val MAX_RESPONSE_BODY_CHARS = 4_000_000
         const val POLL_INTERVAL_MS = 900L
+        const val MAX_DOWNLOAD_ATTEMPTS = 2
+        const val DOWNLOAD_RETRY_DELAY_MS = 500L
         const val MAX_UPLOAD_IMAGE_BYTES = 50L * 1024L * 1024L
         const val MAX_GENERATED_IMAGE_BYTES = 100L * 1024L * 1024L
     }
