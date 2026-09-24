@@ -1,6 +1,7 @@
 package com.alt.otherlives.core.generation
 
 import android.content.Context
+import kotlinx.coroutines.CancellationException
 
 class ComfyUiGenerationProvider(
     context: Context,
@@ -14,7 +15,8 @@ class ComfyUiGenerationProvider(
 
     override suspend fun generate(
         request: GenerationRequest,
-        onProgress: (completed: Int, total: Int) -> Unit
+        onProgress: (completed: Int, total: Int) -> Unit,
+        onSceneGenerated: (GeneratedScene) -> Unit
     ): List<GeneratedScene> {
         val chapters = request.scenario.chapters.take(5)
         require(chapters.isNotEmpty()) { "Scenario has no chapters" }
@@ -41,16 +43,18 @@ class ComfyUiGenerationProvider(
                 chapterNarrative = chapter.narrative,
                 chapterIndex = index
             )
-            runCatching {
-                generateChapterWithRetry(
+            try {
+                val generated = generateChapterWithRetry(
                     index = index,
                     uploaded = uploaded,
                     prompt = prompt,
                     seed = sessionSeed
                 )
-            }.onSuccess { generated ->
                 result += generated
-            }.onFailure { error ->
+                onSceneGenerated(generated)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Throwable) {
                 failures += "Chapter " + (index + 1) + ": " + (error.message ?: "unknown error")
             }
             processed += 1
@@ -77,7 +81,7 @@ class ComfyUiGenerationProvider(
 
         repeat(MAX_CHAPTER_ATTEMPTS) {
             val attemptSeed = seed
-            val result = runCatching {
+            try {
                 val workflow = ComfyUiWorkflowTemplate.prepare(
                     templateJson = workflowTemplateJson,
                     uploaded = uploaded,
@@ -90,11 +94,12 @@ class ComfyUiGenerationProvider(
                     ?: outputs.firstOrNull { it.filename.isNotBlank() }
                     ?: error("ComfyUI returned no image for chapter " + (index + 1))
                 val uri = client.download(selected, index)
-                GeneratedScene(chapterIndex = index, imageUri = uri)
+                return GeneratedScene(chapterIndex = index, imageUri = uri)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Throwable) {
+                lastError = error
             }
-
-            result.onSuccess { return it }
-            lastError = result.exceptionOrNull()
         }
 
         throw IllegalStateException(
