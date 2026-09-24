@@ -170,6 +170,7 @@ class GeneratedSceneStore(private val context: Context) {
             )
             if (seed != null) {
                 require(seed > 0L) { "Seed must be positive" }
+                File(transaction, "seed.included").writeText("1")
                 File(transaction, "seed.pending").writeText(seed.toString())
             }
 
@@ -313,7 +314,8 @@ class GeneratedSceneStore(private val context: Context) {
                         ?.forEach { it.delete() }
 
                     val seedWasPartOfTransaction =
-                        File(transaction, "seed.pending").exists() ||
+                        File(transaction, "seed.included").exists() ||
+                            File(transaction, "seed.pending").exists() ||
                             File(backupDir, "seed.txt").exists()
                     if (seedWasPartOfTransaction) {
                         File(root, "seed.txt").delete()
