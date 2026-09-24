@@ -154,6 +154,7 @@ fun RevealScreen(
                 if (generationSettings.isConfigured && photoUri != null) {
                     val startGeneration: (Set<Int>, Boolean) -> Unit = { targetIndexes, resetSeed ->
                         if (!isGeneratingAi) {
+                            completedVideoUri = null
                             isGeneratingAi = true
                             aiCompleted = 0
                             aiTotal = targetIndexes.size
@@ -504,6 +505,7 @@ fun RevealScreen(
                     Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = { CinematicVideoExporter.share(context, videoUri, scenario) },
+                        enabled = !isGeneratingAi && !isExporting,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) { Text("Share MP4", fontWeight = FontWeight.Bold) }
@@ -511,6 +513,7 @@ fun RevealScreen(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         Spacer(Modifier.height(8.dp))
                         androidx.compose.material3.TextButton(
+                            enabled = !isGeneratingAi && !isExporting,
                             onClick = {
                                 runCatching {
                                     CinematicVideoExporter.saveToGallery(context, videoUri, scenario)
