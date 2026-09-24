@@ -11,6 +11,9 @@ data class ComfyUiConfig(
 
     fun validate() {
         val normalized = normalizedBaseUrl
+        require(normalized.length <= GenerationSettingsValidation.MAX_BASE_URL_CHARS) {
+            "ComfyUI base URL is too long"
+        }
         val uri = runCatching { URI(normalized) }
             .getOrElse { throw IllegalArgumentException("ComfyUI base URL is invalid", it) }
 
