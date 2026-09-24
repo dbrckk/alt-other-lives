@@ -86,8 +86,10 @@ class ComfyUiClient(
         val name = json.optString("name").takeIf { it.isNotBlank() }
             ?: error("ComfyUI upload response is missing image name")
         UploadedImage(
-            name = name,
-            subfolder = json.optString("subfolder", ""),
+            name = ComfyUiRemotePath.validateFilename(name),
+            subfolder = ComfyUiRemotePath.validateSubfolder(
+                json.optString("subfolder", "")
+            ),
             type = json.optString("type", "input").ifBlank { "input" }
         )
     }
@@ -218,8 +220,12 @@ class ComfyUiClient(
             for (i in 0 until images.length()) {
                 val image = images.optJSONObject(i) ?: continue
                 result += OutputImage(
-                    filename = image.getString("filename"),
-                    subfolder = image.optString("subfolder", ""),
+                    filename = ComfyUiRemotePath.validateFilename(
+                        image.getString("filename")
+                    ),
+                    subfolder = ComfyUiRemotePath.validateSubfolder(
+                        image.optString("subfolder", "")
+                    ),
                     type = image.optString("type", "output"),
                     nodeId = key
                 )
