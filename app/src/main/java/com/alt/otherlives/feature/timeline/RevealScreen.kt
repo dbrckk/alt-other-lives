@@ -177,7 +177,9 @@ fun RevealScreen(
                             aiCompleted = 0
                             aiTotal = targetIndexes.size
                             aiGenerationJob = scope.launch {
-                                val previousSeed = sceneStore.getOrCreateSeed(timelineKey)
+                                val previousSeed = withContext(Dispatchers.IO) {
+                                    sceneStore.getOrCreateSeed(timelineKey)
+                                }
                                 runCatching {
                                     val provider = ComfyUiGenerationProvider(
                                         context = context,
@@ -190,7 +192,9 @@ fun RevealScreen(
                                             scenario = scenario,
                                             chapterIndexes = targetIndexes,
                                             seed = if (resetSeed) {
-                                                sceneStore.resetSeed(timelineKey)
+                                                withContext(Dispatchers.IO) {
+                                                    sceneStore.resetSeed(timelineKey)
+                                                }
                                             } else {
                                                 previousSeed
                                             }
@@ -201,8 +205,10 @@ fun RevealScreen(
                                         },
                                         onSceneGenerated = { generated ->
                                             if (!resetSeed) {
-                                                sceneStore.persist(timelineKey, listOf(generated))
-                                                generatedScenes = sceneStore.load(timelineKey)
+                                                generatedScenes = withContext(Dispatchers.IO) {
+                                                    sceneStore.persist(timelineKey, listOf(generated))
+                                                    sceneStore.load(timelineKey)
+                                                }
                                             }
                                         }
                                     )
@@ -210,10 +216,14 @@ fun RevealScreen(
                                     val completeFreshVariation =
                                         !resetSeed || newScenes.size == targetIndexes.size
                                     if (completeFreshVariation) {
-                                        sceneStore.persist(timelineKey, newScenes)
-                                        generatedScenes = sceneStore.load(timelineKey)
+                                        generatedScenes = withContext(Dispatchers.IO) {
+                                            sceneStore.persist(timelineKey, newScenes)
+                                            sceneStore.load(timelineKey)
+                                        }
                                     } else {
-                                        sceneStore.setSeed(timelineKey, previousSeed)
+                                        withContext(Dispatchers.IO) {
+                                            sceneStore.setSeed(timelineKey, previousSeed)
+                                        }
                                     }
                                     isGeneratingAi = false
                                     aiGenerationJob = null
@@ -229,7 +239,9 @@ fun RevealScreen(
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 }.onFailure {
                                     if (resetSeed) {
-                                        sceneStore.setSeed(timelineKey, previousSeed)
+                                        withContext(Dispatchers.IO) {
+                                            sceneStore.setSeed(timelineKey, previousSeed)
+                                        }
                                     }
                                     isGeneratingAi = false
                                     aiGenerationJob = null
