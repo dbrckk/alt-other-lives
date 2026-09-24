@@ -273,17 +273,19 @@ fun RevealScreen(
                                     }
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 } catch (cancelled: CancellationException) {
-                                    if (resetSeed && previousSeed != null) {
+                                    val seedToRestore = previousSeed
+                                    if (resetSeed && seedToRestore != null) {
                                         withContext(NonCancellable + Dispatchers.IO) {
-                                            sceneStore.setSeed(timelineKey, previousSeed)
+                                            sceneStore.setSeed(timelineKey, seedToRestore)
                                         }
                                     }
                                     throw cancelled
                                 } catch (error: Throwable) {
-                                    if (resetSeed && previousSeed != null) {
+                                    val seedToRestore = previousSeed
+                                    if (resetSeed && seedToRestore != null) {
                                         runCatching {
                                             withContext(Dispatchers.IO) {
-                                                sceneStore.setSeed(timelineKey, previousSeed)
+                                                sceneStore.setSeed(timelineKey, seedToRestore)
                                             }
                                         }
                                     }
