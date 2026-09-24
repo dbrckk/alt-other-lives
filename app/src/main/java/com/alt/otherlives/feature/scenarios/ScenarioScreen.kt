@@ -27,14 +27,35 @@ import com.alt.otherlives.core.designsystem.AltMuted
 import com.alt.otherlives.core.model.Scenario
 
 @Composable
-fun ScenarioScreen(scenarios: List<Scenario>, onBack: () -> Unit, onSelect: (Scenario) -> Unit) {
+fun ScenarioScreen(
+    scenarios: List<Scenario>,
+    onBack: () -> Unit,
+    onSelect: (Scenario) -> Unit,
+    isCreatingTimeline: Boolean = false
+) {
     Column(modifier = Modifier.fillMaxSize().padding(top = 42.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("‹", fontSize = 36.sp, modifier = Modifier.clickable(onClick = onBack))
+            Text(
+                "‹",
+                fontSize = 36.sp,
+                modifier = Modifier.clickable(
+                    enabled = !isCreatingTimeline,
+                    onClick = onBack
+                )
+            )
             Text("What if…", fontSize = 32.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 12.dp))
+        }
+        if (isCreatingTimeline) {
+            Spacer(Modifier.height(10.dp))
+            Text(
+                "Creating timeline…",
+                color = AltMuted,
+                fontSize = 13.sp,
+                modifier = Modifier.padding(horizontal = 24.dp)
+            )
         }
         Spacer(Modifier.height(20.dp))
         LazyColumn(
@@ -44,7 +65,12 @@ fun ScenarioScreen(scenarios: List<Scenario>, onBack: () -> Unit, onSelect: (Sce
         ) {
             items(scenarios, key = { it.id }) { scenario ->
                 Card(
-                    modifier = Modifier.fillMaxWidth().clickable { onSelect(scenario) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(
+                            enabled = !isCreatingTimeline,
+                            onClick = { onSelect(scenario) }
+                        ),
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = AltCard)
                 ) {
