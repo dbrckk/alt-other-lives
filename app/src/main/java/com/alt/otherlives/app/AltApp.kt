@@ -47,6 +47,7 @@ fun AltApp() {
     var activeTimelineKey by remember { mutableStateOf<String?>(null) }
     var generationSettingsMessage by remember { mutableStateOf<String?>(null) }
     var isImportingPhoto by remember { mutableStateOf(false) }
+    var isTestingConnection by remember { mutableStateOf(false) }
     var hasRestoredStartupPhoto by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
@@ -183,17 +184,21 @@ fun AltApp() {
                             }
                         },
                         onTestConnection = { baseUrl ->
-                            scope.launch {
-                                generationSettingsMessage = "Testing ComfyUI connection…"
-                                runCatching {
-                                    ComfyUiClient(
-                                        context = context.applicationContext,
-                                        config = ComfyUiConfig(baseUrl)
-                                    ).testConnection()
-                                }.onSuccess {
-                                    generationSettingsMessage = "ComfyUI connection successful"
-                                }.onFailure {
-                                    generationSettingsMessage = it.message ?: "Could not connect to ComfyUI"
+                            if (!isTestingConnection) {
+                                isTestingConnection = true
+                                scope.launch {
+                                    generationSettingsMessage = "Testing ComfyUI connection…"
+                                    runCatching {
+                                        ComfyUiClient(
+                                            context = context.applicationContext,
+                                            config = ComfyUiConfig(baseUrl)
+                                        ).testConnection()
+                                    }.onSuccess {
+                                        generationSettingsMessage = "ComfyUI connection successful"
+                                    }.onFailure {
+                                        generationSettingsMessage = it.message ?: "Could not connect to ComfyUI"
+                                    }
+                                    isTestingConnection = false
                                 }
                             }
                         },
@@ -203,7 +208,8 @@ fun AltApp() {
                                 generationSettingsMessage = "AI settings cleared"
                             }
                         },
-                        statusMessage = generationSettingsMessage
+                        statusMessage = generationSettingsMessage,
+                        isTestingConnection = isTestingConnection
                     )
                     Screen.HISTORY -> HistoryScreen(
                         entries = history,
