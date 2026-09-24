@@ -22,9 +22,16 @@ import androidx.media3.transformer.ProgressHolder
 import androidx.media3.effect.MatrixTransformation
 import com.alt.otherlives.core.model.Scenario
 import java.io.File
+import java.util.UUID
+import java.util.WeakHashMap
+import java.util.Collections
 
 @UnstableApi
 object CinematicVideoExporter {
+    private val activeOutputs = Collections.synchronizedMap(
+        WeakHashMap<Transformer, File>()
+    )
+
     private const val INTRO_DURATION_MS = 1800L
     private const val CHAPTER_DURATION_MS = 2200L
     private const val OUTRO_DURATION_MS = 1600L
@@ -41,7 +48,10 @@ object CinematicVideoExporter {
 
         val outputDir = File(context.cacheDir, "shares").apply { mkdirs() }
         cleanupOldVideos(outputDir)
-        val outputFile = File(outputDir, "alt-" + scenario.id + "-" + System.currentTimeMillis() + ".mp4")
+        val outputFile = File(
+            outputDir,
+            "alt-" + scenario.id + "-" + UUID.randomUUID() + ".mp4"
+        )
 
         val editedScenes = imageUris.mapIndexed { index, imageUri ->
             val durationMs = when (index) {
@@ -79,9 +89,11 @@ object CinematicVideoExporter {
         val sequence = EditedMediaItemSequence.Builder(editedScenes).build()
         val composition = Composition.Builder(listOf(sequence)).build()
 
+        val transformerHolder = arrayOfNulls<Transformer>(1)
         val transformer = Transformer.Builder(context)
             .addListener(object : Transformer.Listener {
                 override fun onCompleted(composition: Composition, result: ExportResult) {
+                    transformerHolder[0]?.let { activeOutputs.remove(it) }
                     val uri = FileProvider.getUriForFile(
                         context,
                         context.packageName + ".fileprovider",
@@ -95,13 +107,22 @@ object CinematicVideoExporter {
                     result: ExportResult,
                     exception: ExportException
                 ) {
+                    transformerHolder[0]?.let { activeOutputs.remove(it) }
                     outputFile.delete()
                     onError(exception)
                 }
             })
             .build()
 
-        transformer.start(composition, outputFile.absolutePath)
+        transformerHolder[0] = transformer
+        activeOutputs[transformer] = outputFile
+        try {
+            transformer.start(composition, outputFile.absolutePath)
+        } catch (error: Throwable) {
+            activeOutputs.remove(transformer)
+            outputFile.delete()
+            throw error
+        }
         return transformer
     }
 
@@ -112,6 +133,11 @@ object CinematicVideoExporter {
                 file.delete()
             }
         }
+    }
+
+    fun cancel(transformer: Transformer) {
+        transformer.cancel()
+        activeOutputs.remove(transformer)?.delete()
     }
 
     fun progress(transformer: Transformer): Int? {
