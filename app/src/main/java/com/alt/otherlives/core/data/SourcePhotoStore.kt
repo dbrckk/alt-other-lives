@@ -48,6 +48,17 @@ class SourcePhotoStore(private val context: Context) {
         )
     }
 
+    fun latestStoredPhoto(): StoredPhoto? {
+        val dir = File(context.filesDir, "source-photos")
+        val file = dir.listFiles()
+            ?.filter { it.isFile }
+            ?.maxByOrNull { it.lastModified() }
+            ?: return null
+        return runCatching {
+            StoredPhoto(file.name, uriFor(file.name))
+        }.getOrNull()
+    }
+
     fun deleteUnreferenced(keepFileNames: Set<String>) {
         val dir = File(context.filesDir, "source-photos")
         dir.listFiles()?.forEach { file ->
