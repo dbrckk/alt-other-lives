@@ -25,9 +25,19 @@ class ComfyUiClient(
     data class OutputImage(val filename: String, val subfolder: String, val type: String)
 
     suspend fun testConnection(): Unit = withContext(Dispatchers.IO) {
-        val connection = open("/system_stats", "GET")
+        val connection = open(
+            path = "/system_stats",
+            method = "GET",
+            connectTimeoutMs = 8_000,
+            readTimeoutMs = 10_000
+        )
         val body = readResponse(connection)
         require(body.isNotBlank()) { "ComfyUI returned an empty response" }
+        val json = runCatching { JSONObject(body) }
+            .getOrElse { error("ComfyUI returned an invalid health response") }
+        require(json.has("system") || json.has("devices")) {
+            "Endpoint responded, but it does not look like ComfyUI"
+        }
     }
 
     suspend fun uploadImage(uri: Uri): UploadedImage = withContext(Dispatchers.IO) {
@@ -165,11 +175,16 @@ class ComfyUiClient(
         return null
     }
 
-    private fun open(path: String, method: String): HttpURLConnection =
+    private fun open(
+        path: String,
+        method: String,
+        connectTimeoutMs: Int = 15_000,
+        readTimeoutMs: Int = 180_000
+    ): HttpURLConnection =
         (URL(config.normalizedBaseUrl + path).openConnection() as HttpURLConnection).apply {
             requestMethod = method
-            connectTimeout = 15_000
-            readTimeout = 180_000
+            connectTimeout = connectTimeoutMs
+            readTimeout = readTimeoutMs
             useCaches = false
         }
 
