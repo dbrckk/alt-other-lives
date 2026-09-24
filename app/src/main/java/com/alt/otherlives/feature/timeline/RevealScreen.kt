@@ -204,7 +204,11 @@ fun RevealScreen(
                 if (index in aiChapterFailures) {
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "AI scene failed • retry available",
+                        if (generatedScenes.any { it.chapterIndex == index }) {
+                            "New AI variation failed • existing scene kept"
+                        } else {
+                            "AI scene failed • retry available"
+                        },
                         color = AltDimmed,
                         fontSize = 12.sp
                     )
@@ -286,8 +290,13 @@ fun RevealScreen(
 
                                     val expected = scenario.chapters.take(5).size
                                     val message = when {
-                                        resetSeed && !completeFreshVariation ->
-                                            "New variation incomplete • previous timeline kept"
+                                        resetSeed && !completeFreshVariation -> {
+                                            val failed = aiChapterFailures.keys
+                                                .sorted()
+                                                .joinToString(", ") { (it + 1).toString() }
+                                            "New variation incomplete • previous timeline kept" +
+                                                if (failed.isBlank()) "" else " • failed chapters " + failed
+                                        }
                                         generatedScenes.size == expected ->
                                             "AI scenes ready"
                                         else -> {
