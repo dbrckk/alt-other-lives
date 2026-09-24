@@ -100,7 +100,8 @@ fun AltApp() {
                                     createdAt = createdAt
                                 )
                                 withContext(Dispatchers.IO) {
-                                    sourcePhotoStore.deleteUnreferenced(keep)
+                                    sourcePhotoStore.deleteUnreferenced(keep.photoFileNames)
+                                    generatedSceneStore.deleteUnreferenced(keep.timelineKeys)
                                 }
                             }
                             screen = Screen.REVEAL
