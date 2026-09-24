@@ -27,6 +27,7 @@ interface GenerationProvider {
 
     suspend fun generate(
         request: GenerationRequest,
-        onProgress: (completed: Int, total: Int) -> Unit = { _, _ -> }
+        onProgress: (completed: Int, total: Int) -> Unit = { _, _ -> },
+        onSceneGenerated: (GeneratedScene) -> Unit = {}
     ): List<GeneratedScene>
 }
