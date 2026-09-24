@@ -22,6 +22,18 @@ class ComfyUiRetryPolicyTest {
     }
 
     @Test
+    fun doesNotRetryAmbiguousQueueIoWrapper() {
+        assertFalse(
+            ComfyUiRetryPolicy.shouldRetry(
+                IllegalStateException(
+                    "ComfyUI queue request failed after submission may have started",
+                    IOException("connection reset")
+                )
+            )
+        )
+    }
+
+    @Test
     fun doesNotRetryPermanentClientOrWorkflowFailures() {
         assertFalse(ComfyUiRetryPolicy.shouldRetry(IllegalStateException("ComfyUI HTTP 400")))
         assertFalse(ComfyUiRetryPolicy.shouldRetry(IllegalStateException("Workflow JSON is malformed")))
