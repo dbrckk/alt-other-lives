@@ -233,28 +233,17 @@ class GeneratedSceneStore(private val context: Context) {
             }
             File(transaction, "commit.started").writeText("1")
 
-            val committed = mutableListOf<File>()
-            try {
-                staged.forEach { (_, stagedFile) ->
-                    val target = File(root, stagedFile.name)
-                    if (!stagedFile.renameTo(target)) {
-                        error("Unable to commit atomic scene replacement")
-                    }
-                    committed += target
+            staged.forEach { (_, stagedFile) ->
+                val target = File(root, stagedFile.name)
+                if (!stagedFile.renameTo(target)) {
+                    error("Unable to commit atomic scene replacement")
                 }
-                if (seed != null) {
-                    val pendingSeed = File(transaction, "seed.pending")
-                    if (!pendingSeed.renameTo(seedTarget)) {
-                        error("Unable to commit atomic timeline seed")
-                    }
-                    committed += seedTarget
+            }
+            if (seed != null) {
+                val pendingSeed = File(transaction, "seed.pending")
+                if (!pendingSeed.renameTo(seedTarget)) {
+                    error("Unable to commit atomic timeline seed")
                 }
-            } catch (error: Throwable) {
-                committed.forEach { it.delete() }
-                backupDir.listFiles()?.forEach { backup ->
-                    backup.renameTo(File(root, backup.name))
-                }
-                throw error
             }
 
             val result = staged.map { (chapterIndex, stagedFile) ->
@@ -279,11 +268,14 @@ class GeneratedSceneStore(private val context: Context) {
             }
             return result
         } catch (error: Throwable) {
-            backupDir.listFiles()?.forEach { backup ->
-                val target = File(root, backup.name)
-                if (!target.exists()) backup.renameTo(target)
+            recoverInterruptedBatchWrites(root)
+            if (transaction.exists()) {
+                val rollbackError = IllegalStateException(
+                    "Atomic scene rollback is incomplete; recovery data was preserved"
+                )
+                rollbackError.addSuppressed(error)
+                throw rollbackError
             }
-            transaction.deleteRecursively()
             throw error
         }
     }
