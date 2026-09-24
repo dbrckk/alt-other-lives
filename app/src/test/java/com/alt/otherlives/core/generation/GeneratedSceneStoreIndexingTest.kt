@@ -24,6 +24,19 @@ class GeneratedSceneStoreIndexingTest {
         assertNull(GeneratedSceneFileName.chapterIndex("not-a-scene-2.png"))
     }
 
+    @Test
+    fun normalizesUppercaseSupportedExtension() {
+        assertEquals(
+            "scene-1.webp",
+            GeneratedSceneFileName.forChapter(1, "WEBP")
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsUnsupportedExtensions() {
+        GeneratedSceneFileName.forChapter(1, "gif")
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun refusesNegativeChapterIndexes() {
         GeneratedSceneFileName.forChapter(-1)
