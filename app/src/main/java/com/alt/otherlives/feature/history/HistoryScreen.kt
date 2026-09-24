@@ -38,6 +38,7 @@ fun HistoryScreen(
     onOpen: (Scenario, HistoryEntry) -> Unit,
     onDelete: (HistoryEntry) -> Unit,
     deletingEntryKey: String? = null,
+    isClearingHistory: Boolean = false,
     onClear: () -> Unit,
     unavailablePhotoFileNames: Set<String> = emptySet(),
     photoUrisByFileName: Map<String, Uri> = emptyMap(),
@@ -51,7 +52,14 @@ fun HistoryScreen(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("‹", fontSize = 36.sp, modifier = Modifier.clickable(onClick = onBack))
+            Text(
+                "‹",
+                fontSize = 36.sp,
+                modifier = Modifier.clickable(
+                    enabled = !isClearingHistory,
+                    onClick = onBack
+                )
+            )
             Column(Modifier.padding(start = 12.dp).weight(1f)) {
                 Text("Your other lives", fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
                 Text(
@@ -114,7 +122,7 @@ fun HistoryScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable(
-                                    enabled = !isDeleting,
+                                    enabled = !isDeleting && !isClearingHistory,
                                     onClick = { onOpen(scenario, entry) }
                                 ),
                             shape = RoundedCornerShape(24.dp),
@@ -192,7 +200,7 @@ fun HistoryScreen(
                                     Text("›", color = AltMuted, fontSize = 28.sp)
                                     TextButton(
                                         onClick = { pendingDeleteEntry = entry },
-                                        enabled = !isDeleting,
+                                        enabled = !isDeleting && !isClearingHistory,
                                         contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
                                     ) {
                                         Text(
@@ -210,10 +218,10 @@ fun HistoryScreen(
 
             TextButton(
                 onClick = { showClearConfirmation = true },
-                enabled = deletingEntryKey == null,
+                enabled = deletingEntryKey == null && !isClearingHistory,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
-                Text("Clear local history")
+                Text(if (isClearingHistory) "Clearing…" else "Clear local history")
             }
         }
     }
