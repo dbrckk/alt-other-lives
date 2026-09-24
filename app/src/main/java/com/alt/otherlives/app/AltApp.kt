@@ -73,6 +73,25 @@ fun AltApp() {
         }
     }
 
+    LaunchedEffect(history) {
+        if (activeTimelineKey == null && history.isNotEmpty()) {
+            val latest = history.first()
+            ScenarioCatalog.scenarios.firstOrNull { it.id == latest.scenarioId }?.let { scenario ->
+                selectedScenario = scenario
+                activeTimelineKey = scenario.id + "-" + latest.createdAt
+                latest.photoFileName?.let { fileName ->
+                    runCatching { sourcePhotoStore.uriFor(fileName) }
+                        .getOrNull()
+                        ?.let { uri ->
+                            photoUri = uri
+                            photoFileName = fileName
+                        }
+                }
+            }
+        }
+    }
+
+
     AltTheme {
         Surface(modifier = Modifier.fillMaxSize(), color = AltBackground) {
             AnimatedContent(
