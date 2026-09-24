@@ -15,6 +15,7 @@ import java.util.UUID
 object ShareCardRenderer {
     private const val WIDTH = 1080
     private const val HEIGHT = 1920
+    private const val CACHE_MAX_AGE_MS = 24L * 60L * 60L * 1000L
     fun render(context: Context, photoUri: Uri?, scenario: Scenario, fallbackImageUri: Uri? = null): Uri {
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -49,6 +50,7 @@ object ShareCardRenderer {
         canvas.drawText("See the lives you could have lived.",72f,1815f,footer)
         canvas.drawText("ALT",930f,1815f,accent)
         val dir = File(context.cacheDir, "shares").apply { mkdirs() }
+        cleanupOldShareImages(dir)
         val file = File(dir, "alt-" + scenario.id + "-" + UUID.randomUUID() + ".jpg")
         val temporary = File(dir, "." + file.name + ".tmp")
         try {
@@ -74,6 +76,22 @@ object ShareCardRenderer {
             bitmap.recycle()
         }
     }
+    private fun cleanupOldShareImages(dir: File) {
+        val cutoff = System.currentTimeMillis() - CACHE_MAX_AGE_MS
+        dir.listFiles()?.forEach { file ->
+            if (
+                file.isFile &&
+                (
+                    file.extension.equals("jpg", ignoreCase = true) ||
+                        file.name.endsWith(".tmp")
+                    ) &&
+                file.lastModified() < cutoff
+            ) {
+                file.delete()
+            }
+        }
+    }
+
     fun saveToGallery(
         context: Context,
         photoUri: Uri?,
