@@ -34,6 +34,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
@@ -208,27 +210,30 @@ fun RevealScreen(
                             aiCompleted = 0
                             aiTotal = targetIndexes.size
                             aiGenerationJob = scope.launch {
-                                val previousSeed = withContext(Dispatchers.IO) {
-                                    sceneStore.getOrCreateSeed(timelineKey)
-                                }
-                                runCatching {
+                                var previousSeed: Long? = null
+                                try {
+                                    previousSeed = withContext(Dispatchers.IO) {
+                                        sceneStore.getOrCreateSeed(timelineKey)
+                                    }
+                                    val generationSeed = if (resetSeed) {
+                                        withContext(Dispatchers.IO) {
+                                            sceneStore.resetSeed(timelineKey)
+                                        }
+                                    } else {
+                                        previousSeed
+                                    }
+
                                     val provider = ComfyUiGenerationProvider(
                                         context = context,
                                         config = ComfyUiConfig(generationSettings.comfyUiBaseUrl),
                                         workflowTemplateJson = generationSettings.workflowJson
                                     )
-                                    provider.generate(
+                                    val newScenes = provider.generate(
                                         request = GenerationRequest(
                                             sourcePhoto = photoUri,
                                             scenario = scenario,
                                             chapterIndexes = targetIndexes,
-                                            seed = if (resetSeed) {
-                                                withContext(Dispatchers.IO) {
-                                                    sceneStore.resetSeed(timelineKey)
-                                                }
-                                            } else {
-                                                previousSeed
-                                            }
+                                            seed = generationSeed
                                         ),
                                         onProgress = { completed, total ->
                                             aiCompleted = completed
@@ -243,7 +248,7 @@ fun RevealScreen(
                                             }
                                         }
                                     )
-                                }.onSuccess { newScenes ->
+
                                     val completeFreshVariation =
                                         !resetSeed || newScenes.size == targetIndexes.size
                                     if (completeFreshVariation) {
@@ -251,13 +256,12 @@ fun RevealScreen(
                                             sceneStore.persist(timelineKey, newScenes)
                                             sceneStore.load(timelineKey)
                                         }
-                                    } else {
+                                    } else if (resetSeed) {
                                         withContext(Dispatchers.IO) {
                                             sceneStore.setSeed(timelineKey, previousSeed)
                                         }
                                     }
-                                    isGeneratingAi = false
-                                    aiGenerationJob = null
+
                                     val expected = scenario.chapters.take(5).size
                                     val message = when {
                                         resetSeed && !completeFreshVariation ->
@@ -268,21 +272,30 @@ fun RevealScreen(
                                             "Partial result: " + generatedScenes.size + "/" + expected + " scenes ready"
                                     }
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                                }.onFailure {
-                                    if (resetSeed) {
-                                        withContext(Dispatchers.IO) {
+                                } catch (cancelled: CancellationException) {
+                                    if (resetSeed && previousSeed != null) {
+                                        withContext(NonCancellable + Dispatchers.IO) {
                                             sceneStore.setSeed(timelineKey, previousSeed)
                                         }
                                     }
+                                    throw cancelled
+                                } catch (error: Throwable) {
+                                    if (resetSeed && previousSeed != null) {
+                                        runCatching {
+                                            withContext(Dispatchers.IO) {
+                                                sceneStore.setSeed(timelineKey, previousSeed)
+                                            }
+                                        }
+                                    }
+                                    Toast.makeText(
+                                        context,
+                                        "AI generation failed: " +
+                                            (error.message ?: "unknown error"),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } finally {
                                     isGeneratingAi = false
                                     aiGenerationJob = null
-                                    if (it !is kotlinx.coroutines.CancellationException) {
-                                        Toast.makeText(
-                                            context,
-                                            "AI generation failed: " + (it.message ?: "unknown error"),
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
                                 }
                             }
                         }
