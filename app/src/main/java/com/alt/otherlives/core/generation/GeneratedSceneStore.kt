@@ -29,8 +29,11 @@ class GeneratedSceneStore(private val context: Context) {
         return resetSeed(timelineKey)
     }
 
+    fun createSeed(): Long =
+        (System.nanoTime() and Long.MAX_VALUE).coerceAtLeast(1L)
+
     fun resetSeed(timelineKey: String): Long {
-        val seed = (System.nanoTime() and Long.MAX_VALUE).coerceAtLeast(1L)
+        val seed = createSeed()
         setSeed(timelineKey, seed)
         return seed
     }
