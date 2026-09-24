@@ -1,10 +1,14 @@
 package com.alt.otherlives.feature.history
 
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -25,7 +29,8 @@ fun HistoryScreen(
     onBack: () -> Unit,
     onOpen: (Scenario, HistoryEntry) -> Unit,
     onClear: () -> Unit,
-    unavailablePhotoFileNames: Set<String> = emptySet()
+    unavailablePhotoFileNames: Set<String> = emptySet(),
+    photoUrisByFileName: Map<String, Uri> = emptyMap()
 ) {
     Column(Modifier.fillMaxSize().padding(top = 42.dp)) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
@@ -55,18 +60,47 @@ fun HistoryScreen(
                             shape = RoundedCornerShape(22.dp),
                             colors = CardDefaults.cardColors(containerColor = AltCard)
                         ) {
-                            Column(Modifier.padding(20.dp)) {
-                                Text(scenario.title, fontSize = 19.sp, fontWeight = FontWeight.SemiBold)
-                                Spacer(Modifier.height(6.dp))
-                                Text(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(entry.createdAt)), color = AltMuted, fontSize = 13.sp)
-                                when {
-                                    entry.photoFileName == null -> {
-                                        Spacer(Modifier.height(6.dp))
-                                        Text("Original photo not stored", color = AltMuted, fontSize = 12.sp)
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                entry.photoFileName
+                                    ?.let { photoUrisByFileName[it] }
+                                    ?.let { photoUri ->
+                                        AsyncImage(
+                                            model = photoUri,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(88.dp)
+                                                .clip(RoundedCornerShape(18.dp)),
+                                            contentScale = ContentScale.Crop
+                                        )
                                     }
-                                    entry.photoFileName in unavailablePhotoFileNames -> {
-                                        Spacer(Modifier.height(6.dp))
-                                        Text("Original photo unavailable", color = AltMuted, fontSize = 12.sp)
+
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(vertical = 4.dp)
+                                ) {
+                                    Text(scenario.title, fontSize = 19.sp, fontWeight = FontWeight.SemiBold)
+                                    Spacer(Modifier.height(6.dp))
+                                    Text(
+                                        DateFormat.getDateTimeInstance(
+                                            DateFormat.MEDIUM,
+                                            DateFormat.SHORT
+                                        ).format(Date(entry.createdAt)),
+                                        color = AltMuted,
+                                        fontSize = 13.sp
+                                    )
+                                    when {
+                                        entry.photoFileName == null -> {
+                                            Spacer(Modifier.height(6.dp))
+                                            Text("Original photo not stored", color = AltMuted, fontSize = 12.sp)
+                                        }
+                                        entry.photoFileName in unavailablePhotoFileNames -> {
+                                            Spacer(Modifier.height(6.dp))
+                                            Text("Original photo unavailable", color = AltMuted, fontSize = 12.sp)
+                                        }
                                     }
                                 }
                             }
