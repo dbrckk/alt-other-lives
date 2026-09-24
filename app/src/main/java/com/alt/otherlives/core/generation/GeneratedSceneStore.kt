@@ -6,6 +6,7 @@ import androidx.core.content.FileProvider
 import android.webkit.MimeTypeMap
 import android.graphics.BitmapFactory
 import java.io.File
+import com.alt.otherlives.core.io.BoundedStreamCopy
 
 class GeneratedSceneStore(private val context: Context) {
     internal fun filenameForChapter(chapterIndex: Int, extension: String = "png"): String =
@@ -114,7 +115,13 @@ class GeneratedSceneStore(private val context: Context) {
 
             try {
                 context.contentResolver.openInputStream(scene.imageUri)?.use { input ->
-                    temporary.outputStream().use { output -> input.copyTo(output) }
+                    temporary.outputStream().use { output ->
+                    BoundedStreamCopy.copy(
+                        input = input,
+                        output = output,
+                        maxBytes = MAX_PERSISTED_SCENE_BYTES
+                    )
+                }
                 } ?: error("Unable to persist generated scene " + scene.chapterIndex)
                 require(temporary.length() > 0L) {
                     "Generated scene copy is empty for chapter " + (scene.chapterIndex + 1)
@@ -193,7 +200,13 @@ class GeneratedSceneStore(private val context: Context) {
                     ?: "png"
                 val stagedFile = File(stagedDir, filenameForChapter(scene.chapterIndex, extension))
                 context.contentResolver.openInputStream(scene.imageUri)?.use { input ->
-                    stagedFile.outputStream().use { output -> input.copyTo(output) }
+                    stagedFile.outputStream().use { output ->
+                        BoundedStreamCopy.copy(
+                            input = input,
+                            output = output,
+                            maxBytes = MAX_PERSISTED_SCENE_BYTES
+                        )
+                    }
                 } ?: error("Unable to stage generated scene " + scene.chapterIndex)
                 require(isValidImage(stagedFile)) {
                     "Generated scene is invalid for chapter " + (scene.chapterIndex + 1)
@@ -524,5 +537,9 @@ class GeneratedSceneStore(private val context: Context) {
             "Timeline storage path escapes private generated storage"
         }
         return timeline
+    }
+
+    private companion object {
+        const val MAX_PERSISTED_SCENE_BYTES = 100L * 1024L * 1024L
     }
 }
