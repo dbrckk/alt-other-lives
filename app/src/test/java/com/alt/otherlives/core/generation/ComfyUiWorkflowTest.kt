@@ -18,6 +18,9 @@ class ComfyUiWorkflowTest {
         assertTrue(prompt.contains("Japan"))
         assertTrue(prompt.contains("Year one"))
         assertTrue(prompt.contains("same person and facial identity"))
+        assertTrue(prompt.contains("immutable identity anchor"))
+        assertTrue(prompt.contains("no identity swap"))
+        assertTrue(prompt.contains("recognizably the same person"))
         assertTrue(prompt.contains("vertical 9:16"))
         assertFalse(prompt.contains("__ALT_"))
     }
