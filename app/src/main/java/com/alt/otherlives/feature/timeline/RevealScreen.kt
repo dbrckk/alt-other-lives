@@ -242,7 +242,7 @@ fun RevealScreen(
                                 }
                             }
                         },
-                        enabled = !isGeneratingAi,
+                        enabled = !isGeneratingAi && !isExporting && !isRenderingShareImage,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) {
@@ -257,6 +257,7 @@ fun RevealScreen(
                     if (generatedScenes.isNotEmpty()) {
                         TextButton(
                             onClick = { showClearAiDialog = true },
+                            enabled = !isGeneratingAi && !isExporting && !isRenderingShareImage,
                             modifier = Modifier.fillMaxWidth()
                         ) { Text("Remove generated AI scenes") }
                     }
@@ -358,7 +359,7 @@ fun RevealScreen(
                             }
                         }
                     },
-                    enabled = !isRenderingShareImage && hasVisualAsset,
+                    enabled = !isRenderingShareImage && !isGeneratingAi && !isExporting && hasVisualAsset,
                     modifier = Modifier.fillMaxWidth().height(58.dp),
                     shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AltPrimary, contentColor = Color(0xFF16111F))
@@ -398,7 +399,7 @@ fun RevealScreen(
                                 }
                             }
                         },
-                        enabled = !isRenderingShareImage && hasVisualAsset,
+                        enabled = !isRenderingShareImage && !isGeneratingAi && !isExporting && hasVisualAsset,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) { Text("Save 9:16 image", fontWeight = FontWeight.Bold) }
@@ -465,7 +466,7 @@ fun RevealScreen(
                             }
                         }
                     },
-                    enabled = !isExporting && hasVisualAsset,
+                    enabled = !isExporting && !isGeneratingAi && !isRenderingShareImage && hasVisualAsset,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(20.dp)
                 ) {
