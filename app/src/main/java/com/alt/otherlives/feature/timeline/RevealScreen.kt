@@ -253,7 +253,14 @@ fun RevealScreen(
                                         !resetSeed || newScenes.size == targetIndexes.size
                                     if (completeFreshVariation) {
                                         generatedScenes = withContext(Dispatchers.IO) {
-                                            sceneStore.persist(timelineKey, newScenes)
+                                            if (resetSeed) {
+                                                sceneStore.replaceBatchAtomically(
+                                                    timelineKey,
+                                                    newScenes
+                                                )
+                                            } else {
+                                                sceneStore.persist(timelineKey, newScenes)
+                                            }
                                             sceneStore.load(timelineKey)
                                         }
                                     } else if (resetSeed) {
