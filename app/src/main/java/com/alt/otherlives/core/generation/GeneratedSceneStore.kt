@@ -220,6 +220,7 @@ class GeneratedSceneStore(private val context: Context) {
                 throw error
             }
 
+            File(transaction, "commit.completed").writeText("1")
             transaction.deleteRecursively()
             return staged.map { (chapterIndex, stagedFile) ->
                 val target = File(root, stagedFile.name)
@@ -296,6 +297,12 @@ class GeneratedSceneStore(private val context: Context) {
                 val stagedDir = File(transaction, "staged")
                 val backupDir = File(transaction, "backup")
                 val commitStarted = File(transaction, "commit.started").exists()
+                val commitCompleted = File(transaction, "commit.completed").exists()
+
+                if (commitCompleted) {
+                    transaction.deleteRecursively()
+                    return@forEach
+                }
 
                 val recoveryPlan = SceneTransactionRecoveryPlan.build(
                     commitStarted = commitStarted,
