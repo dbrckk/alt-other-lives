@@ -282,13 +282,13 @@ fun AltApp() {
                             if (deletingHistoryEntryKey == null) {
                                 deletingHistoryEntryKey = entryKey
                                 scope.launch {
-                                    runCatching {
-                                        val keep = historyRepository.remove(entry)
-                                        withContext(Dispatchers.IO) {
-                                            sourcePhotoStore.deleteUnreferenced(keep.photoFileNames)
-                                            generatedSceneStore.deleteUnreferenced(keep.timelineKeys)
-                                        }
-                                        val deletedTimelineKey = entry.scenarioId + "-" + entry.createdAt
+                                    val removal = runCatching {
+                                        historyRepository.remove(entry)
+                                    }
+
+                                    removal.onSuccess { keep ->
+                                        val deletedTimelineKey =
+                                            entry.scenarioId + "-" + entry.createdAt
                                         historyGeneratedPreviewUris =
                                             historyGeneratedPreviewUris - deletedTimelineKey
                                         entry.photoFileName?.let { deletedPhotoFileName ->
@@ -306,6 +306,23 @@ fun AltApp() {
                                         if (activeTimelineKey == deletedTimelineKey) {
                                             activeTimelineKey = null
                                         }
+
+                                        runCatching {
+                                            withContext(Dispatchers.IO) {
+                                                sourcePhotoStore.deleteUnreferenced(
+                                                    keep.photoFileNames
+                                                )
+                                                generatedSceneStore.deleteUnreferenced(
+                                                    keep.timelineKeys
+                                                )
+                                            }
+                                        }.onFailure {
+                                            Toast.makeText(
+                                                context,
+                                                "Timeline deleted, but some local media could not be cleaned up",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
                                     }.onFailure {
                                         Toast.makeText(
                                             context,
@@ -314,6 +331,7 @@ fun AltApp() {
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     }
+
                                     deletingHistoryEntryKey = null
                                 }
                             }
