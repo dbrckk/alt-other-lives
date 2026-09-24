@@ -14,6 +14,7 @@ import androidx.core.content.FileProvider
 import com.alt.otherlives.core.model.Scenario
 import java.io.File
 import java.io.FileOutputStream
+import java.util.UUID
 
 object TimelineSceneRenderer {
     private const val WIDTH = 1080
@@ -74,10 +75,11 @@ object TimelineSceneRenderer {
             }
             canvas.drawText(scenario.title, 72f, 1810f, scenarioPaint)
 
-            val dir = File(context.cacheDir, "shares/scenes").apply { mkdirs() }
-            val file = File(dir, "alt-${scenario.id}-scene-$index.jpg")
-            FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.JPEG, 94, it) }
-            bitmap.recycle()
+            val file = writeJpegAtomically(
+                context = context,
+                bitmap = bitmap,
+                baseName = "alt-${scenario.id}-scene-$index"
+            )
 
             FileProvider.getUriForFile(
                 context,
@@ -135,10 +137,11 @@ object TimelineSceneRenderer {
         }
         drawWrappedText(canvas, scenario.title, title, 72f, 1065f, 920f, 86f)
 
-        val dir = File(context.cacheDir, "shares/scenes").apply { mkdirs() }
-        val file = File(dir, "alt-${scenario.id}-intro.jpg")
-        FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.JPEG, 94, it) }
-        bitmap.recycle()
+        val file = writeJpegAtomically(
+            context = context,
+            bitmap = bitmap,
+            baseName = "alt-${scenario.id}-intro"
+        )
         return FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
     }
 
@@ -181,11 +184,40 @@ object TimelineSceneRenderer {
         }
         canvas.drawText(scenario.title, 72f, 1650f, subtle)
 
-        val dir = File(context.cacheDir, "shares/scenes").apply { mkdirs() }
-        val file = File(dir, "alt-${scenario.id}-outro.jpg")
-        FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.JPEG, 94, it) }
-        bitmap.recycle()
+        val file = writeJpegAtomically(
+            context = context,
+            bitmap = bitmap,
+            baseName = "alt-${scenario.id}-outro"
+        )
         return FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
+    }
+
+    private fun writeJpegAtomically(
+        context: Context,
+        bitmap: Bitmap,
+        baseName: String
+    ): File {
+        val dir = File(context.cacheDir, "shares/scenes").apply { mkdirs() }
+        val file = File(dir, "$baseName-${UUID.randomUUID()}.jpg")
+        val temporary = File(dir, "." + file.name + ".tmp")
+        try {
+            FileOutputStream(temporary).use { output ->
+                check(bitmap.compress(Bitmap.CompressFormat.JPEG, 94, output)) {
+                    "Unable to encode timeline scene"
+                }
+            }
+            require(temporary.length() > 0L) { "Timeline scene is empty" }
+            if (!temporary.renameTo(file)) {
+                error("Unable to finalize timeline scene")
+            }
+            return file
+        } catch (error: Throwable) {
+            temporary.delete()
+            file.delete()
+            throw error
+        } finally {
+            bitmap.recycle()
+        }
     }
 
     private fun cleanupOldScenes(context: Context) {
