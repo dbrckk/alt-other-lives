@@ -1,6 +1,7 @@
 package com.alt.otherlives.app
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -44,6 +45,7 @@ fun AltApp() {
     var selectedScenario by remember { mutableStateOf(ScenarioCatalog.scenarios.first()) }
     var activeTimelineKey by remember { mutableStateOf<String?>(null) }
     var generationSettingsMessage by remember { mutableStateOf<String?>(null) }
+    var isImportingPhoto by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
     val sourcePhotoStore = remember(context) { SourcePhotoStore(context.applicationContext) }
@@ -69,19 +71,30 @@ fun AltApp() {
                 when (current) {
                     Screen.HOME -> HomeScreen(
                         photoUri = photoUri,
+                        isImportingPhoto = isImportingPhoto,
                         onPhotoSelected = { selectedUri ->
-                            scope.launch {
-                                runCatching {
-                                    withContext(Dispatchers.IO) {
-                                        sourcePhotoStore.import(selectedUri)
+                            if (!isImportingPhoto) {
+                                isImportingPhoto = true
+                                scope.launch {
+                                    runCatching {
+                                        withContext(Dispatchers.IO) {
+                                            sourcePhotoStore.import(selectedUri)
+                                        }
+                                    }.onSuccess { stored ->
+                                        photoUri = stored.uri
+                                        photoFileName = stored.fileName
+                                        val keep = history.mapNotNull { it.photoFileName }.toSet() + stored.fileName
+                                        withContext(Dispatchers.IO) {
+                                            sourcePhotoStore.deleteUnreferenced(keep)
+                                        }
+                                    }.onFailure {
+                                        Toast.makeText(
+                                            context,
+                                            "Could not import photo: " + (it.message ?: "unknown error"),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
-                                }.onSuccess { stored ->
-                                    photoUri = stored.uri
-                                    photoFileName = stored.fileName
-                                    val keep = history.mapNotNull { it.photoFileName }.toSet() + stored.fileName
-                                    withContext(Dispatchers.IO) {
-                                        sourcePhotoStore.deleteUnreferenced(keep)
-                                    }
+                                    isImportingPhoto = false
                                 }
                             }
                         },
