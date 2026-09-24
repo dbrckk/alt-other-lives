@@ -57,7 +57,7 @@ class GeneratedSceneStore(private val context: Context) {
                 root,
                 ".scene-" + scene.chapterIndex + "-" + System.nanoTime() + ".tmp"
             )
-            val backup = File(root, ".scene-" + scene.chapterIndex + ".bak")
+            val backup = File(root, "." + target.name + ".bak")
             val previousFiles = root.listFiles()
                 ?.filter { it.isFile && chapterIndexFromFilename(it.name) == scene.chapterIndex }
                 .orEmpty()
@@ -135,10 +135,10 @@ class GeneratedSceneStore(private val context: Context) {
         root.listFiles()
             ?.filter { it.isFile && it.name.startsWith(".scene-") && it.name.endsWith(".bak") }
             ?.forEach { backup ->
-                val chapterIndex = backup.name
-                    .removePrefix(".scene-")
+                val originalName = backup.name
+                    .removePrefix(".")
                     .removeSuffix(".bak")
-                    .toIntOrNull()
+                val chapterIndex = chapterIndexFromFilename(originalName)
                     ?: run {
                         backup.delete()
                         return@forEach
@@ -153,7 +153,7 @@ class GeneratedSceneStore(private val context: Context) {
                 if (hasScene) {
                     backup.delete()
                 } else {
-                    val restored = File(root, filenameForChapter(chapterIndex))
+                    val restored = File(root, originalName)
                     if (!backup.renameTo(restored)) {
                         backup.delete()
                     }
