@@ -37,6 +37,7 @@ fun HistoryScreen(
     onBack: () -> Unit,
     onOpen: (Scenario, HistoryEntry) -> Unit,
     onDelete: (HistoryEntry) -> Unit,
+    deletingEntryKey: String? = null,
     onClear: () -> Unit,
     unavailablePhotoFileNames: Set<String> = emptySet(),
     photoUrisByFileName: Map<String, Uri> = emptyMap(),
@@ -99,6 +100,8 @@ fun HistoryScreen(
                         val previewUri = entry.photoFileName
                             ?.let { photoUrisByFileName[it] }
                             ?: generatedPreviewUrisByTimelineKey[timelineKey]
+                        val entryKey = entry.scenarioId + ":" + entry.createdAt
+                        val isDeleting = deletingEntryKey == entryKey
                         val mediaStatus = when {
                             entry.photoFileName == null && hasAiPreview -> "AI preview"
                             entry.photoFileName == null -> "No original photo"
@@ -186,9 +189,14 @@ fun HistoryScreen(
                                     Text("›", color = AltMuted, fontSize = 28.sp)
                                     TextButton(
                                         onClick = { pendingDeleteEntry = entry },
+                                        enabled = !isDeleting,
                                         contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
                                     ) {
-                                        Text("Delete", color = AltMuted, fontSize = 11.sp)
+                                        Text(
+                                            if (isDeleting) "Deleting…" else "Delete",
+                                            color = AltMuted,
+                                            fontSize = 11.sp
+                                        )
                                     }
                                 }
                             }
