@@ -22,19 +22,29 @@ class HistoryRepository(private val context: Context) {
         decode(prefs[historyKey].orEmpty())
     }
 
+    data class RecordResult(
+        val photoFileNames: Set<String>,
+        val timelineKeys: Set<String>
+    )
+
     suspend fun record(
         scenarioId: String,
         photoFileName: String? = null,
         createdAt: Long = System.currentTimeMillis()
-    ): Set<String> {
+    ): RecordResult {
         var referencedPhotoFileNames = emptySet<String>()
+        var referencedTimelineKeys = emptySet<String>()
         context.altDataStore.edit { prefs ->
             val current = decode(prefs[historyKey].orEmpty())
             val updated = (listOf(HistoryEntry(scenarioId, createdAt, photoFileName)) + current).take(MAX_ENTRIES)
             prefs[historyKey] = encode(updated)
             referencedPhotoFileNames = updated.mapNotNull { it.photoFileName }.toSet()
+            referencedTimelineKeys = updated.map { it.scenarioId + "-" + it.createdAt }.toSet()
         }
-        return referencedPhotoFileNames
+        return RecordResult(
+            photoFileNames = referencedPhotoFileNames,
+            timelineKeys = referencedTimelineKeys
+        )
     }
 
     suspend fun clear() {
