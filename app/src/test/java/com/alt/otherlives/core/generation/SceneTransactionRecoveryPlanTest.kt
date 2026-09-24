@@ -8,6 +8,39 @@ import org.junit.Test
 
 class SceneTransactionRecoveryPlanTest {
     @Test
+    fun preCommitBackupsRequireRestoration() {
+        assertTrue(
+            SceneTransactionRecoveryPlan.shouldRestoreBackupsBeforeCommit(
+                commitStarted = false,
+                commitCompleted = false,
+                hasBackups = true
+            )
+        )
+    }
+
+    @Test
+    fun preCommitWithoutBackupsNeedsNoRestore() {
+        assertFalse(
+            SceneTransactionRecoveryPlan.shouldRestoreBackupsBeforeCommit(
+                commitStarted = false,
+                commitCompleted = false,
+                hasBackups = false
+            )
+        )
+    }
+
+    @Test
+    fun startedCommitUsesNormalRollbackInstead() {
+        assertFalse(
+            SceneTransactionRecoveryPlan.shouldRestoreBackupsBeforeCommit(
+                commitStarted = true,
+                commitCompleted = false,
+                hasBackups = true
+            )
+        )
+    }
+
+    @Test
     fun noRecoveryBeforeCommitStarts() {
         assertNull(
             SceneTransactionRecoveryPlan.build(
