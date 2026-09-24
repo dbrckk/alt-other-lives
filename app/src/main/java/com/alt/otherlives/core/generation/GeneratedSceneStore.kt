@@ -299,13 +299,9 @@ class GeneratedSceneStore(private val context: Context) {
                 val commitStarted = File(transaction, "commit.started").exists()
                 val commitCompleted = File(transaction, "commit.completed").exists()
 
-                if (commitCompleted) {
-                    transaction.deleteRecursively()
-                    return@forEach
-                }
-
                 val recoveryPlan = SceneTransactionRecoveryPlan.build(
                     commitStarted = commitStarted,
+                    commitCompleted = commitCompleted,
                     affectedIndexesText = File(transaction, "affected.txt")
                         .takeIf { it.exists() }
                         ?.readText(),
@@ -313,6 +309,11 @@ class GeneratedSceneStore(private val context: Context) {
                         File(transaction, "seed.pending").exists() ||
                         File(backupDir, "seed.txt").exists()
                 )
+                if (commitCompleted) {
+                    transaction.deleteRecursively()
+                    return@forEach
+                }
+
                 recoveryPlan?.let { plan ->
                     root.listFiles()
                         ?.filter {
