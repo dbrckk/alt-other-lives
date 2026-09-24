@@ -51,6 +51,15 @@ fun GenerationSettingsScreen(
         )
         Spacer(Modifier.height(20.dp))
 
+        if (settings.hasPersistedValues && !settings.isConfigured) {
+            Text(
+                "Saved AI settings need attention" +
+                    (settings.validationError?.let { ": " + it } ?: ""),
+                color = AltMuted
+            )
+            Spacer(Modifier.height(12.dp))
+        }
+
         OutlinedTextField(
             value = baseUrl,
             onValueChange = { baseUrl = it },
@@ -89,7 +98,7 @@ fun GenerationSettingsScreen(
             Text(it, color = AltMuted)
         }
 
-        if (settings.isConfigured) {
+        if (settings.hasPersistedValues) {
             Spacer(Modifier.height(10.dp))
             TextButton(onClick = onClear, modifier = Modifier.fillMaxWidth()) {
                 Text("Clear AI settings")
