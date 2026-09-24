@@ -57,6 +57,7 @@ fun AltApp() {
     var historyPhotoUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
     var historyGeneratedPreviewUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
     var deletingHistoryEntryKey by remember { mutableStateOf<String?>(null) }
+    var isClearingHistory by remember { mutableStateOf(false) }
     var isCreatingTimeline by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
@@ -292,6 +293,7 @@ fun AltApp() {
                         photoUrisByFileName = historyPhotoUris,
                         generatedPreviewUrisByTimelineKey = historyGeneratedPreviewUris,
                         deletingEntryKey = deletingHistoryEntryKey,
+                        isClearingHistory = isClearingHistory,
                         onOpen = { scenario, entry ->
                             selectedScenario = scenario
                             activeTimelineKey = scenario.id + "-" + entry.createdAt
@@ -376,19 +378,45 @@ fun AltApp() {
                             }
                         },
                         onClear = {
-                            scope.launch {
-                                historyRepository.clear()
-                                withContext(Dispatchers.IO) {
-                                    sourcePhotoStore.clearAll()
-                                    generatedSceneStore.clearAll()
+                            if (!isClearingHistory && deletingHistoryEntryKey == null) {
+                                isClearingHistory = true
+                                scope.launch {
+                                    val cleared = runCatching {
+                                        historyRepository.clear()
+                                    }
+
+                                    cleared.onSuccess {
+                                        photoUri = null
+                                        photoFileName = null
+                                        activeTimelineKey = null
+                                        historyPhotoUris = emptyMap()
+                                        historyGeneratedPreviewUris = emptyMap()
+                                        unavailablePhotoFileNames = emptySet()
+                                        deletingHistoryEntryKey = null
+
+                                        runCatching {
+                                            withContext(Dispatchers.IO) {
+                                                sourcePhotoStore.clearAll()
+                                                generatedSceneStore.clearAll()
+                                            }
+                                        }.onFailure {
+                                            Toast.makeText(
+                                                context,
+                                                "History cleared, but some local media could not be removed",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }.onFailure {
+                                        Toast.makeText(
+                                            context,
+                                            "Could not clear history: " +
+                                                (it.message ?: "unknown error"),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+
+                                    isClearingHistory = false
                                 }
-                                photoUri = null
-                                photoFileName = null
-                                activeTimelineKey = null
-                                historyPhotoUris = emptyMap()
-                                historyGeneratedPreviewUris = emptyMap()
-                                unavailablePhotoFileNames = emptySet()
-                                deletingHistoryEntryKey = null
                             }
                         }
                     )
