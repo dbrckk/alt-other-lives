@@ -145,7 +145,6 @@ fun RevealScreen(
                             aiTotal = targetIndexes.size
                             aiGenerationJob = scope.launch {
                                 val previousSeed = sceneStore.getOrCreateSeed(timelineKey)
-                                var generatedAnyScene = false
                                 runCatching {
                                     val provider = ComfyUiGenerationProvider(
                                         context = context,
@@ -168,25 +167,35 @@ fun RevealScreen(
                                             aiTotal = total
                                         },
                                         onSceneGenerated = { generated ->
-                                            generatedAnyScene = true
-                                            sceneStore.persist(timelineKey, listOf(generated))
-                                            generatedScenes = sceneStore.load(timelineKey)
+                                            if (!resetSeed) {
+                                                sceneStore.persist(timelineKey, listOf(generated))
+                                                generatedScenes = sceneStore.load(timelineKey)
+                                            }
                                         }
                                     )
-                                }.onSuccess {
-                                    sceneStore.persist(timelineKey, it)
-                                    generatedScenes = sceneStore.load(timelineKey)
+                                }.onSuccess { newScenes ->
+                                    val completeFreshVariation =
+                                        !resetSeed || newScenes.size == targetIndexes.size
+                                    if (completeFreshVariation) {
+                                        sceneStore.persist(timelineKey, newScenes)
+                                        generatedScenes = sceneStore.load(timelineKey)
+                                    } else {
+                                        sceneStore.setSeed(timelineKey, previousSeed)
+                                    }
                                     isGeneratingAi = false
                                     aiGenerationJob = null
                                     val expected = scenario.chapters.take(5).size
-                                    val message = if (generatedScenes.size == expected) {
-                                        "AI scenes ready"
-                                    } else {
-                                        "Partial result: " + generatedScenes.size + "/" + expected + " scenes ready"
+                                    val message = when {
+                                        resetSeed && !completeFreshVariation ->
+                                            "New variation incomplete • previous timeline kept"
+                                        generatedScenes.size == expected ->
+                                            "AI scenes ready"
+                                        else ->
+                                            "Partial result: " + generatedScenes.size + "/" + expected + " scenes ready"
                                     }
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 }.onFailure {
-                                    if (resetSeed && !generatedAnyScene) {
+                                    if (resetSeed) {
                                         sceneStore.setSeed(timelineKey, previousSeed)
                                     }
                                     isGeneratingAi = false
@@ -266,7 +275,7 @@ fun RevealScreen(
                         AlertDialog(
                             onDismissRequest = { showRegenerateAllDialog = false },
                             title = { Text("Regenerate all AI scenes?") },
-                            text = { Text("This will create a new visual variation for the full timeline. Existing scenes are kept if a replacement fails.") },
+                            text = { Text("This creates a new visual variation for the full timeline. It replaces the current version only if every chapter succeeds.") },
                             confirmButton = {
                                 TextButton(
                                     onClick = {
