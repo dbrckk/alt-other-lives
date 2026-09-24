@@ -254,12 +254,9 @@ fun RevealScreen(
                                         generatedScenes = withContext(Dispatchers.IO) {
                                             if (resetSeed) {
                                                 sceneStore.replaceBatchAtomically(
-                                                    timelineKey,
-                                                    newScenes
-                                                )
-                                                sceneStore.setSeed(
-                                                    timelineKey,
-                                                    generationSeed
+                                                    timelineKey = timelineKey,
+                                                    scenes = newScenes,
+                                                    seed = generationSeed
                                                 )
                                             } else {
                                                 sceneStore.persist(timelineKey, newScenes)
