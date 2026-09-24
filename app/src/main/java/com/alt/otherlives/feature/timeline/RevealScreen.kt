@@ -98,8 +98,20 @@ fun RevealScreen(
 
     LaunchedEffect(timelineKey) {
         isLoadingStoredScenes = true
-        generatedScenes = withContext(Dispatchers.IO) {
-            sceneStore.load(timelineKey)
+        val restored = runCatching {
+            withContext(Dispatchers.IO) {
+                sceneStore.load(timelineKey)
+            }
+        }
+        restored.onSuccess {
+            generatedScenes = it
+        }.onFailure {
+            generatedScenes = emptyList()
+            Toast.makeText(
+                context,
+                "Could not restore saved AI scenes: " + (it.message ?: "unknown error"),
+                Toast.LENGTH_SHORT
+            ).show()
         }
         isLoadingStoredScenes = false
     }
