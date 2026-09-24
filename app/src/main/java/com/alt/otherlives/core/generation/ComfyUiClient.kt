@@ -143,8 +143,12 @@ class ComfyUiClient(
             dir,
             "scene-" + System.currentTimeMillis() + "-" + index + "." + extension
         )
-        connection.inputStream.buffered().use { input ->
-            file.outputStream().use { outputStream -> input.copyTo(outputStream) }
+        try {
+            connection.inputStream.buffered().use { input ->
+                file.outputStream().use { outputStream -> input.copyTo(outputStream) }
+            }
+        } finally {
+            connection.disconnect()
         }
 
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
@@ -230,8 +234,12 @@ class ComfyUiClient(
         }
 
     private fun readResponse(connection: HttpURLConnection): String {
-        ensureSuccess(connection)
-        return connection.inputStream.bufferedReader().use { it.readText() }
+        return try {
+            ensureSuccess(connection)
+            connection.inputStream.bufferedReader().use { it.readText() }
+        } finally {
+            connection.disconnect()
+        }
     }
 
     private fun ensureSuccess(connection: HttpURLConnection) {
