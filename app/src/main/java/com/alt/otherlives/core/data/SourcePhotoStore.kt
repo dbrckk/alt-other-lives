@@ -139,13 +139,20 @@ class SourcePhotoStore(private val context: Context) {
         val dir = File(context.filesDir, "source-photos")
         dir.listFiles()?.forEach { file ->
             if (file.isFile && file.name !in keepFileNames) {
-                file.delete()
+                check(file.delete()) {
+                    "Unable to delete unreferenced source photo"
+                }
             }
         }
     }
 
     fun clearAll() {
-        File(context.filesDir, "source-photos").deleteRecursively()
+        val root = File(context.filesDir, "source-photos")
+        if (root.exists()) {
+            check(root.deleteRecursively()) {
+                "Unable to clear private source photos"
+            }
+        }
     }
 
     private companion object {
