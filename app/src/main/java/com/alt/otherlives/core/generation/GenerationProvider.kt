@@ -6,7 +6,8 @@ import com.alt.otherlives.core.model.Scenario
 data class GenerationRequest(
     val sourcePhoto: Uri,
     val scenario: Scenario,
-    val chapterIndexes: Set<Int>? = null
+    val chapterIndexes: Set<Int>? = null,
+    val seed: Long? = null
 )
 
 data class GeneratedScene(
