@@ -88,6 +88,7 @@ fun RevealScreen(
     var aiTotal by remember { mutableStateOf(0) }
     var showRegenerateAllDialog by remember { mutableStateOf(false) }
     var showClearAiDialog by remember { mutableStateOf(false) }
+    var isClearingAi by remember { mutableStateOf(false) }
     val primaryGeneratedSceneUri = generatedScenes
         .minByOrNull { it.chapterIndex }
         ?.imageUri
@@ -273,7 +274,7 @@ fun RevealScreen(
                                 }
                             }
                         },
-                        enabled = !isLoadingStoredScenes && !isGeneratingAi && !isExporting && !isRenderingShareImage,
+                        enabled = !isLoadingStoredScenes && !isClearingAi && !isGeneratingAi && !isExporting && !isRenderingShareImage,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) {
@@ -288,7 +289,7 @@ fun RevealScreen(
                     if (generatedScenes.isNotEmpty()) {
                         TextButton(
                             onClick = { showClearAiDialog = true },
-                            enabled = !isLoadingStoredScenes && !isGeneratingAi && !isExporting && !isRenderingShareImage,
+                            enabled = !isLoadingStoredScenes && !isClearingAi && !isGeneratingAi && !isExporting && !isRenderingShareImage,
                             modifier = Modifier.fillMaxWidth()
                         ) { Text("Remove generated AI scenes") }
                     }
@@ -300,14 +301,37 @@ fun RevealScreen(
                             text = { Text("The generated chapter images for this timeline will be deleted from this device.") },
                             confirmButton = {
                                 TextButton(
+                                    enabled = !isClearingAi,
                                     onClick = {
-                                        sceneStore.clear(timelineKey)
-                                        generatedScenes = emptyList()
-                                        completedVideoUri = null
-                                        showClearAiDialog = false
-                                        Toast.makeText(context, "AI scenes removed", Toast.LENGTH_SHORT).show()
+                                        if (!isClearingAi) {
+                                            showClearAiDialog = false
+                                            isClearingAi = true
+                                            scope.launch {
+                                                runCatching {
+                                                    withContext(Dispatchers.IO) {
+                                                        sceneStore.clear(timelineKey)
+                                                    }
+                                                }.onSuccess {
+                                                    generatedScenes = emptyList()
+                                                    completedVideoUri = null
+                                                    Toast.makeText(
+                                                        context,
+                                                        "AI scenes removed",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }.onFailure {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Could not remove AI scenes: " +
+                                                            (it.message ?: "unknown error"),
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                                isClearingAi = false
+                                            }
+                                        }
                                     }
-                                ) { Text("Remove") }
+                                ) { Text(if (isClearingAi) "Removing…" else "Remove") }
                             },
                             dismissButton = {
                                 TextButton(onClick = { showClearAiDialog = false }) {
@@ -390,7 +414,7 @@ fun RevealScreen(
                             }
                         }
                     },
-                    enabled = !isLoadingStoredScenes && !isRenderingShareImage && !isGeneratingAi && !isExporting && hasVisualAsset,
+                    enabled = !isLoadingStoredScenes && !isClearingAi && !isRenderingShareImage && !isGeneratingAi && !isExporting && hasVisualAsset,
                     modifier = Modifier.fillMaxWidth().height(58.dp),
                     shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AltPrimary, contentColor = Color(0xFF16111F))
@@ -430,7 +454,7 @@ fun RevealScreen(
                                 }
                             }
                         },
-                        enabled = !isLoadingStoredScenes && !isRenderingShareImage && !isGeneratingAi && !isExporting && hasVisualAsset,
+                        enabled = !isLoadingStoredScenes && !isClearingAi && !isRenderingShareImage && !isGeneratingAi && !isExporting && hasVisualAsset,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) { Text("Save 9:16 image", fontWeight = FontWeight.Bold) }
@@ -497,7 +521,7 @@ fun RevealScreen(
                             }
                         }
                     },
-                    enabled = !isLoadingStoredScenes && !isExporting && !isGeneratingAi && !isRenderingShareImage && hasVisualAsset,
+                    enabled = !isLoadingStoredScenes && !isClearingAi && !isExporting && !isGeneratingAi && !isRenderingShareImage && hasVisualAsset,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(20.dp)
                 ) {
@@ -535,7 +559,7 @@ fun RevealScreen(
                     Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = { CinematicVideoExporter.share(context, videoUri, scenario) },
-                        enabled = !isLoadingStoredScenes && !isGeneratingAi && !isExporting,
+                        enabled = !isLoadingStoredScenes && !isClearingAi && !isGeneratingAi && !isExporting,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) { Text("Share MP4", fontWeight = FontWeight.Bold) }
@@ -543,7 +567,7 @@ fun RevealScreen(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         Spacer(Modifier.height(8.dp))
                         androidx.compose.material3.TextButton(
-                            enabled = !isLoadingStoredScenes && !isGeneratingAi && !isExporting,
+                            enabled = !isLoadingStoredScenes && !isClearingAi && !isGeneratingAi && !isExporting,
                             onClick = {
                                 runCatching {
                                     CinematicVideoExporter.saveToGallery(context, videoUri, scenario)
