@@ -48,12 +48,16 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - Partial AI generation reports failed chapter indexes in Reveal, keeps existing scenes during failed full-regeneration attempts, and retries transient chapter failures after a short deterministic backoff.
 - AI cancellation keeps generation locked until the coroutine actually finishes, preventing overlapping generation mutations.
 - ComfyUI source uploads and generated-image downloads are size-bounded; generated images also enforce shared dimension/pixel limits before persistence or rendering.
+- ComfyUI polling absorbs transient GET failures without requeueing the prompt, generation-wide timeouts do not auto-requeue, queue POST I/O failures are treated as ambiguous, and image downloads retry the same remote output instead of creating a new prompt.
+- ComfyUI prompt IDs, image reference types, remote filenames/subfolders, base URL structure, and text response sizes are validated/bounded before use.
+- Share JPEGs and timeline scene JPEGs use unique atomic cache writes; cancelled MP4 exports delete their partial output immediately; stale share cache files are purged after 24 hours.
+- Partial AI generation no longer re-persists successful chapters at completion, and missing failed chapters have an explicit targeted retry action.
 - ComfyUI remote filenames/subfolders and local cache image extensions are normalized and validated before use.
 - Heavy JPEG/MP4 preparation work runs off the main UI thread.
 - Persisted Reveal scenes are restored off the main thread with explicit restore progress, and generation callbacks can persist completed chapters asynchronously without blocking Compose.
 - Timeline seed reads/writes and generated-scene persistence are dispatched to IO; AI scene removal and exported MP4 gallery copies are also performed asynchronously.
 - CI validates unit tests, Android lint and debug APK assembly.
-- Latest confirmed green run: #346. Runs #347–#351 validate remote-path tests and bounded ComfyUI source uploads.
+- Latest confirmed green run: #385. Runs #386–#388 validate ambiguous queue handling, same-output download retries, and targeted chapter retry UX.
 
 ## Current priority
 Keep the end-to-end AI generation path reliable, then improve identity continuity, partial-failure recovery and production UX before monetization.
