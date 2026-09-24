@@ -22,6 +22,8 @@ import com.alt.otherlives.core.data.HistoryRepository
 import com.alt.otherlives.core.data.SourcePhotoStore
 import com.alt.otherlives.core.generation.GenerationSettingsRepository
 import com.alt.otherlives.core.generation.GeneratedSceneStore
+import com.alt.otherlives.core.generation.ComfyUiClient
+import com.alt.otherlives.core.generation.ComfyUiConfig
 import androidx.compose.ui.Modifier
 import com.alt.otherlives.core.data.ScenarioCatalog
 import com.alt.otherlives.core.designsystem.AltBackground
@@ -129,6 +131,21 @@ fun AltApp() {
                                     generationSettingsMessage = "ComfyUI settings saved"
                                 }.onFailure {
                                     generationSettingsMessage = it.message ?: "Could not save ComfyUI settings"
+                                }
+                            }
+                        },
+                        onTestConnection = { baseUrl ->
+                            scope.launch {
+                                generationSettingsMessage = "Testing ComfyUI connection…"
+                                runCatching {
+                                    ComfyUiClient(
+                                        context = context.applicationContext,
+                                        config = ComfyUiConfig(baseUrl)
+                                    ).testConnection()
+                                }.onSuccess {
+                                    generationSettingsMessage = "ComfyUI connection successful"
+                                }.onFailure {
+                                    generationSettingsMessage = it.message ?: "Could not connect to ComfyUI"
                                 }
                             }
                         },
