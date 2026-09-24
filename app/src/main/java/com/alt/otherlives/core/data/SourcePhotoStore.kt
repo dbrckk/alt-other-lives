@@ -53,7 +53,7 @@ class SourcePhotoStore(private val context: Context) {
     }
 
     fun uriFor(fileName: String): Uri {
-        val file = File(File(context.filesDir, "source-photos"), fileName)
+        val file = storedFile(fileName)
         require(file.exists()) { "Stored photo not found" }
         if (!isValidImage(file)) {
             file.delete()
@@ -64,6 +64,26 @@ class SourcePhotoStore(private val context: Context) {
             context.packageName + ".fileprovider",
             file
         )
+    }
+
+    fun isAvailable(fileName: String): Boolean {
+        val file = runCatching { storedFile(fileName) }.getOrNull() ?: return false
+        if (!isValidImage(file)) {
+            file.delete()
+            return false
+        }
+        return true
+    }
+
+    private fun storedFile(fileName: String): File {
+        require(fileName.isNotBlank()) { "Stored photo filename is required" }
+        require(File(fileName).name == fileName) { "Invalid stored photo filename" }
+        val dir = File(context.filesDir, "source-photos")
+        val file = File(dir, fileName)
+        require(file.canonicalFile.parentFile == dir.canonicalFile) {
+            "Stored photo path escapes private storage"
+        }
+        return file
     }
 
     fun latestStoredPhoto(): StoredPhoto? {
