@@ -15,13 +15,18 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - The app uploads a source image, binds workflow placeholders, queues prompts, polls history, surfaces execution failures, downloads outputs and previews generated chapters.
 - Required workflow placeholders: __ALT_SOURCE_IMAGE__ and __ALT_PROMPT__.
 - Optional workflow placeholder: __ALT_SEED__.
-- Generated scenes are persisted privately under app files and restored when reopening a scenario.
-- Scenario-specific prompt profiles and a stable timeline seed improve sequence continuity.
+- Generated scenes are persisted privately per timeline and restored without cross-contaminating different lives that share a scenario.
+- Scenario-specific prompt profiles and a persisted per-timeline seed improve sequence continuity across partial retries and app restarts.
 - Per-chapter ComfyUI generation retries once on transient failure.
 - Partial generation keeps successful chapters and supports targeted generation of only missing chapters.
-- Full regeneration requires confirmation; generated AI scenes can be explicitly removed to return to local rendering.
+- Full regeneration requires confirmation, uses a fresh seed, and is atomic: the current timeline is replaced only if every requested chapter succeeds.
+- AI generation can be cancelled cooperatively; completed chapters are persisted immediately for partial runs.
+- Source photos are copied into private app storage, validated, restored after restart, and associated with history entries.
+- Source-photo and generated-scene orphan cleanup prevents private storage from growing indefinitely.
+- ComfyUI endpoints require HTTPS, support an explicit connection test, preserve source MIME types, and surface configuration errors in the UI.
+- Heavy JPEG/MP4 preparation work runs off the main UI thread.
 - CI validates unit tests, Android lint and debug APK assembly.
-- Latest confirmed green run: #111.
+- Latest confirmed green run: #160. Run #161 validates latest timeline-context restoration.
 
 ## Current priority
 Keep the end-to-end AI generation path reliable, then improve identity continuity, partial-failure recovery and production UX before monetization.
