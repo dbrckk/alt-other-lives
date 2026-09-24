@@ -30,7 +30,8 @@ fun HistoryScreen(
     onOpen: (Scenario, HistoryEntry) -> Unit,
     onClear: () -> Unit,
     unavailablePhotoFileNames: Set<String> = emptySet(),
-    photoUrisByFileName: Map<String, Uri> = emptyMap()
+    photoUrisByFileName: Map<String, Uri> = emptyMap(),
+    generatedPreviewUrisByTimelineKey: Map<String, Uri> = emptyMap()
 ) {
     Column(Modifier.fillMaxSize().padding(top = 42.dp)) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
@@ -64,18 +65,20 @@ fun HistoryScreen(
                                 modifier = Modifier.padding(16.dp),
                                 horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                entry.photoFileName
+                                val timelineKey = entry.scenarioId + "-" + entry.createdAt
+                                val previewUri = entry.photoFileName
                                     ?.let { photoUrisByFileName[it] }
-                                    ?.let { photoUri ->
-                                        AsyncImage(
-                                            model = photoUri,
-                                            contentDescription = null,
-                                            modifier = Modifier
-                                                .size(88.dp)
-                                                .clip(RoundedCornerShape(18.dp)),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                    }
+                                    ?: generatedPreviewUrisByTimelineKey[timelineKey]
+                                previewUri?.let { imageUri ->
+                                    AsyncImage(
+                                        model = imageUri,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(88.dp)
+                                            .clip(RoundedCornerShape(18.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
 
                                 Column(
                                     modifier = Modifier
@@ -99,7 +102,15 @@ fun HistoryScreen(
                                         }
                                         entry.photoFileName in unavailablePhotoFileNames -> {
                                             Spacer(Modifier.height(6.dp))
-                                            Text("Original photo unavailable", color = AltMuted, fontSize = 12.sp)
+                                            Text(
+                                            if (timelineKey in generatedPreviewUrisByTimelineKey) {
+                                                "Original photo unavailable • AI preview"
+                                            } else {
+                                                "Original photo unavailable"
+                                            },
+                                            color = AltMuted,
+                                            fontSize = 12.sp
+                                        )
                                         }
                                     }
                                 }
