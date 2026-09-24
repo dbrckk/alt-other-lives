@@ -56,6 +56,7 @@ fun AltApp() {
     var unavailablePhotoFileNames by remember { mutableStateOf<Set<String>>(emptySet()) }
     var historyPhotoUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
     var historyGeneratedPreviewUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
+    var deletingHistoryEntryKey by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
     val sourcePhotoStore = remember(context) { SourcePhotoStore(context.applicationContext) }
@@ -256,6 +257,7 @@ fun AltApp() {
                         unavailablePhotoFileNames = unavailablePhotoFileNames,
                         photoUrisByFileName = historyPhotoUris,
                         generatedPreviewUrisByTimelineKey = historyGeneratedPreviewUris,
+                        deletingEntryKey = deletingHistoryEntryKey,
                         onOpen = { scenario, entry ->
                             selectedScenario = scenario
                             activeTimelineKey = scenario.id + "-" + entry.createdAt
@@ -276,27 +278,43 @@ fun AltApp() {
                             screen = Screen.REVEAL
                         },
                         onDelete = { entry ->
-                            scope.launch {
-                                val keep = historyRepository.remove(entry)
-                                withContext(Dispatchers.IO) {
-                                    sourcePhotoStore.deleteUnreferenced(keep.photoFileNames)
-                                    generatedSceneStore.deleteUnreferenced(keep.timelineKeys)
-                                }
-                                val deletedTimelineKey = entry.scenarioId + "-" + entry.createdAt
-                                historyGeneratedPreviewUris = historyGeneratedPreviewUris - deletedTimelineKey
-                                entry.photoFileName?.let { deletedPhotoFileName ->
-                                    if (deletedPhotoFileName !in keep.photoFileNames) {
-                                        historyPhotoUris = historyPhotoUris - deletedPhotoFileName
-                                        unavailablePhotoFileNames =
-                                            unavailablePhotoFileNames - deletedPhotoFileName
-                                        if (photoFileName == deletedPhotoFileName) {
-                                            photoUri = null
-                                            photoFileName = null
+                            val entryKey = entry.scenarioId + ":" + entry.createdAt
+                            if (deletingHistoryEntryKey == null) {
+                                deletingHistoryEntryKey = entryKey
+                                scope.launch {
+                                    runCatching {
+                                        val keep = historyRepository.remove(entry)
+                                        withContext(Dispatchers.IO) {
+                                            sourcePhotoStore.deleteUnreferenced(keep.photoFileNames)
+                                            generatedSceneStore.deleteUnreferenced(keep.timelineKeys)
                                         }
+                                        val deletedTimelineKey = entry.scenarioId + "-" + entry.createdAt
+                                        historyGeneratedPreviewUris =
+                                            historyGeneratedPreviewUris - deletedTimelineKey
+                                        entry.photoFileName?.let { deletedPhotoFileName ->
+                                            if (deletedPhotoFileName !in keep.photoFileNames) {
+                                                historyPhotoUris =
+                                                    historyPhotoUris - deletedPhotoFileName
+                                                unavailablePhotoFileNames =
+                                                    unavailablePhotoFileNames - deletedPhotoFileName
+                                                if (photoFileName == deletedPhotoFileName) {
+                                                    photoUri = null
+                                                    photoFileName = null
+                                                }
+                                            }
+                                        }
+                                        if (activeTimelineKey == deletedTimelineKey) {
+                                            activeTimelineKey = null
+                                        }
+                                    }.onFailure {
+                                        Toast.makeText(
+                                            context,
+                                            "Could not delete timeline: " +
+                                                (it.message ?: "unknown error"),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
-                                }
-                                if (activeTimelineKey == deletedTimelineKey) {
-                                    activeTimelineKey = null
+                                    deletingHistoryEntryKey = null
                                 }
                             }
                         },
