@@ -144,6 +144,8 @@ fun RevealScreen(
                             aiCompleted = 0
                             aiTotal = targetIndexes.size
                             aiGenerationJob = scope.launch {
+                                val previousSeed = sceneStore.getOrCreateSeed(timelineKey)
+                                var generatedAnyScene = false
                                 runCatching {
                                     val provider = ComfyUiGenerationProvider(
                                         context = context,
@@ -158,7 +160,7 @@ fun RevealScreen(
                                             seed = if (resetSeed) {
                                                 sceneStore.resetSeed(timelineKey)
                                             } else {
-                                                sceneStore.getOrCreateSeed(timelineKey)
+                                                previousSeed
                                             }
                                         ),
                                         onProgress = { completed, total ->
@@ -166,6 +168,7 @@ fun RevealScreen(
                                             aiTotal = total
                                         },
                                         onSceneGenerated = { generated ->
+                                            generatedAnyScene = true
                                             sceneStore.persist(timelineKey, listOf(generated))
                                             generatedScenes = sceneStore.load(timelineKey)
                                         }
@@ -183,6 +186,9 @@ fun RevealScreen(
                                     }
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 }.onFailure {
+                                    if (resetSeed && !generatedAnyScene) {
+                                        sceneStore.setSeed(timelineKey, previousSeed)
+                                    }
                                     isGeneratingAi = false
                                     aiGenerationJob = null
                                     if (it !is kotlinx.coroutines.CancellationException) {
