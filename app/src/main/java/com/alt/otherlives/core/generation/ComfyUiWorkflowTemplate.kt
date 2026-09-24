@@ -8,6 +8,8 @@ object ComfyUiWorkflowTemplate {
     fun validateTemplate(templateJson: String) {
         require(templateJson.isNotBlank()) { "Workflow JSON is required" }
         require(templateJson.trimStart().startsWith("{")) { "Workflow must be a JSON object" }
+        runCatching { JSONObject(templateJson) }
+            .getOrElse { throw IllegalArgumentException("Workflow JSON is malformed", it) }
         require(templateJson.contains(ComfyUiWorkflow.PLACEHOLDER_SOURCE_IMAGE)) {
             "Workflow must contain " + ComfyUiWorkflow.PLACEHOLDER_SOURCE_IMAGE
         }
