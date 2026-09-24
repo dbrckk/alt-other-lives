@@ -70,7 +70,7 @@ class ComfyUiClient(
                 .getExtensionFromMimeType(mimeType)
                 ?.takeIf { it.isNotBlank() }
                 ?: "jpg"
-            val filename = "alt-source-" + System.currentTimeMillis() + "." + extension
+            val filename = "alt-source-" + UUID.randomUUID() + "." + extension
             connection.outputStream.buffered().use { output ->
                 fun write(value: String) = output.write(value.toByteArray(Charsets.UTF_8))
                 write("--$boundary\r\n")
