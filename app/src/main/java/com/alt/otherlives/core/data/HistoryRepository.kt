@@ -13,7 +13,10 @@ data class HistoryEntry(
     val scenarioId: String,
     val createdAt: Long,
     val photoFileName: String? = null
-)
+) {
+    val timelineKey: String
+        get() = scenarioId + "-" + createdAt
+}
 
 class HistoryRepository(private val context: Context) {
     private val historyKey = stringPreferencesKey("history")
@@ -39,7 +42,7 @@ class HistoryRepository(private val context: Context) {
             val updated = (listOf(HistoryEntry(scenarioId, createdAt, photoFileName)) + current).take(MAX_ENTRIES)
             prefs[historyKey] = encode(updated)
             referencedPhotoFileNames = updated.mapNotNull { it.photoFileName }.toSet()
-            referencedTimelineKeys = updated.map { it.scenarioId + "-" + it.createdAt }.toSet()
+            referencedTimelineKeys = updated.map { it.timelineKey }.toSet()
         }
         return RecordResult(
             photoFileNames = referencedPhotoFileNames,
@@ -62,7 +65,7 @@ class HistoryRepository(private val context: Context) {
                 prefs[historyKey] = encode(updated)
             }
             referencedPhotoFileNames = updated.mapNotNull { it.photoFileName }.toSet()
-            referencedTimelineKeys = updated.map { it.scenarioId + "-" + it.createdAt }.toSet()
+            referencedTimelineKeys = updated.map { it.timelineKey }.toSet()
         }
         return RecordResult(
             photoFileNames = referencedPhotoFileNames,
