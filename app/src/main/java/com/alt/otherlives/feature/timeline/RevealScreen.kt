@@ -86,6 +86,7 @@ fun RevealScreen(
     var generatedScenes by remember(timelineKey) { mutableStateOf<List<GeneratedScene>>(emptyList()) }
     var isLoadingStoredScenes by remember(timelineKey) { mutableStateOf(true) }
     var isGeneratingAi by remember { mutableStateOf(false) }
+    var isCancellingAi by remember { mutableStateOf(false) }
     var aiGenerationJob by remember { mutableStateOf<Job?>(null) }
     var aiCompleted by remember { mutableStateOf(0) }
     var aiTotal by remember { mutableStateOf(0) }
@@ -222,6 +223,7 @@ fun RevealScreen(
                         if (!isGeneratingAi) {
                             completedVideoUri = null
                             isGeneratingAi = true
+                            isCancellingAi = false
                             aiCompleted = 0
                             aiTotal = targetIndexes.size
                             aiChapterFailures = emptyMap()
@@ -320,6 +322,7 @@ fun RevealScreen(
                                     ).show()
                                 } finally {
                                     isGeneratingAi = false
+                                    isCancellingAi = false
                                     aiGenerationJob = null
                                 }
                             }
@@ -436,14 +439,22 @@ fun RevealScreen(
                         Spacer(Modifier.height(8.dp))
                         TextButton(
                             onClick = {
-                                aiGenerationJob?.cancel()
-                                aiGenerationJob = null
-                                isGeneratingAi = false
-                                aiCompleted = 0
-                                aiTotal = 0
+                                if (!isCancellingAi) {
+                                    isCancellingAi = true
+                                    aiGenerationJob?.cancel()
+                                }
                             },
+                            enabled = !isCancellingAi,
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text("Cancel AI generation") }
+                        ) {
+                            Text(
+                                if (isCancellingAi) {
+                                    "Cancelling AI generation…"
+                                } else {
+                                    "Cancel AI generation"
+                                }
+                            )
+                        }
                         LinearProgressIndicator(
                             progress = {
                                 if (aiTotal == 0) 0f else aiCompleted.toFloat() / aiTotal.toFloat()
