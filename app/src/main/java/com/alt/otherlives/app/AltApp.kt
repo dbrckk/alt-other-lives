@@ -57,6 +57,7 @@ fun AltApp() {
     var historyPhotoUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
     var historyGeneratedPreviewUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
     var deletingHistoryEntryKey by remember { mutableStateOf<String?>(null) }
+    var isCreatingTimeline by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
     val sourcePhotoStore = remember(context) { SourcePhotoStore(context.applicationContext) }
@@ -174,23 +175,46 @@ fun AltApp() {
                     )
                     Screen.SCENARIOS -> ScenarioScreen(
                         scenarios = ScenarioCatalog.scenarios,
-                        onBack = { screen = Screen.HOME },
-                        onSelect = {
-                            selectedScenario = it
-                            val createdAt = System.currentTimeMillis()
-                            activeTimelineKey = it.id + "-" + createdAt
-                            scope.launch {
-                                val keep = historyRepository.record(
-                                    scenarioId = it.id,
-                                    photoFileName = photoFileName,
-                                    createdAt = createdAt
-                                )
-                                withContext(Dispatchers.IO) {
-                                    sourcePhotoStore.deleteUnreferenced(keep.photoFileNames)
-                                    generatedSceneStore.deleteUnreferenced(keep.timelineKeys)
+                        onBack = {
+                            if (!isCreatingTimeline) {
+                                screen = Screen.HOME
+                            }
+                        },
+                        isCreatingTimeline = isCreatingTimeline,
+                        onSelect = { scenario ->
+                            if (!isCreatingTimeline) {
+                                isCreatingTimeline = true
+                                val createdAt = System.currentTimeMillis()
+                                scope.launch {
+                                    runCatching {
+                                        val keep = historyRepository.record(
+                                            scenarioId = scenario.id,
+                                            photoFileName = photoFileName,
+                                            createdAt = createdAt
+                                        )
+                                        withContext(Dispatchers.IO) {
+                                            sourcePhotoStore.deleteUnreferenced(
+                                                keep.photoFileNames
+                                            )
+                                            generatedSceneStore.deleteUnreferenced(
+                                                keep.timelineKeys
+                                            )
+                                        }
+                                    }.onSuccess {
+                                        selectedScenario = scenario
+                                        activeTimelineKey = scenario.id + "-" + createdAt
+                                        screen = Screen.REVEAL
+                                    }.onFailure {
+                                        Toast.makeText(
+                                            context,
+                                            "Could not create timeline: " +
+                                                (it.message ?: "unknown error"),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                    isCreatingTimeline = false
                                 }
                             }
-                            screen = Screen.REVEAL
                         }
                     )
                     Screen.REVEAL -> RevealScreen(
