@@ -121,6 +121,7 @@ fun AltApp() {
                                     }.onSuccess { stored ->
                                         photoUri = stored.uri
                                         photoFileName = stored.fileName
+                                        activeTimelineKey = null
                                         val keep = history.mapNotNull { it.photoFileName }.toSet() + stored.fileName
                                         withContext(Dispatchers.IO) {
                                             sourcePhotoStore.deleteUnreferenced(keep)
@@ -249,6 +250,7 @@ fun AltApp() {
                                 }
                                 photoUri = null
                                 photoFileName = null
+                                activeTimelineKey = null
                             }
                         }
                     )
