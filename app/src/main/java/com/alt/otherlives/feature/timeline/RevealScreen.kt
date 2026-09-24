@@ -87,7 +87,11 @@ fun RevealScreen(
     var aiTotal by remember { mutableStateOf(0) }
     var showRegenerateAllDialog by remember { mutableStateOf(false) }
     var showClearAiDialog by remember { mutableStateOf(false) }
-    val hasVisualAsset = photoUri != null || generatedScenes.isNotEmpty()
+    val primaryGeneratedSceneUri = generatedScenes
+        .minByOrNull { it.chapterIndex }
+        ?.imageUri
+    val revealHeroUri = primaryGeneratedSceneUri ?: photoUri
+    val hasVisualAsset = revealHeroUri != null
 
     LaunchedEffect(activeTransformer, isExporting) {
         while (isExporting) {
@@ -107,7 +111,7 @@ fun RevealScreen(
         item {
             Box(modifier = Modifier.fillMaxWidth().height(500.dp)) {
                 AsyncImage(
-                    model = photoUri ?: generatedScenes.minByOrNull { it.chapterIndex }?.imageUri,
+                    model = revealHeroUri,
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
@@ -331,9 +335,9 @@ fun RevealScreen(
                                     withContext(Dispatchers.Default) {
                                         ShareCardRenderer.render(
                                             context = context,
-                                            photoUri = photoUri,
+                                            photoUri = primaryGeneratedSceneUri ?: photoUri,
                                             scenario = scenario,
-                                            fallbackImageUri = generatedScenes.minByOrNull { it.chapterIndex }?.imageUri
+                                            fallbackImageUri = photoUri
                                         )
                                     }
                                 }
@@ -371,9 +375,9 @@ fun RevealScreen(
                                         withContext(Dispatchers.IO) {
                                             ShareCardRenderer.saveToGallery(
                                                 context = context,
-                                                photoUri = photoUri,
+                                                photoUri = primaryGeneratedSceneUri ?: photoUri,
                                                 scenario = scenario,
-                                                fallbackImageUri = generatedScenes.minByOrNull { it.chapterIndex }?.imageUri
+                                                fallbackImageUri = photoUri
                                             )
                                         }
                                     }
