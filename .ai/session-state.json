@@ -1,15 +1,15 @@
 {
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
-  "phase": "Phase 0 — Stable engineering base",
-  "currentTask": "Restore green Android CI after JVM target mismatch, then refactor prototype structure.",
-  "lastKnownBlocker": "Initial CI failed: compileDebugJavaWithJavac targeted 1.8 while compileDebugKotlin targeted 17.",
-  "fixApplied": "app/build.gradle.kts now sets Java source/target compatibility to Java 17.",
+  "phase": "Phase 4 — Reliable AI generation and history UX",
+  "currentTask": "Harden persisted media/history UX while keeping the ComfyUI generation path deterministic and recoverable.",
+  "lastKnownBlocker": "Intermediate history-preview commits failed when caller parameters landed before matching HistoryScreen parameters; the paired commits now contain both sides.",
+  "fixApplied": "History preflight is wired to HistoryScreen, private path validation is enforced, local thumbnails and AI fallback previews are supported, and preview scanning runs only when History is open.",
   "next": [
-    "Verify new CI run",
-    "Fix any remaining compile failures",
-    "Refactor MainActivity prototype into core/feature packages",
-    "Add first unit and Compose smoke tests"
+    "Verify cumulative CI after history preview commits",
+    "Continue premium history/reveal polish only after CI is green",
+    "Keep ComfyUI output selection deterministic with ALT OUTPUT marker fallback",
+    "Preserve atomic media/seed storage and crash recovery guarantees"
   ],
-  "updated": "2026-09-23"
+  "updated": "2026-09-24"
 }
