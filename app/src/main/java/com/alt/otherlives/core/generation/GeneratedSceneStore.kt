@@ -38,7 +38,21 @@ class GeneratedSceneStore(private val context: Context) {
     fun setSeed(timelineKey: String, seed: Long) {
         require(seed > 0L) { "Seed must be positive" }
         val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
-        File(root, "seed.txt").writeText(seed.toString())
+        val target = File(root, "seed.txt")
+        val temporary = File(root, ".seed-" + System.nanoTime() + ".tmp")
+        try {
+            temporary.writeText(seed.toString())
+            require(temporary.length() > 0L) { "Seed write failed" }
+            if (target.exists() && !target.delete()) {
+                error("Unable to replace timeline seed")
+            }
+            if (!temporary.renameTo(target)) {
+                error("Unable to finalize timeline seed")
+            }
+        } catch (error: Throwable) {
+            temporary.delete()
+            throw error
+        }
     }
 
     fun persist(timelineKey: String, scenes: List<GeneratedScene>): List<GeneratedScene> {
@@ -140,6 +154,10 @@ class GeneratedSceneStore(private val context: Context) {
     }
 
     private fun recoverInterruptedWrites(root: File) {
+        root.listFiles()
+            ?.filter { it.isFile && it.name.startsWith(".seed-") && it.name.endsWith(".tmp") }
+            ?.forEach { it.delete() }
+
         root.listFiles()
             ?.filter { it.isFile && it.name.startsWith(".scene-") && it.name.endsWith(".tmp") }
             ?.forEach { it.delete() }
