@@ -52,6 +52,7 @@ fun AltApp() {
     var connectionTestJob by remember { mutableStateOf<Job?>(null) }
     var hasRestoredStartupPhoto by remember { mutableStateOf(false) }
     var unavailablePhotoFileNames by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var historyPhotoUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
     val context = LocalContext.current
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
     val sourcePhotoStore = remember(context) { SourcePhotoStore(context.applicationContext) }
@@ -80,12 +81,16 @@ fun AltApp() {
     }
 
     LaunchedEffect(history) {
-        unavailablePhotoFileNames = withContext(Dispatchers.IO) {
-            history.mapNotNull { it.photoFileName }
-                .distinct()
-                .filterNot { sourcePhotoStore.isAvailable(it) }
-                .toSet()
+        val photoFileNames = history.mapNotNull { it.photoFileName }.distinct()
+        val available = withContext(Dispatchers.IO) {
+            photoFileNames.mapNotNull { fileName ->
+                runCatching { sourcePhotoStore.uriFor(fileName) }
+                    .getOrNull()
+                    ?.let { fileName to it }
+            }.toMap()
         }
+        historyPhotoUris = available
+        unavailablePhotoFileNames = photoFileNames.filterNot { it in available }.toSet()
     }
 
     LaunchedEffect(history, hasRestoredStartupPhoto) {
@@ -233,6 +238,7 @@ fun AltApp() {
                         scenarios = ScenarioCatalog.scenarios,
                         onBack = { screen = Screen.HOME },
                         unavailablePhotoFileNames = unavailablePhotoFileNames,
+                        photoUrisByFileName = historyPhotoUris,
                         onOpen = { scenario, entry ->
                             selectedScenario = scenario
                             activeTimelineKey = scenario.id + "-" + entry.createdAt
