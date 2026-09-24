@@ -147,26 +147,43 @@ fun AltApp() {
                             if (!isImportingPhoto) {
                                 isImportingPhoto = true
                                 scope.launch {
-                                    runCatching {
-                                        withContext(Dispatchers.IO) {
-                                            sourcePhotoStore.import(selectedUri)
+                                    try {
+                                        val imported = runCatching {
+                                            withContext(Dispatchers.IO) {
+                                                sourcePhotoStore.import(selectedUri)
+                                            }
                                         }
-                                    }.onSuccess { stored ->
-                                        photoUri = stored.uri
-                                        photoFileName = stored.fileName
-                                        activeTimelineKey = null
-                                        val keep = history.mapNotNull { it.photoFileName }.toSet() + stored.fileName
-                                        withContext(Dispatchers.IO) {
-                                            sourcePhotoStore.deleteUnreferenced(keep)
+
+                                        imported.onSuccess { stored ->
+                                            photoUri = stored.uri
+                                            photoFileName = stored.fileName
+                                            activeTimelineKey = null
+
+                                            val keep =
+                                                history.mapNotNull { it.photoFileName }.toSet() +
+                                                    stored.fileName
+                                            runCatching {
+                                                withContext(Dispatchers.IO) {
+                                                    sourcePhotoStore.deleteUnreferenced(keep)
+                                                }
+                                            }.onFailure {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Photo imported, but some old local photos could not be cleaned up",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }.onFailure {
+                                            Toast.makeText(
+                                                context,
+                                                "Could not import photo: " +
+                                                    (it.message ?: "unknown error"),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
-                                    }.onFailure {
-                                        Toast.makeText(
-                                            context,
-                                            "Could not import photo: " + (it.message ?: "unknown error"),
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                    } finally {
+                                        isImportingPhoto = false
                                     }
-                                    isImportingPhoto = false
                                 }
                             }
                         },
