@@ -137,7 +137,7 @@ fun RevealScreen(
         onDispose {
             aiGenerationJob?.cancel()
             exportJob?.cancel()
-            activeTransformer?.cancel()
+            activeTransformer?.let { CinematicVideoExporter.cancel(it) }
         }
     }
     LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 40.dp)) {
@@ -649,7 +649,7 @@ fun RevealScreen(
                         onClick = {
                             exportJob?.cancel()
                             exportJob = null
-                            activeTransformer?.cancel()
+                            activeTransformer?.let { CinematicVideoExporter.cancel(it) }
                             activeTransformer = null
                             isExporting = false
                             exportProgress = null
