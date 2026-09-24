@@ -56,9 +56,17 @@ class GeneratedSceneStore(private val context: Context) {
                 ?.filter { it.isFile && chapterIndexFromFilename(it.name) == scene.chapterIndex }
                 ?.forEach { it.delete() }
             val target = File(root, filenameForChapter(scene.chapterIndex, extension))
-            context.contentResolver.openInputStream(scene.imageUri)?.use { input ->
-                target.outputStream().use { output -> input.copyTo(output) }
-            } ?: error("Unable to persist generated scene " + scene.chapterIndex)
+            try {
+                context.contentResolver.openInputStream(scene.imageUri)?.use { input ->
+                    target.outputStream().use { output -> input.copyTo(output) }
+                } ?: error("Unable to persist generated scene " + scene.chapterIndex)
+                require(target.length() > 0L) {
+                    "Generated scene copy is empty for chapter " + (scene.chapterIndex + 1)
+                }
+            } catch (error: Throwable) {
+                target.delete()
+                throw error
+            }
 
             val uri = FileProvider.getUriForFile(
                 context,
