@@ -11,8 +11,6 @@ internal object ComfyUiRetryPolicy {
         if (error is IOException) return true
 
         val message = error.message.orEmpty()
-        if (message.contains("timed out", ignoreCase = true)) return true
-
         val httpCode = httpCodePattern.find(message)
             ?.groupValues
             ?.getOrNull(1)
