@@ -53,6 +53,8 @@ fun AltApp() {
     var generationSettingsMessage by remember { mutableStateOf<String?>(null) }
     var isImportingPhoto by remember { mutableStateOf(false) }
     var isTestingConnection by remember { mutableStateOf(false) }
+    var isSavingGenerationSettings by remember { mutableStateOf(false) }
+    var isClearingGenerationSettings by remember { mutableStateOf(false) }
     var connectionTestJob by remember { mutableStateOf<Job?>(null) }
     var unavailablePhotoFileNames by remember { mutableStateOf<Set<String>>(emptySet()) }
     var historyPhotoUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
@@ -278,18 +280,34 @@ fun AltApp() {
                             screen = settingsReturnScreen
                         },
                         onSave = { baseUrl, workflowJson ->
-                            scope.launch {
-                                runCatching {
-                                    generationSettingsRepository.save(baseUrl, workflowJson)
-                                }.onSuccess {
-                                    generationSettingsMessage = "ComfyUI settings saved"
-                                }.onFailure {
-                                    generationSettingsMessage = it.message ?: "Could not save ComfyUI settings"
+                            if (
+                                !isTestingConnection &&
+                                !isSavingGenerationSettings &&
+                                !isClearingGenerationSettings
+                            ) {
+                                isSavingGenerationSettings = true
+                                scope.launch {
+                                    val result = runCatching {
+                                        generationSettingsRepository.save(baseUrl, workflowJson)
+                                    }
+                                    if (screen == Screen.SETTINGS) {
+                                        result.onSuccess {
+                                            generationSettingsMessage = "ComfyUI settings saved"
+                                        }.onFailure {
+                                            generationSettingsMessage =
+                                                it.message ?: "Could not save ComfyUI settings"
+                                        }
+                                    }
+                                    isSavingGenerationSettings = false
                                 }
                             }
                         },
                         onTestConnection = { baseUrl ->
-                            if (!isTestingConnection) {
+                            if (
+                                !isTestingConnection &&
+                                !isSavingGenerationSettings &&
+                                !isClearingGenerationSettings
+                            ) {
                                 isTestingConnection = true
                                 connectionTestJob = scope.launch {
                                     generationSettingsMessage = "Testing ComfyUI connection…"
@@ -309,13 +327,32 @@ fun AltApp() {
                             }
                         },
                         onClear = {
-                            scope.launch {
-                                generationSettingsRepository.clear()
-                                generationSettingsMessage = "AI settings cleared"
+                            if (
+                                !isTestingConnection &&
+                                !isSavingGenerationSettings &&
+                                !isClearingGenerationSettings
+                            ) {
+                                isClearingGenerationSettings = true
+                                scope.launch {
+                                    val result = runCatching {
+                                        generationSettingsRepository.clear()
+                                    }
+                                    if (screen == Screen.SETTINGS) {
+                                        result.onSuccess {
+                                            generationSettingsMessage = "AI settings cleared"
+                                        }.onFailure {
+                                            generationSettingsMessage =
+                                                it.message ?: "Could not clear AI settings"
+                                        }
+                                    }
+                                    isClearingGenerationSettings = false
+                                }
                             }
                         },
                         statusMessage = generationSettingsMessage,
-                        isTestingConnection = isTestingConnection
+                        isTestingConnection = isTestingConnection,
+                        isSavingSettings = isSavingGenerationSettings,
+                        isClearingSettings = isClearingGenerationSettings
                     )
                     Screen.HISTORY -> HistoryScreen(
                         entries = history,
