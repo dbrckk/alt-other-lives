@@ -346,6 +346,10 @@ fun AltApp() {
                                 photoUri = null
                                 photoFileName = null
                                 activeTimelineKey = null
+                                historyPhotoUris = emptyMap()
+                                historyGeneratedPreviewUris = emptyMap()
+                                unavailablePhotoFileNames = emptySet()
+                                deletingHistoryEntryKey = null
                             }
                         }
                     )
