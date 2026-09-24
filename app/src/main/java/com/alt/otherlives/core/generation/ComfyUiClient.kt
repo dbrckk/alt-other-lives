@@ -114,7 +114,19 @@ class ComfyUiClient(
 
         val dir = File(context.cacheDir, "generation").apply { mkdirs() }
         cleanupGenerationCache(dir)
-        val file = File(dir, "scene-" + System.currentTimeMillis() + "-" + index + ".png")
+        val contentType = connection.contentType
+            ?.substringBefore(";")
+            ?.trim()
+            ?.takeIf { it.startsWith("image/") }
+        val extension = contentType
+            ?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
+            ?.takeIf { it.isNotBlank() }
+            ?: output.filename.substringAfterLast(".", "png").takeIf { it.isNotBlank() }
+            ?: "png"
+        val file = File(
+            dir,
+            "scene-" + System.currentTimeMillis() + "-" + index + "." + extension
+        )
         connection.inputStream.buffered().use { input ->
             file.outputStream().use { outputStream -> input.copyTo(outputStream) }
         }
