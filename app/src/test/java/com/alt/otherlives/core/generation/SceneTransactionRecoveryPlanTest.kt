@@ -27,6 +27,18 @@ class SceneTransactionRecoveryPlanTest {
     }
 
     @Test
+    fun completedCommitDoesNotRequestRollback() {
+        assertNull(
+            SceneTransactionRecoveryPlan.build(
+                commitStarted = true,
+                commitCompleted = true,
+                affectedIndexesText = "0,1,2",
+                seedIncluded = true
+            )
+        )
+    }
+
+    @Test
     fun committedBatchRestoresAffectedScenesWithoutSeedDeletionWhenSeedWasNotIncluded() {
         val plan = requireNotNull(
             SceneTransactionRecoveryPlan.build(
