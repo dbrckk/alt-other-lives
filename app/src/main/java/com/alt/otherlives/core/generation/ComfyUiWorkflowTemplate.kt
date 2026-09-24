@@ -31,7 +31,13 @@ object ComfyUiWorkflowTemplate {
         } else {
             uploaded.subfolder.trimEnd('/') + "/" + uploaded.name
         }
-        replace(root, imageValue, prompt, seed)
+        replace(
+            value = root,
+            imageValue = imageValue,
+            prompt = prompt,
+            negativePrompt = ComfyUiWorkflow.negativePrompt(),
+            seed = seed
+        )
         return root
     }
 
@@ -49,7 +55,13 @@ object ComfyUiWorkflowTemplate {
             .sortedWith(compareBy<String> { it.toIntOrNull() ?: Int.MIN_VALUE }.thenBy { it })
             .lastOrNull()
 
-    private fun replace(value: Any?, imageValue: String, prompt: String, seed: Long) {
+    private fun replace(
+        value: Any?,
+        imageValue: String,
+        prompt: String,
+        negativePrompt: String,
+        seed: Long
+    ) {
         when (value) {
             is JSONObject -> {
                 val keys = value.keys().asSequence().toList()
@@ -57,8 +69,16 @@ object ComfyUiWorkflowTemplate {
                     when (val child = value.get(key)) {
                         ComfyUiWorkflow.PLACEHOLDER_SOURCE_IMAGE -> value.put(key, imageValue)
                         ComfyUiWorkflow.PLACEHOLDER_PROMPT -> value.put(key, prompt)
+                        ComfyUiWorkflow.PLACEHOLDER_NEGATIVE_PROMPT ->
+                            value.put(key, negativePrompt)
                         ComfyUiWorkflow.PLACEHOLDER_SEED -> value.put(key, seed)
-                        else -> replace(child, imageValue, prompt, seed)
+                        else -> replace(
+                            child,
+                            imageValue,
+                            prompt,
+                            negativePrompt,
+                            seed
+                        )
                     }
                 }
             }
@@ -67,8 +87,16 @@ object ComfyUiWorkflowTemplate {
                     when (val child = value.get(index)) {
                         ComfyUiWorkflow.PLACEHOLDER_SOURCE_IMAGE -> value.put(index, imageValue)
                         ComfyUiWorkflow.PLACEHOLDER_PROMPT -> value.put(index, prompt)
+                        ComfyUiWorkflow.PLACEHOLDER_NEGATIVE_PROMPT ->
+                            value.put(index, negativePrompt)
                         ComfyUiWorkflow.PLACEHOLDER_SEED -> value.put(index, seed)
-                        else -> replace(child, imageValue, prompt, seed)
+                        else -> replace(
+                            child,
+                            imageValue,
+                            prompt,
+                            negativePrompt,
+                            seed
+                        )
                     }
                 }
             }
