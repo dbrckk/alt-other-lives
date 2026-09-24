@@ -34,8 +34,10 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - Completed MP4 exports are invalidated when timeline visuals change, and AI generation/media export actions are mutually locked to prevent stale mixed-state exports.
 - ComfyUI endpoints require HTTPS, support a short-timeout validated connection test, preserve source and output image formats, reject invalid downloaded images, and surface configuration errors in the UI.
 - Heavy JPEG/MP4 preparation work runs off the main UI thread.
+- Persisted Reveal scenes are restored off the main thread with explicit restore progress, and generation callbacks can persist completed chapters asynchronously without blocking Compose.
+- Timeline seed reads/writes and generated-scene persistence are dispatched to IO; AI scene removal and exported MP4 gallery copies are also performed asynchronously.
 - CI validates unit tests, Android lint and debug APK assembly.
-- Latest confirmed green run: #235. Runs #236+ validate Reveal export invalidation and concurrency locking.ns #206+ validate history thumbnail and source-availability hardening.n #186 validates restored-source-photo integrity checks.
+- Latest confirmed green run: #246. Runs #247–#248 validate asynchronous AI-scene removal and MP4 gallery saving.
 
 ## Current priority
 Keep the end-to-end AI generation path reliable, then improve identity continuity, partial-failure recovery and production UX before monetization.
