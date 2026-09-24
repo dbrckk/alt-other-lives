@@ -89,6 +89,9 @@ fun RevealScreen(
     var aiGenerationJob by remember { mutableStateOf<Job?>(null) }
     var aiCompleted by remember { mutableStateOf(0) }
     var aiTotal by remember { mutableStateOf(0) }
+    var aiChapterFailures by remember(timelineKey) {
+        mutableStateOf<Map<Int, String>>(emptyMap())
+    }
     var showRegenerateAllDialog by remember { mutableStateOf(false) }
     var showClearAiDialog by remember { mutableStateOf(false) }
     var isClearingAi by remember { mutableStateOf(false) }
@@ -198,6 +201,14 @@ fun RevealScreen(
                 Text(chapter.label, color = AltAccent, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
                 Text(chapter.narrative, fontSize = 23.sp, lineHeight = 30.sp, fontWeight = FontWeight.Medium)
+                if (index in aiChapterFailures) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "AI scene failed • retry available",
+                        color = AltDimmed,
+                        fontSize = 12.sp
+                    )
+                }
             }
         }
         item {
@@ -209,6 +220,7 @@ fun RevealScreen(
                             isGeneratingAi = true
                             aiCompleted = 0
                             aiTotal = targetIndexes.size
+                            aiChapterFailures = emptyMap()
                             aiGenerationJob = scope.launch {
                                 var previousSeed: Long? = null
                                 try {
@@ -240,12 +252,18 @@ fun RevealScreen(
                                             aiTotal = total
                                         },
                                         onSceneGenerated = { generated ->
+                                            aiChapterFailures =
+                                                aiChapterFailures - generated.chapterIndex
                                             if (!resetSeed) {
                                                 generatedScenes = withContext(Dispatchers.IO) {
                                                     sceneStore.persist(timelineKey, listOf(generated))
                                                     sceneStore.load(timelineKey)
                                                 }
                                             }
+                                        },
+                                        onChapterFailure = { chapterIndex, message ->
+                                            aiChapterFailures =
+                                                aiChapterFailures + (chapterIndex to message)
                                         }
                                     )
 
@@ -272,8 +290,14 @@ fun RevealScreen(
                                             "New variation incomplete • previous timeline kept"
                                         generatedScenes.size == expected ->
                                             "AI scenes ready"
-                                        else ->
-                                            "Partial result: " + generatedScenes.size + "/" + expected + " scenes ready"
+                                        else -> {
+                                            val failed = aiChapterFailures.keys
+                                                .sorted()
+                                                .joinToString(", ") { (it + 1).toString() }
+                                            "Partial result: " + generatedScenes.size + "/" + expected +
+                                                " scenes ready" +
+                                                if (failed.isBlank()) "" else " • retry chapters " + failed
+                                        }
                                     }
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 } catch (cancelled: CancellationException) {
