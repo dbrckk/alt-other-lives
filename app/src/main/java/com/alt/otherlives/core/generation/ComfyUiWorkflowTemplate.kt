@@ -4,6 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 object ComfyUiWorkflowTemplate {
+    private const val PREFERRED_OUTPUT_TITLE = "ALT OUTPUT"
     fun validateTemplate(templateJson: String) {
         require(templateJson.isNotBlank()) { "Workflow JSON is required" }
         require(templateJson.trimStart().startsWith("{")) { "Workflow must be a JSON object" }
@@ -31,6 +32,20 @@ object ComfyUiWorkflowTemplate {
         replace(root, imageValue, prompt, seed)
         return root
     }
+
+    fun preferredOutputNodeId(workflow: JSONObject): String? =
+        workflow.keys()
+            .asSequence()
+            .mapNotNull { nodeId ->
+                val node = workflow.optJSONObject(nodeId) ?: return@mapNotNull null
+                val title = node.optJSONObject("_meta")
+                    ?.optString("title")
+                    ?.trim()
+                    .orEmpty()
+                if (title.equals(PREFERRED_OUTPUT_TITLE, ignoreCase = true)) nodeId else null
+            }
+            .sortedWith(compareBy<String> { it.toIntOrNull() ?: Int.MIN_VALUE }.thenBy { it })
+            .lastOrNull()
 
     private fun replace(value: Any?, imageValue: String, prompt: String, seed: Long) {
         when (value) {
