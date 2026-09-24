@@ -10,6 +10,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.io.IOException
 import com.alt.otherlives.core.io.BoundedStreamCopy
 import com.alt.otherlives.core.io.BoundedTextRead
 import com.alt.otherlives.core.media.ImageBoundsValidation
@@ -122,12 +123,19 @@ class ComfyUiClient(
                 .put("prompt", workflow)
                 .put("client_id", config.clientId)
                 .toString()
-            connection.outputStream.use { it.write(payload.toByteArray(Charsets.UTF_8)) }
-            val body = readResponse(connection)
-            val json = parseJsonObject(body, "queue")
-            val promptId = json.optString("prompt_id").takeIf { it.isNotBlank() }
-                ?: error("ComfyUI queue response is missing prompt_id")
-            ComfyUiPromptId.validate(promptId)
+            try {
+                connection.outputStream.use { it.write(payload.toByteArray(Charsets.UTF_8)) }
+                val body = readResponse(connection)
+                val json = parseJsonObject(body, "queue")
+                val promptId = json.optString("prompt_id").takeIf { it.isNotBlank() }
+                    ?: error("ComfyUI queue response is missing prompt_id")
+                ComfyUiPromptId.validate(promptId)
+            } catch (error: IOException) {
+                throw IllegalStateException(
+                    "ComfyUI queue request failed after submission may have started; retry manually to avoid duplicate jobs",
+                    error
+                )
+            }
         } finally {
             connection.disconnect()
         }
