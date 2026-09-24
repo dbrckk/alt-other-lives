@@ -186,24 +186,35 @@ fun AltApp() {
                                 isCreatingTimeline = true
                                 val createdAt = System.currentTimeMillis()
                                 scope.launch {
-                                    runCatching {
-                                        val keep = historyRepository.record(
+                                    val recordResult = runCatching {
+                                        historyRepository.record(
                                             scenarioId = scenario.id,
                                             photoFileName = photoFileName,
                                             createdAt = createdAt
                                         )
-                                        withContext(Dispatchers.IO) {
-                                            sourcePhotoStore.deleteUnreferenced(
-                                                keep.photoFileNames
-                                            )
-                                            generatedSceneStore.deleteUnreferenced(
-                                                keep.timelineKeys
-                                            )
-                                        }
-                                    }.onSuccess {
+                                    }
+
+                                    recordResult.onSuccess { keep ->
                                         selectedScenario = scenario
                                         activeTimelineKey = scenario.id + "-" + createdAt
                                         screen = Screen.REVEAL
+
+                                        runCatching {
+                                            withContext(Dispatchers.IO) {
+                                                sourcePhotoStore.deleteUnreferenced(
+                                                    keep.photoFileNames
+                                                )
+                                                generatedSceneStore.deleteUnreferenced(
+                                                    keep.timelineKeys
+                                                )
+                                            }
+                                        }.onFailure {
+                                            Toast.makeText(
+                                                context,
+                                                "Timeline created, but some old local media could not be cleaned up",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
                                     }.onFailure {
                                         Toast.makeText(
                                             context,
