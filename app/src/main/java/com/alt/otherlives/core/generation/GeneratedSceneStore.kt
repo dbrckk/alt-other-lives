@@ -15,7 +15,7 @@ class GeneratedSceneStore(private val context: Context) {
         GeneratedSceneFileName.chapterIndex(name)
 
     fun getOrCreateSeed(timelineKey: String): Long {
-        val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
+        val root = timelineRoot(timelineKey).apply { mkdirs() }
         val seedFile = File(root, "seed.txt")
         seedFile.takeIf { it.exists() }
             ?.readText()
@@ -38,7 +38,7 @@ class GeneratedSceneStore(private val context: Context) {
 
     fun setSeed(timelineKey: String, seed: Long) {
         require(seed > 0L) { "Seed must be positive" }
-        val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
+        val root = timelineRoot(timelineKey).apply { mkdirs() }
         val target = File(root, "seed.txt")
         val temporary = File(root, ".seed-" + System.nanoTime() + ".tmp")
         val backup = File(root, ".seed.bak")
@@ -67,7 +67,7 @@ class GeneratedSceneStore(private val context: Context) {
     }
 
     fun persist(timelineKey: String, scenes: List<GeneratedScene>): List<GeneratedScene> {
-        val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
+        val root = timelineRoot(timelineKey).apply { mkdirs() }
 
         return scenes.map { scene ->
             val mimeType = context.contentResolver.getType(scene.imageUri)
@@ -139,7 +139,7 @@ class GeneratedSceneStore(private val context: Context) {
         SceneBatchValidation.validateChapterIndexes(
             scenes.map { it.chapterIndex }
         )
-        val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
+        val root = timelineRoot(timelineKey).apply { mkdirs() }
         val transaction = File(root, ".batch-" + System.nanoTime()).apply { mkdirs() }
         val stagedDir = File(transaction, "staged").apply { mkdirs() }
         val backupDir = File(transaction, "backup").apply { mkdirs() }
@@ -253,7 +253,7 @@ class GeneratedSceneStore(private val context: Context) {
     }
 
     fun load(timelineKey: String): List<GeneratedScene> {
-        val root = File(context.filesDir, "generated/$timelineKey")
+        val root = timelineRoot(timelineKey)
         if (!root.exists()) return emptyList()
         recoverInterruptedWrites(root)
 
@@ -428,7 +428,7 @@ class GeneratedSceneStore(private val context: Context) {
     }
 
     fun clear(timelineKey: String) {
-        File(context.filesDir, "generated/$timelineKey").deleteRecursively()
+        timelineRoot(timelineKey).deleteRecursively()
     }
 
     fun deleteUnreferenced(keepTimelineKeys: Set<String>) {
@@ -442,5 +442,15 @@ class GeneratedSceneStore(private val context: Context) {
 
     fun clearAll() {
         File(context.filesDir, "generated").deleteRecursively()
+    }
+
+    private fun timelineRoot(timelineKey: String): File {
+        val validated = GeneratedTimelineKey.validate(timelineKey)
+        val generatedRoot = File(context.filesDir, "generated").apply { mkdirs() }
+        val timeline = File(generatedRoot, validated)
+        require(timeline.canonicalFile.parentFile == generatedRoot.canonicalFile) {
+            "Timeline storage path escapes private generated storage"
+        }
+        return timeline
     }
 }
