@@ -6,6 +6,12 @@ internal data class BatchRecoveryPlan(
 )
 
 internal object SceneTransactionRecoveryPlan {
+    fun shouldRestoreBackupsBeforeCommit(
+        commitStarted: Boolean,
+        commitCompleted: Boolean,
+        hasBackups: Boolean
+    ): Boolean = !commitStarted && !commitCompleted && hasBackups
+
     fun parseAffectedIndexes(value: String?): Set<Int> =
         value
             ?.split(",")
