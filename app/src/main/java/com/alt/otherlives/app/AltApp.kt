@@ -47,6 +47,7 @@ fun AltApp() {
     var activeTimelineKey by remember { mutableStateOf<String?>(null) }
     var generationSettingsMessage by remember { mutableStateOf<String?>(null) }
     var isImportingPhoto by remember { mutableStateOf(false) }
+    var hasRestoredStartupPhoto by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
     val sourcePhotoStore = remember(context) { SourcePhotoStore(context.applicationContext) }
@@ -71,21 +72,24 @@ fun AltApp() {
                 photoFileName = stored.fileName
             }
         }
+        hasRestoredStartupPhoto = true
     }
 
-    LaunchedEffect(history) {
-        if (activeTimelineKey == null && history.isNotEmpty()) {
+    LaunchedEffect(history, hasRestoredStartupPhoto) {
+        if (hasRestoredStartupPhoto && activeTimelineKey == null && history.isNotEmpty()) {
             val latest = history.first()
             ScenarioCatalog.scenarios.firstOrNull { it.id == latest.scenarioId }?.let { scenario ->
                 selectedScenario = scenario
                 activeTimelineKey = scenario.id + "-" + latest.createdAt
-                latest.photoFileName?.let { fileName ->
-                    runCatching { sourcePhotoStore.uriFor(fileName) }
-                        .getOrNull()
-                        ?.let { uri ->
-                            photoUri = uri
-                            photoFileName = fileName
-                        }
+                if (photoUri == null) {
+                    latest.photoFileName?.let { fileName ->
+                        runCatching { sourcePhotoStore.uriFor(fileName) }
+                            .getOrNull()
+                            ?.let { uri ->
+                                photoUri = uri
+                                photoFileName = fileName
+                            }
+                    }
                 }
             }
         }
