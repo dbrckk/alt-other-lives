@@ -15,10 +15,11 @@ internal object SceneTransactionRecoveryPlan {
 
     fun build(
         commitStarted: Boolean,
+        commitCompleted: Boolean = false,
         affectedIndexesText: String?,
         seedIncluded: Boolean
     ): BatchRecoveryPlan? {
-        if (!commitStarted) return null
+        if (!commitStarted || commitCompleted) return null
         return BatchRecoveryPlan(
             affectedChapterIndexes = parseAffectedIndexes(affectedIndexesText),
             deleteCurrentSeed = seedIncluded
