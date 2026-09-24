@@ -95,7 +95,7 @@ fun HistoryScreen(
                 items(entries, key = { it.scenarioId + ":" + it.createdAt }) { entry ->
                     val scenario = scenarios.firstOrNull { it.id == entry.scenarioId }
                     if (scenario != null) {
-                        val timelineKey = entry.scenarioId + "-" + entry.createdAt
+                        val timelineKey = entry.timelineKey
                         val hasAiPreview = timelineKey in generatedPreviewUrisByTimelineKey
                         val previewUri = entry.photoFileName
                             ?.let { photoUrisByFileName[it] }
