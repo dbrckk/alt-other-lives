@@ -3,6 +3,7 @@ package com.alt.otherlives.core.generation
 internal object ComfyUiRemotePath {
     private const val MAX_FILENAME_LENGTH = 255
     private const val MAX_SUBFOLDER_LENGTH = 512
+    private val allowedTypes = setOf("input", "output", "temp")
 
     fun validateFilename(value: String): String {
         require(value.isNotBlank()) { "ComfyUI image filename is required" }
@@ -17,6 +18,14 @@ internal object ComfyUiRemotePath {
             "ComfyUI image filename contains control characters"
         }
         return value
+    }
+
+    fun validateType(value: String): String {
+        val normalized = value.trim().lowercase()
+        require(normalized in allowedTypes) {
+            "ComfyUI image type is invalid"
+        }
+        return normalized
     }
 
     fun validateSubfolder(value: String): String {
