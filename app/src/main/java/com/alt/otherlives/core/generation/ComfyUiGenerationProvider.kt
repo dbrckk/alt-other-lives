@@ -2,6 +2,7 @@ package com.alt.otherlives.core.generation
 
 import android.content.Context
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 
 class ComfyUiGenerationProvider(
     context: Context,
@@ -84,7 +85,7 @@ class ComfyUiGenerationProvider(
     ): GeneratedScene {
         var lastError: Throwable? = null
 
-        repeat(MAX_CHAPTER_ATTEMPTS) {
+        repeat(MAX_CHAPTER_ATTEMPTS) { attempt ->
             val attemptSeed = seed
             try {
                 val workflow = ComfyUiWorkflowTemplate.prepare(
@@ -104,6 +105,9 @@ class ComfyUiGenerationProvider(
                 throw error
             } catch (error: Throwable) {
                 lastError = error
+                if (attempt < MAX_CHAPTER_ATTEMPTS - 1) {
+                    delay(RETRY_DELAY_MS)
+                }
             }
         }
 
@@ -115,6 +119,7 @@ class ComfyUiGenerationProvider(
 
     internal companion object {
         const val MAX_CHAPTER_ATTEMPTS = 2
+        const val RETRY_DELAY_MS = 750L
 
         fun selectOutput(
             outputs: List<ComfyUiClient.OutputImage>,
