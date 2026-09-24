@@ -16,7 +16,8 @@ class ComfyUiGenerationProvider(
     override suspend fun generate(
         request: GenerationRequest,
         onProgress: (completed: Int, total: Int) -> Unit,
-        onSceneGenerated: suspend (GeneratedScene) -> Unit
+        onSceneGenerated: suspend (GeneratedScene) -> Unit,
+        onChapterFailure: (chapterIndex: Int, message: String) -> Unit
     ): List<GeneratedScene> {
         val chapters = request.scenario.chapters.take(5)
         require(chapters.isNotEmpty()) { "Scenario has no chapters" }
@@ -57,7 +58,9 @@ class ComfyUiGenerationProvider(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                failures += "Chapter " + (index + 1) + ": " + (error.message ?: "unknown error")
+                val message = error.message ?: "unknown error"
+                failures += "Chapter " + (index + 1) + ": " + message
+                onChapterFailure(index, message)
             }
             processed += 1
             onProgress(processed, requestedIndexes.size)
