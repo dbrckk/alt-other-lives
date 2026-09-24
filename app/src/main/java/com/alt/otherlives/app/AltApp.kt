@@ -41,6 +41,7 @@ fun AltApp() {
     var photoFileName by remember { mutableStateOf<String?>(null) }
     var selectedScenario by remember { mutableStateOf(ScenarioCatalog.scenarios.first()) }
     var activeTimelineKey by remember { mutableStateOf<String?>(null) }
+    var generationSettingsMessage by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
     val sourcePhotoStore = remember(context) { SourcePhotoStore(context.applicationContext) }
@@ -116,17 +117,28 @@ fun AltApp() {
                     )
                     Screen.SETTINGS -> GenerationSettingsScreen(
                         settings = generationSettings,
-                        onBack = { screen = Screen.HOME },
+                        onBack = {
+                            generationSettingsMessage = null
+                            screen = Screen.HOME
+                        },
                         onSave = { baseUrl, workflowJson ->
                             scope.launch {
                                 runCatching {
                                     generationSettingsRepository.save(baseUrl, workflowJson)
+                                }.onSuccess {
+                                    generationSettingsMessage = "ComfyUI settings saved"
+                                }.onFailure {
+                                    generationSettingsMessage = it.message ?: "Could not save ComfyUI settings"
                                 }
                             }
                         },
                         onClear = {
-                            scope.launch { generationSettingsRepository.clear() }
-                        }
+                            scope.launch {
+                                generationSettingsRepository.clear()
+                                generationSettingsMessage = "AI settings cleared"
+                            }
+                        },
+                        statusMessage = generationSettingsMessage
                     )
                     Screen.HISTORY -> HistoryScreen(
                         entries = history,
