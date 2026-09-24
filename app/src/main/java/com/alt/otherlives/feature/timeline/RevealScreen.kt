@@ -82,6 +82,7 @@ fun RevealScreen(
     var isRenderingShareImage by remember { mutableStateOf(false) }
     var generatedScenes by remember(timelineKey) { mutableStateOf(sceneStore.load(timelineKey)) }
     var isGeneratingAi by remember { mutableStateOf(false) }
+    var aiGenerationJob by remember { mutableStateOf<Job?>(null) }
     var aiCompleted by remember { mutableStateOf(0) }
     var aiTotal by remember { mutableStateOf(0) }
     var showRegenerateAllDialog by remember { mutableStateOf(false) }
@@ -96,6 +97,7 @@ fun RevealScreen(
 
     DisposableEffect(Unit) {
         onDispose {
+            aiGenerationJob?.cancel()
             exportJob?.cancel()
             activeTransformer?.cancel()
         }
@@ -141,7 +143,7 @@ fun RevealScreen(
                             isGeneratingAi = true
                             aiCompleted = 0
                             aiTotal = targetIndexes.size
-                            scope.launch {
+                            aiGenerationJob = scope.launch {
                                 runCatching {
                                     val provider = ComfyUiGenerationProvider(
                                         context = context,
@@ -163,6 +165,7 @@ fun RevealScreen(
                                     sceneStore.persist(timelineKey, it)
                                     generatedScenes = sceneStore.load(timelineKey)
                                     isGeneratingAi = false
+                                    aiGenerationJob = null
                                     val expected = scenario.chapters.take(5).size
                                     val message = if (generatedScenes.size == expected) {
                                         "AI scenes ready"
@@ -172,11 +175,14 @@ fun RevealScreen(
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 }.onFailure {
                                     isGeneratingAi = false
-                                    Toast.makeText(
-                                        context,
-                                        "AI generation failed: " + (it.message ?: "unknown error"),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    aiGenerationJob = null
+                                    if (it !is kotlinx.coroutines.CancellationException) {
+                                        Toast.makeText(
+                                            context,
+                                            "AI generation failed: " + (it.message ?: "unknown error"),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 }
                             }
                         }
@@ -260,6 +266,16 @@ fun RevealScreen(
                     }
                     if (isGeneratingAi) {
                         Spacer(Modifier.height(8.dp))
+                        TextButton(
+                            onClick = {
+                                aiGenerationJob?.cancel()
+                                aiGenerationJob = null
+                                isGeneratingAi = false
+                                aiCompleted = 0
+                                aiTotal = 0
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text("Cancel AI generation") }
                         LinearProgressIndicator(
                             progress = {
                                 if (aiTotal == 0) 0f else aiCompleted.toFloat() / aiTotal.toFloat()
