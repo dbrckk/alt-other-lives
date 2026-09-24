@@ -23,8 +23,13 @@ class GeneratedSceneStore(private val context: Context) {
             ?.takeIf { it > 0L }
             ?.let { return it }
 
-        val seed = (System.currentTimeMillis() and Long.MAX_VALUE).coerceAtLeast(1L)
-        seedFile.writeText(seed.toString())
+        return resetSeed(timelineKey)
+    }
+
+    fun resetSeed(timelineKey: String): Long {
+        val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
+        val seed = (System.nanoTime() and Long.MAX_VALUE).coerceAtLeast(1L)
+        File(root, "seed.txt").writeText(seed.toString())
         return seed
     }
 
