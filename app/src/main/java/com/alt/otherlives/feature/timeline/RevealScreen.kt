@@ -64,7 +64,13 @@ import com.alt.otherlives.core.generation.GeneratedSceneStore
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: GenerationSettings, onBack: () -> Unit) {
+fun RevealScreen(
+    photoUri: Uri?,
+    scenario: Scenario,
+    generationSettings: GenerationSettings,
+    timelineKey: String,
+    onBack: () -> Unit
+) {
     val context = LocalContext.current
     val sceneStore = remember(context) { GeneratedSceneStore(context.applicationContext) }
     val scope = rememberCoroutineScope()
@@ -74,7 +80,7 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
     var exportJob by remember { mutableStateOf<Job?>(null) }
     var completedVideoUri by remember { mutableStateOf<Uri?>(null) }
     var isRenderingShareImage by remember { mutableStateOf(false) }
-    var generatedScenes by remember(scenario.id) { mutableStateOf(sceneStore.load(scenario.id)) }
+    var generatedScenes by remember(timelineKey) { mutableStateOf(sceneStore.load(timelineKey)) }
     var isGeneratingAi by remember { mutableStateOf(false) }
     var aiCompleted by remember { mutableStateOf(0) }
     var aiTotal by remember { mutableStateOf(0) }
@@ -154,8 +160,8 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
                                         }
                                     )
                                 }.onSuccess {
-                                    sceneStore.persist(scenario.id, it)
-                                    generatedScenes = sceneStore.load(scenario.id)
+                                    sceneStore.persist(timelineKey, it)
+                                    generatedScenes = sceneStore.load(timelineKey)
                                     isGeneratingAi = false
                                     val expected = scenario.chapters.take(5).size
                                     val message = if (generatedScenes.size == expected) {
@@ -216,7 +222,7 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
                             confirmButton = {
                                 TextButton(
                                     onClick = {
-                                        sceneStore.clear(scenario.id)
+                                        sceneStore.clear(timelineKey)
                                         generatedScenes = emptyList()
                                         completedVideoUri = null
                                         showClearAiDialog = false
