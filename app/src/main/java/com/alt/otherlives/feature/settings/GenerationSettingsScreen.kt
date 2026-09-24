@@ -32,7 +32,9 @@ fun GenerationSettingsScreen(
     onTestConnection: (String) -> Unit,
     onClear: () -> Unit,
     statusMessage: String? = null,
-    isTestingConnection: Boolean = false
+    isTestingConnection: Boolean = false,
+    isSavingSettings: Boolean = false,
+    isClearingSettings: Boolean = false
 ) {
     var baseUrl by remember(settings.comfyUiBaseUrl) { mutableStateOf(settings.comfyUiBaseUrl) }
     var workflow by remember(settings.workflowJson) { mutableStateOf(settings.workflowJson) }
@@ -95,14 +97,23 @@ fun GenerationSettingsScreen(
         Spacer(Modifier.height(18.dp))
         Button(
             onClick = { onSave(baseUrl, workflow) },
-            enabled = baseUrl.isNotBlank() && workflow.isNotBlank(),
+            enabled = baseUrl.isNotBlank() &&
+                workflow.isNotBlank() &&
+                !isTestingConnection &&
+                !isSavingSettings &&
+                !isClearingSettings,
             modifier = Modifier.fillMaxWidth()
-        ) { Text("Save ComfyUI settings") }
+        ) {
+            Text(if (isSavingSettings) "Saving settings…" else "Save ComfyUI settings")
+        }
 
         Spacer(Modifier.height(10.dp))
         TextButton(
             onClick = { onTestConnection(baseUrl) },
-            enabled = baseUrl.isNotBlank() && !isTestingConnection,
+            enabled = baseUrl.isNotBlank() &&
+                !isTestingConnection &&
+                !isSavingSettings &&
+                !isClearingSettings,
             modifier = Modifier.fillMaxWidth()
         ) { Text(if (isTestingConnection) "Testing connection…" else "Test connection") }
 
@@ -113,8 +124,12 @@ fun GenerationSettingsScreen(
 
         if (settings.hasPersistedValues) {
             Spacer(Modifier.height(10.dp))
-            TextButton(onClick = onClear, modifier = Modifier.fillMaxWidth()) {
-                Text("Clear AI settings")
+            TextButton(
+                onClick = onClear,
+                enabled = !isTestingConnection && !isSavingSettings && !isClearingSettings,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(if (isClearingSettings) "Clearing settings…" else "Clear AI settings")
             }
         }
     }
