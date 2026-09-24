@@ -16,7 +16,7 @@ class ComfyUiGenerationProvider(
     override suspend fun generate(
         request: GenerationRequest,
         onProgress: (completed: Int, total: Int) -> Unit,
-        onSceneGenerated: (GeneratedScene) -> Unit
+        onSceneGenerated: suspend (GeneratedScene) -> Unit
     ): List<GeneratedScene> {
         val chapters = request.scenario.chapters.take(5)
         require(chapters.isNotEmpty()) { "Scenario has no chapters" }
