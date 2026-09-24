@@ -18,6 +18,13 @@ class ComfyUiWorkflowTemplateTest {
     }
 
     @Test(expected = IllegalArgumentException::class)
+    fun validateTemplateRejectsMalformedJson() {
+        ComfyUiWorkflowTemplate.validateTemplate(
+            """{"1":{"inputs":{"image":"__ALT_SOURCE_IMAGE__","text":"__ALT_PROMPT__"}}"""
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
     fun validateTemplateRejectsMissingImagePlaceholder() {
         ComfyUiWorkflowTemplate.validateTemplate(
             """{"1":{"inputs":{"text":"__ALT_PROMPT__"}}}"""
