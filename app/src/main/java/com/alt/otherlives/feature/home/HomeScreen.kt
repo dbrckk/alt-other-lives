@@ -35,7 +35,14 @@ import com.alt.otherlives.core.designsystem.AltPrimary
 import com.alt.otherlives.core.designsystem.AltAccent
 
 @Composable
-fun HomeScreen(photoUri: Uri?, onPhotoSelected: (Uri) -> Unit, onContinue: () -> Unit, onHistory: () -> Unit, onAiSettings: () -> Unit) {
+fun HomeScreen(
+    photoUri: Uri?,
+    isImportingPhoto: Boolean,
+    onPhotoSelected: (Uri) -> Unit,
+    onContinue: () -> Unit,
+    onHistory: () -> Unit,
+    onAiSettings: () -> Unit
+) {
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let(onPhotoSelected)
     }
@@ -55,7 +62,7 @@ fun HomeScreen(photoUri: Uri?, onPhotoSelected: (Uri) -> Unit, onContinue: () ->
         Box(
             modifier = Modifier.fillMaxWidth().height(360.dp).clip(RoundedCornerShape(32.dp))
                 .background(Brush.verticalGradient(listOf(Color(0xFF29213D), Color(0xFF111116))))
-                .clickable { picker.launch("image/*") },
+                .clickable(enabled = !isImportingPhoto) { picker.launch("image/*") },
             contentAlignment = Alignment.Center
         ) {
             if (photoUri != null) {
@@ -64,7 +71,11 @@ fun HomeScreen(photoUri: Uri?, onPhotoSelected: (Uri) -> Unit, onContinue: () ->
                     modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()
                         .background(Color.Black.copy(alpha = 0.48f)).padding(16.dp)
                 ) {
-                    Text("Tap to change photo", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                    Text(
+                        if (isImportingPhoto) "Importing photo…" else "Tap to change photo",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
                 }
             } else {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -78,7 +89,7 @@ fun HomeScreen(photoUri: Uri?, onPhotoSelected: (Uri) -> Unit, onContinue: () ->
         Column {
             Button(
             onClick = onContinue,
-            enabled = photoUri != null,
+            enabled = photoUri != null && !isImportingPhoto,
             modifier = Modifier.fillMaxWidth().height(58.dp),
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(
@@ -87,7 +98,12 @@ fun HomeScreen(photoUri: Uri?, onPhotoSelected: (Uri) -> Unit, onContinue: () ->
                 disabledContainerColor = Color(0xFF25242B),
                 disabledContentColor = AltDimmed
             )
-        ) { Text("Choose another life", fontWeight = FontWeight.Bold) }
+        ) {
+            Text(
+                if (isImportingPhoto) "Preparing photo…" else "Choose another life",
+                fontWeight = FontWeight.Bold
+            )
+        }
             Spacer(Modifier.height(8.dp))
             androidx.compose.material3.TextButton(
                 onClick = onHistory,
