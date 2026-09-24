@@ -39,6 +39,7 @@ fun AltApp() {
     var photoUri by remember { mutableStateOf<Uri?>(null) }
     var photoFileName by remember { mutableStateOf<String?>(null) }
     var selectedScenario by remember { mutableStateOf(ScenarioCatalog.scenarios.first()) }
+    var activeTimelineKey by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
     val sourcePhotoStore = remember(context) { SourcePhotoStore(context.applicationContext) }
@@ -86,8 +87,14 @@ fun AltApp() {
                         onBack = { screen = Screen.HOME },
                         onSelect = {
                             selectedScenario = it
+                            val createdAt = System.currentTimeMillis()
+                            activeTimelineKey = it.id + "-" + createdAt
                             scope.launch {
-                                val keep = historyRepository.record(it.id, photoFileName)
+                                val keep = historyRepository.record(
+                                    scenarioId = it.id,
+                                    photoFileName = photoFileName,
+                                    createdAt = createdAt
+                                )
                                 withContext(Dispatchers.IO) {
                                     sourcePhotoStore.deleteUnreferenced(keep)
                                 }
@@ -99,6 +106,7 @@ fun AltApp() {
                         photoUri = photoUri,
                         scenario = selectedScenario,
                         generationSettings = generationSettings,
+                        timelineKey = activeTimelineKey ?: selectedScenario.id,
                         onBack = { screen = Screen.SCENARIOS }
                     )
                     Screen.SETTINGS -> GenerationSettingsScreen(
@@ -121,6 +129,7 @@ fun AltApp() {
                         onBack = { screen = Screen.HOME },
                         onOpen = { scenario, entry ->
                             selectedScenario = scenario
+                            activeTimelineKey = scenario.id + "-" + entry.createdAt
                             val restored = entry.photoFileName?.let { fileName ->
                                 runCatching { sourcePhotoStore.uriFor(fileName) }
                                     .getOrNull()
