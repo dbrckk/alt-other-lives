@@ -17,12 +17,19 @@ object BitmapLoader {
             BitmapFactory.decodeStream(input, null, bounds)
         }
 
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        if (!ImageBoundsValidation.isReasonable(bounds.outWidth, bounds.outHeight)) {
+            return null
+        }
+
+        require(targetWidth > 0 && targetHeight > 0) {
+            "Target bitmap dimensions must be positive"
+        }
 
         var sampleSize = 1
         while (
-            bounds.outWidth / (sampleSize * 2) >= targetWidth &&
-            bounds.outHeight / (sampleSize * 2) >= targetHeight
+            sampleSize <= Int.MAX_VALUE / 2 &&
+            bounds.outWidth / 2 / sampleSize >= targetWidth &&
+            bounds.outHeight / 2 / sampleSize >= targetHeight
         ) {
             sampleSize *= 2
         }
