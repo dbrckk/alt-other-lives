@@ -24,6 +24,12 @@ class ComfyUiClient(
     data class UploadedImage(val name: String, val subfolder: String, val type: String)
     data class OutputImage(val filename: String, val subfolder: String, val type: String)
 
+    suspend fun testConnection(): Unit = withContext(Dispatchers.IO) {
+        val connection = open("/system_stats", "GET")
+        val body = readResponse(connection)
+        require(body.isNotBlank()) { "ComfyUI returned an empty response" }
+    }
+
     suspend fun uploadImage(uri: Uri): UploadedImage = withContext(Dispatchers.IO) {
         val boundary = "ALT-" + UUID.randomUUID()
         val connection = open("/upload/image", "POST").apply {
