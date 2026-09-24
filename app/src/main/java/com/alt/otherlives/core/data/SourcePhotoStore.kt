@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.core.content.FileProvider
 import android.webkit.MimeTypeMap
+import android.graphics.BitmapFactory
 import java.io.File
 
 data class StoredPhoto(
@@ -15,6 +16,7 @@ class SourcePhotoStore(private val context: Context) {
     fun import(uri: Uri): StoredPhoto {
         val dir = File(context.filesDir, "source-photos").apply { mkdirs() }
         val mimeType = context.contentResolver.getType(uri)
+        require(mimeType?.startsWith("image/") == true) { "Selected file is not an image" }
         val extension = MimeTypeMap.getSingleton()
             .getExtensionFromMimeType(mimeType)
             ?.takeIf { it.isNotBlank() }
@@ -25,6 +27,13 @@ class SourcePhotoStore(private val context: Context) {
         context.contentResolver.openInputStream(uri)?.use { input ->
             target.outputStream().use { output -> input.copyTo(output) }
         } ?: error("Unable to read selected photo")
+
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(target.absolutePath, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
+            target.delete()
+            error("Selected image is invalid or unsupported")
+        }
 
         return StoredPhoto(fileName, uriFor(fileName))
     }
