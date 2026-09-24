@@ -4,8 +4,11 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 private val Context.generationDataStore by preferencesDataStore(name = "alt_generation")
 
@@ -23,39 +26,44 @@ class GenerationSettingsRepository(private val context: Context) {
     private val baseUrlKey = stringPreferencesKey("comfyui_base_url")
     private val workflowKey = stringPreferencesKey("comfyui_workflow_json")
 
-    val settings: Flow<GenerationSettings> = context.generationDataStore.data.map { prefs ->
-        val baseUrl = prefs[baseUrlKey].orEmpty()
-        val workflowJson = prefs[workflowKey].orEmpty()
-        val validation = runCatching {
-            GenerationSettingsValidation.validateLengths(baseUrl, workflowJson)
-            ComfyUiConfig(baseUrl.trim()).validate()
-            require(workflowJson.isNotBlank()) { "Workflow JSON is required" }
-            ComfyUiWorkflowTemplate.validateTemplate(workflowJson)
-        }
-        val hasPersistedValues = baseUrl.isNotBlank() || workflowJson.isNotBlank()
-        GenerationSettings(
-            comfyUiBaseUrl = baseUrl,
-            workflowJson = workflowJson,
-            isConfigured = hasPersistedValues && validation.isSuccess,
-            validationError = if (hasPersistedValues) {
-                validation.exceptionOrNull()?.message
-            } else {
-                null
+    val settings: Flow<GenerationSettings> = context.generationDataStore.data
+        .map { prefs ->
+            val baseUrl = prefs[baseUrlKey].orEmpty()
+            val workflowJson = prefs[workflowKey].orEmpty()
+            val validation = runCatching {
+                GenerationSettingsValidation.validateLengths(baseUrl, workflowJson)
+                ComfyUiConfig(baseUrl.trim()).validate()
+                require(workflowJson.isNotBlank()) { "Workflow JSON is required" }
+                ComfyUiWorkflowTemplate.validateTemplate(workflowJson)
             }
-        )
-    }
+            val hasPersistedValues = baseUrl.isNotBlank() || workflowJson.isNotBlank()
+            GenerationSettings(
+                comfyUiBaseUrl = baseUrl,
+                workflowJson = workflowJson,
+                isConfigured = hasPersistedValues && validation.isSuccess,
+                validationError = if (hasPersistedValues) {
+                    validation.exceptionOrNull()?.message
+                } else {
+                    null
+                }
+            )
+        }
+        .flowOn(Dispatchers.Default)
 
     suspend fun save(baseUrl: String, workflowJson: String) {
-        val normalized = baseUrl.trim()
-        val trimmedWorkflow = workflowJson.trim()
-        GenerationSettingsValidation.validateLengths(normalized, trimmedWorkflow)
-        ComfyUiConfig(normalized).validate()
-        require(trimmedWorkflow.isNotBlank()) { "Workflow JSON is required" }
-        ComfyUiWorkflowTemplate.validateTemplate(trimmedWorkflow)
+        val validated = withContext(Dispatchers.Default) {
+            val normalized = baseUrl.trim()
+            val trimmedWorkflow = workflowJson.trim()
+            GenerationSettingsValidation.validateLengths(normalized, trimmedWorkflow)
+            ComfyUiConfig(normalized).validate()
+            require(trimmedWorkflow.isNotBlank()) { "Workflow JSON is required" }
+            ComfyUiWorkflowTemplate.validateTemplate(trimmedWorkflow)
+            normalized to trimmedWorkflow
+        }
 
         context.generationDataStore.edit { prefs ->
-            prefs[baseUrlKey] = normalized
-            prefs[workflowKey] = trimmedWorkflow
+            prefs[baseUrlKey] = validated.first
+            prefs[workflowKey] = validated.second
         }
     }
 
