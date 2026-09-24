@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
@@ -60,6 +61,17 @@ fun AltApp() {
     val generationSettings by generationSettingsRepository.settings.collectAsState(
         initial = com.alt.otherlives.core.generation.GenerationSettings()
     )
+
+    LaunchedEffect(Unit) {
+        if (photoUri == null && !isImportingPhoto) {
+            withContext(Dispatchers.IO) {
+                sourcePhotoStore.latestStoredPhoto()
+            }?.let { stored ->
+                photoUri = stored.uri
+                photoFileName = stored.fileName
+            }
+        }
+    }
 
     AltTheme {
         Surface(modifier = Modifier.fillMaxSize(), color = AltBackground) {
