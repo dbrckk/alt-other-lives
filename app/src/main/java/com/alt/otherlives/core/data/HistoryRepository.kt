@@ -18,6 +18,21 @@ data class HistoryEntry(
         get() = scenarioId + "-" + createdAt
 }
 
+internal object HistoryEntryValidation {
+    fun isValid(
+        scenarioId: String,
+        createdAt: Long,
+        photoFileName: String?
+    ): Boolean {
+        if (createdAt <= 0L) return false
+        if (scenarioId !in ScenarioCatalog.scenarios.map { it.id }.toSet()) return false
+        if (photoFileName == null) return true
+        if (photoFileName.isBlank()) return false
+        if (java.io.File(photoFileName).name != photoFileName) return false
+        return photoFileName.startsWith("source-")
+    }
+}
+
 class HistoryRepository(private val context: Context) {
     private val historyKey = stringPreferencesKey("history")
 
@@ -89,7 +104,15 @@ class HistoryRepository(private val context: Context) {
                 val time = parts.getOrNull(1)?.toLongOrNull()
                 val id = parts.firstOrNull()?.takeIf { it.isNotBlank() }
                 val photoFileName = parts.getOrNull(2)?.takeIf { it.isNotBlank() }
-                if (id != null && time != null) HistoryEntry(id, time, photoFileName) else null
+                if (
+                    id != null &&
+                    time != null &&
+                    HistoryEntryValidation.isValid(id, time, photoFileName)
+                ) {
+                    HistoryEntry(id, time, photoFileName)
+                } else {
+                    null
+                }
             }
 
     private companion object {
