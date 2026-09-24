@@ -21,12 +21,15 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - Partial generation keeps successful chapters and supports targeted generation of only missing chapters.
 - Full regeneration requires confirmation, uses a fresh seed, and is atomic: the current timeline is replaced only if every requested chapter succeeds.
 - AI generation can be cancelled cooperatively; completed chapters are persisted immediately for partial runs.
-- Source photos are copied into private app storage, validated, restored after restart, and associated with history entries.
+- Source photos are copied atomically into private app storage with UUID names, validated on import and restore, restored after restart, and associated with history entries.
 - Source-photo and generated-scene orphan cleanup prevents private storage from growing indefinitely.
-- ComfyUI endpoints require HTTPS, support an explicit connection test, preserve source MIME types, and surface configuration errors in the UI.
+- Generated-scene replacement and timeline-seed writes are rollback-safe and recover after interrupted writes.
+- Persisted AI scenes are revalidated on load, corrupted files are purged, and duplicate chapter files are deduplicated to the newest valid copy.
+- Media export falls back to generated scenes when a source photo is missing, and disables export when no visual asset remains.
+- ComfyUI endpoints require HTTPS, support a short-timeout validated connection test, preserve source and output image formats, reject invalid downloaded images, and surface configuration errors in the UI.
 - Heavy JPEG/MP4 preparation work runs off the main UI thread.
 - CI validates unit tests, Android lint and debug APK assembly.
-- Latest confirmed green run: #160. Run #161 validates latest timeline-context restoration.
+- Latest confirmed green run: #185. Run #186 validates restored-source-photo integrity checks.
 
 ## Current priority
 Keep the end-to-end AI generation path reliable, then improve identity continuity, partial-failure recovery and production UX before monetization.
