@@ -29,7 +29,9 @@ class ComfyUiGenerationProvider(
 
         val uploaded = client.uploadImage(request.sourcePhoto)
         val result = mutableListOf<GeneratedScene>()
-        val sessionSeed = (System.currentTimeMillis() and Long.MAX_VALUE).coerceAtLeast(1L)
+        val sessionSeed = request.seed
+            ?.takeIf { it > 0L }
+            ?: (System.currentTimeMillis() and Long.MAX_VALUE).coerceAtLeast(1L)
 
         val failures = mutableListOf<String>()
         var processed = 0
