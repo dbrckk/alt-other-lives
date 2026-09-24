@@ -45,6 +45,7 @@ private const val HISTORY_PREVIEW_LIMIT = 16
 @Composable
 fun AltApp() {
     var screen by remember { mutableStateOf(Screen.HOME) }
+    var settingsReturnScreen by remember { mutableStateOf(Screen.HOME) }
     var photoUri by remember { mutableStateOf<Uri?>(null) }
     var photoFileName by remember { mutableStateOf<String?>(null) }
     var selectedScenario by remember { mutableStateOf(ScenarioCatalog.scenarios.first()) }
@@ -196,7 +197,10 @@ fun AltApp() {
                         },
                         onContinue = { screen = Screen.SCENARIOS },
                         onHistory = { screen = Screen.HISTORY },
-                        onAiSettings = { screen = Screen.SETTINGS }
+                        onAiSettings = {
+                            settingsReturnScreen = Screen.HOME
+                            screen = Screen.SETTINGS
+                        }
                     )
                     Screen.SCENARIOS -> ScenarioScreen(
                         scenarios = ScenarioCatalog.scenarios,
@@ -258,7 +262,11 @@ fun AltApp() {
                         scenario = selectedScenario,
                         generationSettings = generationSettings,
                         timelineKey = activeTimelineKey ?: selectedScenario.id,
-                        onBack = { screen = Screen.SCENARIOS }
+                        onBack = { screen = Screen.SCENARIOS },
+                        onAiSettings = {
+                            settingsReturnScreen = Screen.REVEAL
+                            screen = Screen.SETTINGS
+                        }
                     )
                     Screen.SETTINGS -> GenerationSettingsScreen(
                         settings = generationSettings,
@@ -267,7 +275,7 @@ fun AltApp() {
                             connectionTestJob = null
                             isTestingConnection = false
                             generationSettingsMessage = null
-                            screen = Screen.HOME
+                            screen = settingsReturnScreen
                         },
                         onSave = { baseUrl, workflowJson ->
                             scope.launch {
