@@ -137,39 +137,43 @@ class ComfyUiClient(
             connectTimeoutMs = 15_000,
             readTimeoutMs = 60_000
         )
-        ensureSuccess(connection)
 
         val dir = File(context.cacheDir, "generation").apply { mkdirs() }
         cleanupGenerationCache(dir)
-        val contentType = connection.contentType
-            ?.substringBefore(";")
-            ?.trim()
-            ?.takeIf { it.startsWith("image/") }
-        val extension = contentType
-            ?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
-            ?.takeIf { it.isNotBlank() }
-            ?: output.filename.substringAfterLast(".", "png").takeIf { it.isNotBlank() }
-            ?: "png"
-        val file = File(
-            dir,
-            "scene-" + System.currentTimeMillis() + "-" + index + "." + extension
-        )
+        var file: File? = null
+
         try {
+            ensureSuccess(connection)
+            val contentType = connection.contentType
+                ?.substringBefore(";")
+                ?.trim()
+                ?.takeIf { it.startsWith("image/") }
+            val extension = contentType
+                ?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
+                ?.takeIf { it.isNotBlank() }
+                ?: output.filename.substringAfterLast(".", "png").takeIf { it.isNotBlank() }
+                ?: "png"
+            file = File(
+                dir,
+                "scene-" + System.currentTimeMillis() + "-" + index + "." + extension
+            )
             connection.inputStream.buffered().use { input ->
                 file.outputStream().use { outputStream -> input.copyTo(outputStream) }
             }
+
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(file.absolutePath, bounds)
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
+                error("ComfyUI returned an invalid image for chapter " + (index + 1))
+            }
+
+            FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
+        } catch (error: Throwable) {
+            file?.delete()
+            throw error
         } finally {
             connection.disconnect()
         }
-
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(file.absolutePath, bounds)
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
-            file.delete()
-            error("ComfyUI returned an invalid image for chapter " + (index + 1))
-        }
-
-        FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
     }
 
     private data class HistorySnapshot(
