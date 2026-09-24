@@ -70,7 +70,8 @@ fun RevealScreen(
     scenario: Scenario,
     generationSettings: GenerationSettings,
     timelineKey: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onAiSettings: () -> Unit
 ) {
     val context = LocalContext.current
     val sceneStore = remember(context) { GeneratedSceneStore(context.applicationContext) }
@@ -416,6 +417,30 @@ fun RevealScreen(
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
+                    }
+                    Spacer(Modifier.height(12.dp))
+                } else {
+                    val aiUnavailableMessage = when {
+                        photoUri == null ->
+                            "AI generation needs the original source photo. Saved generated scenes can still be viewed and exported."
+                        generationSettings.hasPersistedValues ->
+                            "Saved AI settings need attention: " +
+                                (generationSettings.validationError ?: "configuration is invalid")
+                        else ->
+                            "AI generation is not configured yet."
+                    }
+                    Text(
+                        aiUnavailableMessage,
+                        color = AltDimmed,
+                        fontSize = 12.sp
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    TextButton(
+                        onClick = onAiSettings,
+                        enabled = !isGeneratingAi && !isExporting && !isRenderingShareImage,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Open AI generation settings")
                     }
                     Spacer(Modifier.height(12.dp))
                 }
