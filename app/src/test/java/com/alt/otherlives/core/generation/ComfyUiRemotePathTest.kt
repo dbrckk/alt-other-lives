@@ -35,4 +35,15 @@ class ComfyUiRemotePathTest {
     fun rejectsOversizedFilename() {
         ComfyUiRemotePath.validateFilename("a".repeat(256))
     }
+    @Test
+    fun normalizesKnownImageTypes() {
+        assertEquals("output", ComfyUiRemotePath.validateType(" OUTPUT "))
+        assertEquals("temp", ComfyUiRemotePath.validateType("temp"))
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsUnknownImageType() {
+        ComfyUiRemotePath.validateType("../../etc")
+    }
 }
+
