@@ -121,8 +121,9 @@ class ComfyUiClient(
             connection.outputStream.use { it.write(payload.toByteArray(Charsets.UTF_8)) }
             val body = readResponse(connection)
             val json = parseJsonObject(body, "queue")
-            json.optString("prompt_id").takeIf { it.isNotBlank() }
+            val promptId = json.optString("prompt_id").takeIf { it.isNotBlank() }
                 ?: error("ComfyUI queue response is missing prompt_id")
+            ComfyUiPromptId.validate(promptId)
         } finally {
             connection.disconnect()
         }
@@ -211,7 +212,7 @@ class ComfyUiClient(
 
     private suspend fun historySnapshot(promptId: String): HistorySnapshot = withContext(Dispatchers.IO) {
         val connection = open(
-            path = "/history/" + promptId,
+            path = "/history/" + ComfyUiPromptId.validate(promptId),
             method = "GET",
             connectTimeoutMs = 8_000,
             readTimeoutMs = 15_000
