@@ -27,10 +27,15 @@ class GeneratedSceneStore(private val context: Context) {
     }
 
     fun resetSeed(timelineKey: String): Long {
-        val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
         val seed = (System.nanoTime() and Long.MAX_VALUE).coerceAtLeast(1L)
-        File(root, "seed.txt").writeText(seed.toString())
+        setSeed(timelineKey, seed)
         return seed
+    }
+
+    fun setSeed(timelineKey: String, seed: Long) {
+        require(seed > 0L) { "Seed must be positive" }
+        val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
+        File(root, "seed.txt").writeText(seed.toString())
     }
 
     fun persist(timelineKey: String, scenes: List<GeneratedScene>): List<GeneratedScene> {
