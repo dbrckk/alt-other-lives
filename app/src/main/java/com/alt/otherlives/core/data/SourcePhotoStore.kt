@@ -55,6 +55,10 @@ class SourcePhotoStore(private val context: Context) {
     fun uriFor(fileName: String): Uri {
         val file = File(File(context.filesDir, "source-photos"), fileName)
         require(file.exists()) { "Stored photo not found" }
+        if (!isValidImage(file)) {
+            file.delete()
+            error("Stored photo is invalid or corrupted")
+        }
         return FileProvider.getUriForFile(
             context,
             context.packageName + ".fileprovider",
@@ -65,13 +69,26 @@ class SourcePhotoStore(private val context: Context) {
     fun latestStoredPhoto(): StoredPhoto? {
         val dir = File(context.filesDir, "source-photos")
         cleanupInterruptedImports(dir)
-        val file = dir.listFiles()
+        val files = dir.listFiles()
             ?.filter { it.isFile && it.name.startsWith("source-") }
-            ?.maxByOrNull { it.lastModified() }
-            ?: return null
-        return runCatching {
-            StoredPhoto(file.name, uriFor(file.name))
-        }.getOrNull()
+            ?.sortedByDescending { it.lastModified() }
+            .orEmpty()
+
+        files.forEach { file ->
+            if (!isValidImage(file)) {
+                file.delete()
+            } else {
+                return StoredPhoto(file.name, uriFor(file.name))
+            }
+        }
+        return null
+    }
+
+    private fun isValidImage(file: File): Boolean {
+        if (!file.exists() || file.length() <= 0L) return false
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        return bounds.outWidth > 0 && bounds.outHeight > 0
     }
 
     private fun cleanupInterruptedImports(dir: File) {
