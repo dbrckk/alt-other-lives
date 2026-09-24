@@ -127,6 +127,15 @@ fun RevealScreen(
                 )
                 Text("‹", fontSize = 38.sp, modifier = Modifier.padding(start = 24.dp, top = 44.dp).clickable(onClick = onBack))
                 Column(modifier = Modifier.align(Alignment.BottomStart).padding(24.dp)) {
+                    if (primaryGeneratedSceneUri != null) {
+                        Text(
+                            "AI GENERATED",
+                            color = AltAccent,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(6.dp))
+                    }
                     Text("YOUR ALT LIFE", color = AltAccent, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(8.dp))
                     Text(scenario.title, fontSize = 34.sp, lineHeight = 36.sp, fontWeight = FontWeight.SemiBold)
