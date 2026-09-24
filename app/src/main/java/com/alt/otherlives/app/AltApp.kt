@@ -21,6 +21,7 @@ import kotlinx.coroutines.withContext
 import com.alt.otherlives.core.data.HistoryRepository
 import com.alt.otherlives.core.data.SourcePhotoStore
 import com.alt.otherlives.core.generation.GenerationSettingsRepository
+import com.alt.otherlives.core.generation.GeneratedSceneStore
 import androidx.compose.ui.Modifier
 import com.alt.otherlives.core.data.ScenarioCatalog
 import com.alt.otherlives.core.designsystem.AltBackground
@@ -45,6 +46,9 @@ fun AltApp() {
     val sourcePhotoStore = remember(context) { SourcePhotoStore(context.applicationContext) }
     val generationSettingsRepository = remember(context) {
         GenerationSettingsRepository(context.applicationContext)
+    }
+    val generatedSceneStore = remember(context) {
+        GeneratedSceneStore(context.applicationContext)
     }
     val scope = rememberCoroutineScope()
     val history by historyRepository.history.collectAsState(initial = emptyList())
@@ -142,7 +146,10 @@ fun AltApp() {
                         onClear = {
                             scope.launch {
                                 historyRepository.clear()
-                                withContext(Dispatchers.IO) { sourcePhotoStore.clearAll() }
+                                withContext(Dispatchers.IO) {
+                                    sourcePhotoStore.clearAll()
+                                    generatedSceneStore.clearAll()
+                                }
                                 photoUri = null
                                 photoFileName = null
                             }
