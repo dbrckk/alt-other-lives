@@ -7,6 +7,7 @@ import android.webkit.MimeTypeMap
 import android.graphics.BitmapFactory
 import java.io.File
 import java.util.UUID
+import com.alt.otherlives.core.io.BoundedStreamCopy
 
 data class StoredPhoto(
     val fileName: String,
@@ -30,7 +31,13 @@ class SourcePhotoStore(private val context: Context) {
 
         try {
             context.contentResolver.openInputStream(uri)?.use { input ->
-                temporary.outputStream().use { output -> input.copyTo(output) }
+                temporary.outputStream().use { output ->
+                    BoundedStreamCopy.copy(
+                        input = input,
+                        output = output,
+                        maxBytes = MAX_SOURCE_PHOTO_BYTES
+                    )
+                }
             } ?: error("Unable to read selected photo")
 
             require(temporary.length() > 0L) { "Selected image copy is empty" }
@@ -130,5 +137,9 @@ class SourcePhotoStore(private val context: Context) {
 
     fun clearAll() {
         File(context.filesDir, "source-photos").deleteRecursively()
+    }
+
+    private companion object {
+        const val MAX_SOURCE_PHOTO_BYTES = 50L * 1024L * 1024L
     }
 }
