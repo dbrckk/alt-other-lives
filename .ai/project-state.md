@@ -38,14 +38,22 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - History photo availability is preflighted only when the History screen is opened, avoiding startup scans across old timelines.
 - Individual history entries can be deleted with confirmation; orphaned private photos and AI scenes are cleaned without affecting media still referenced elsewhere.
 - Timeline restoration now runs only once at startup, preventing history mutations from unexpectedly restoring another old timeline.
+- Timeline creation now waits for History persistence before opening Reveal, blocks duplicate scenario taps, and treats orphan cleanup as best-effort after logical creation.
+- Photo import and full-history clearing use explicit busy states and always recover UI state even when media cleanup fails.
+- Startup restoration tolerates partial local-data failures instead of aborting the entire initialization path.
 - Generated ALT visuals are prioritized in Reveal and social share cards when available; the source photo remains the fallback.
 - Completed MP4 exports are invalidated when timeline visuals change, and AI generation/media export actions are mutually locked to prevent stale mixed-state exports.
 - ComfyUI endpoints require HTTPS, support a short-timeout validated connection test, preserve source and output image formats, reject invalid downloaded images, and surface configuration errors in the UI.
+- Cross-chapter prompts now use an explicit immutable identity anchor, stronger anti-drift constraints, and optional __ALT_NEGATIVE_PROMPT__ injection for workflows with a negative conditioning path.
+- Partial AI generation reports failed chapter indexes in Reveal, keeps existing scenes during failed full-regeneration attempts, and retries transient chapter failures after a short deterministic backoff.
+- AI cancellation keeps generation locked until the coroutine actually finishes, preventing overlapping generation mutations.
+- ComfyUI source uploads and generated-image downloads are size-bounded; generated images also enforce shared dimension/pixel limits before persistence or rendering.
+- ComfyUI remote filenames/subfolders and local cache image extensions are normalized and validated before use.
 - Heavy JPEG/MP4 preparation work runs off the main UI thread.
 - Persisted Reveal scenes are restored off the main thread with explicit restore progress, and generation callbacks can persist completed chapters asynchronously without blocking Compose.
 - Timeline seed reads/writes and generated-scene persistence are dispatched to IO; AI scene removal and exported MP4 gallery copies are also performed asynchronously.
 - CI validates unit tests, Android lint and debug APK assembly.
-- Latest confirmed green run: #296. Runs #297–#303 validate settings-state UX and pre-commit crash recovery hardening.
+- Latest confirmed green run: #346. Runs #347–#351 validate remote-path tests and bounded ComfyUI source uploads.
 
 ## Current priority
 Keep the end-to-end AI generation path reliable, then improve identity continuity, partial-failure recovery and production UX before monetization.
