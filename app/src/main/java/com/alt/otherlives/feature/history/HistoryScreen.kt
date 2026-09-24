@@ -98,7 +98,15 @@ fun HistoryScreen(
                                     when {
                                         entry.photoFileName == null -> {
                                             Spacer(Modifier.height(6.dp))
-                                            Text("Original photo not stored", color = AltMuted, fontSize = 12.sp)
+                                            Text(
+                                                if (timelineKey in generatedPreviewUrisByTimelineKey) {
+                                                    "Original photo not stored • AI preview"
+                                                } else {
+                                                    "Original photo not stored"
+                                                },
+                                                color = AltMuted,
+                                                fontSize = 12.sp
+                                            )
                                         }
                                         entry.photoFileName in unavailablePhotoFileNames -> {
                                             Spacer(Modifier.height(6.dp))
