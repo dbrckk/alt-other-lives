@@ -40,17 +40,27 @@ class GeneratedSceneStore(private val context: Context) {
         val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
         val target = File(root, "seed.txt")
         val temporary = File(root, ".seed-" + System.nanoTime() + ".tmp")
+        val backup = File(root, ".seed.bak")
         try {
             temporary.writeText(seed.toString())
             require(temporary.length() > 0L) { "Seed write failed" }
-            if (target.exists() && !target.delete()) {
-                error("Unable to replace timeline seed")
+
+            backup.delete()
+            if (target.exists() && !target.renameTo(backup)) {
+                error("Unable to prepare timeline seed replacement")
             }
             if (!temporary.renameTo(target)) {
+                if (backup.exists()) {
+                    backup.renameTo(target)
+                }
                 error("Unable to finalize timeline seed")
             }
+            backup.delete()
         } catch (error: Throwable) {
             temporary.delete()
+            if (!target.exists() && backup.exists()) {
+                backup.renameTo(target)
+            }
             throw error
         }
     }
@@ -157,6 +167,16 @@ class GeneratedSceneStore(private val context: Context) {
         root.listFiles()
             ?.filter { it.isFile && it.name.startsWith(".seed-") && it.name.endsWith(".tmp") }
             ?.forEach { it.delete() }
+
+        val seedBackup = File(root, ".seed.bak")
+        val seedTarget = File(root, "seed.txt")
+        if (seedBackup.exists()) {
+            if (seedTarget.exists()) {
+                seedBackup.delete()
+            } else {
+                seedBackup.renameTo(seedTarget)
+            }
+        }
 
         root.listFiles()
             ?.filter { it.isFile && it.name.startsWith(".scene-") && it.name.endsWith(".tmp") }
