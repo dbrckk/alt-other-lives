@@ -138,6 +138,12 @@ class GeneratedSceneStore(private val context: Context) {
         seed: Long? = null
     ): List<GeneratedScene> {
         if (scenes.isEmpty()) return emptyList()
+        require(scenes.all { it.chapterIndex >= 0 }) {
+            "Generated scene chapter indexes must be non-negative"
+        }
+        require(scenes.map { it.chapterIndex }.distinct().size == scenes.size) {
+            "Generated scene batch contains duplicate chapter indexes"
+        }
         val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
         val transaction = File(root, ".batch-" + System.nanoTime()).apply { mkdirs() }
         val stagedDir = File(transaction, "staged").apply { mkdirs() }
