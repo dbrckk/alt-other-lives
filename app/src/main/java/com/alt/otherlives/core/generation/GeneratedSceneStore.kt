@@ -315,12 +315,25 @@ class GeneratedSceneStore(private val context: Context) {
                 val commitStarted = File(transaction, "commit.started").exists()
                 val commitCompleted = File(transaction, "commit.completed").exists()
 
+                val affectedFile = File(transaction, "affected.txt")
+                val fallbackAffectedIndexes = buildSet {
+                    stagedDir.listFiles()?.forEach { file ->
+                        chapterIndexFromFilename(file.name)?.let(::add)
+                    }
+                    backupDir.listFiles()?.forEach { file ->
+                        chapterIndexFromFilename(file.name)?.let(::add)
+                    }
+                }
+                val affectedIndexesText = runCatching {
+                    affectedFile.takeIf { it.exists() }?.readText()
+                }.getOrNull()
+                    ?.takeIf { SceneTransactionRecoveryPlan.parseAffectedIndexes(it).isNotEmpty() }
+                    ?: fallbackAffectedIndexes.sorted().joinToString(",")
+
                 val recoveryPlan = SceneTransactionRecoveryPlan.build(
                     commitStarted = commitStarted,
                     commitCompleted = commitCompleted,
-                    affectedIndexesText = File(transaction, "affected.txt")
-                        .takeIf { it.exists() }
-                        ?.readText(),
+                    affectedIndexesText = affectedIndexesText,
                     seedIncluded = File(transaction, "seed.included").exists() ||
                         File(transaction, "seed.pending").exists() ||
                         File(backupDir, "seed.txt").exists()
