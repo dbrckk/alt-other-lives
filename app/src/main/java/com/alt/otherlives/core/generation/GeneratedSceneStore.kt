@@ -7,6 +7,7 @@ import android.webkit.MimeTypeMap
 import android.graphics.BitmapFactory
 import java.io.File
 import com.alt.otherlives.core.io.BoundedStreamCopy
+import com.alt.otherlives.core.media.ImageBoundsValidation
 
 class GeneratedSceneStore(private val context: Context) {
     internal fun filenameForChapter(chapterIndex: Int, extension: String = "png"): String =
@@ -337,7 +338,10 @@ class GeneratedSceneStore(private val context: Context) {
         if (!file.exists() || file.length() <= 0L) return false
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.absolutePath, bounds)
-        return bounds.outWidth > 0 && bounds.outHeight > 0
+        return ImageBoundsValidation.isReasonable(
+            bounds.outWidth,
+            bounds.outHeight
+        )
     }
 
     private fun recoverInterruptedBatchWrites(root: File) {
