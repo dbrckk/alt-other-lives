@@ -80,6 +80,7 @@ fun RevealScreen(
     var exportJob by remember { mutableStateOf<Job?>(null) }
     var completedVideoUri by remember(timelineKey) { mutableStateOf<Uri?>(null) }
     var isRenderingShareImage by remember { mutableStateOf(false) }
+    var isSavingVideoToGallery by remember { mutableStateOf(false) }
     var generatedScenes by remember(timelineKey) { mutableStateOf<List<GeneratedScene>>(emptyList()) }
     var isLoadingStoredScenes by remember(timelineKey) { mutableStateOf(true) }
     var isGeneratingAi by remember { mutableStateOf(false) }
@@ -291,7 +292,7 @@ fun RevealScreen(
                                 }
                             }
                         },
-                        enabled = !isLoadingStoredScenes && !isClearingAi && !isGeneratingAi && !isExporting && !isRenderingShareImage,
+                        enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isGeneratingAi && !isExporting && !isRenderingShareImage,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) {
@@ -306,7 +307,7 @@ fun RevealScreen(
                     if (generatedScenes.isNotEmpty()) {
                         TextButton(
                             onClick = { showClearAiDialog = true },
-                            enabled = !isLoadingStoredScenes && !isClearingAi && !isGeneratingAi && !isExporting && !isRenderingShareImage,
+                            enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isGeneratingAi && !isExporting && !isRenderingShareImage,
                             modifier = Modifier.fillMaxWidth()
                         ) { Text("Remove generated AI scenes") }
                     }
@@ -431,7 +432,7 @@ fun RevealScreen(
                             }
                         }
                     },
-                    enabled = !isLoadingStoredScenes && !isClearingAi && !isRenderingShareImage && !isGeneratingAi && !isExporting && hasVisualAsset,
+                    enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isRenderingShareImage && !isGeneratingAi && !isExporting && hasVisualAsset,
                     modifier = Modifier.fillMaxWidth().height(58.dp),
                     shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AltPrimary, contentColor = Color(0xFF16111F))
@@ -471,7 +472,7 @@ fun RevealScreen(
                                 }
                             }
                         },
-                        enabled = !isLoadingStoredScenes && !isClearingAi && !isRenderingShareImage && !isGeneratingAi && !isExporting && hasVisualAsset,
+                        enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isRenderingShareImage && !isGeneratingAi && !isExporting && hasVisualAsset,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) { Text("Save 9:16 image", fontWeight = FontWeight.Bold) }
@@ -538,7 +539,7 @@ fun RevealScreen(
                             }
                         }
                     },
-                    enabled = !isLoadingStoredScenes && !isClearingAi && !isExporting && !isGeneratingAi && !isRenderingShareImage && hasVisualAsset,
+                    enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isExporting && !isGeneratingAi && !isRenderingShareImage && hasVisualAsset,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(20.dp)
                 ) {
@@ -576,7 +577,7 @@ fun RevealScreen(
                     Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = { CinematicVideoExporter.share(context, videoUri, scenario) },
-                        enabled = !isLoadingStoredScenes && !isClearingAi && !isGeneratingAi && !isExporting,
+                        enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isGeneratingAi && !isExporting,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) { Text("Share MP4", fontWeight = FontWeight.Bold) }
@@ -584,18 +585,47 @@ fun RevealScreen(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         Spacer(Modifier.height(8.dp))
                         androidx.compose.material3.TextButton(
-                            enabled = !isLoadingStoredScenes && !isClearingAi && !isGeneratingAi && !isExporting,
+                            enabled = !isLoadingStoredScenes &&
+                                !isClearingAi &&
+                                !isSavingVideoToGallery &&
+                                !isGeneratingAi &&
+                                !isExporting,
                             onClick = {
-                                runCatching {
-                                    CinematicVideoExporter.saveToGallery(context, videoUri, scenario)
-                                }.onSuccess {
-                                    Toast.makeText(context, "Saved to Movies/ALT", Toast.LENGTH_SHORT).show()
-                                }.onFailure {
-                                    Toast.makeText(context, "Could not save video", Toast.LENGTH_SHORT).show()
+                                if (!isSavingVideoToGallery) {
+                                    isSavingVideoToGallery = true
+                                    scope.launch {
+                                        runCatching {
+                                            withContext(Dispatchers.IO) {
+                                                CinematicVideoExporter.saveToGallery(
+                                                    context,
+                                                    videoUri,
+                                                    scenario
+                                                )
+                                            }
+                                        }.onSuccess {
+                                            Toast.makeText(
+                                                context,
+                                                "Saved to Movies/ALT",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }.onFailure {
+                                            Toast.makeText(
+                                                context,
+                                                "Could not save video: " +
+                                                    (it.message ?: "unknown error"),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                        isSavingVideoToGallery = false
+                                    }
                                 }
                             },
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text("Save MP4 to gallery") }
+                        ) {
+                            Text(
+                                if (isSavingVideoToGallery) "Saving MP4…" else "Save MP4 to gallery"
+                            )
+                        }
                     }
                 }
                 if (!hasVisualAsset) {
