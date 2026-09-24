@@ -57,6 +57,15 @@ class GeneratedSceneStore(private val context: Context) {
         File(context.filesDir, "generated/$timelineKey").deleteRecursively()
     }
 
+    fun deleteUnreferenced(keepTimelineKeys: Set<String>) {
+        val root = File(context.filesDir, "generated")
+        root.listFiles()?.forEach { dir ->
+            if (dir.isDirectory && dir.name !in keepTimelineKeys) {
+                dir.deleteRecursively()
+            }
+        }
+    }
+
     fun clearAll() {
         File(context.filesDir, "generated").deleteRecursively()
     }
