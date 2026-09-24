@@ -33,6 +33,15 @@ class SourcePhotoStore(private val context: Context) {
         )
     }
 
+    fun deleteUnreferenced(keepFileNames: Set<String>) {
+        val dir = File(context.filesDir, "source-photos")
+        dir.listFiles()?.forEach { file ->
+            if (file.isFile && file.name !in keepFileNames) {
+                file.delete()
+            }
+        }
+    }
+
     fun clearAll() {
         File(context.filesDir, "source-photos").deleteRecursively()
     }
