@@ -11,20 +11,27 @@ private val Context.generationDataStore by preferencesDataStore(name = "alt_gene
 
 data class GenerationSettings(
     val comfyUiBaseUrl: String = "",
-    val workflowJson: String = ""
-) {
-    val isConfigured: Boolean
-        get() = comfyUiBaseUrl.isNotBlank() && workflowJson.isNotBlank()
-}
+    val workflowJson: String = "",
+    val isConfigured: Boolean = false
+)
 
 class GenerationSettingsRepository(private val context: Context) {
     private val baseUrlKey = stringPreferencesKey("comfyui_base_url")
     private val workflowKey = stringPreferencesKey("comfyui_workflow_json")
 
     val settings: Flow<GenerationSettings> = context.generationDataStore.data.map { prefs ->
+        val baseUrl = prefs[baseUrlKey].orEmpty()
+        val workflowJson = prefs[workflowKey].orEmpty()
+        val valid = runCatching {
+            GenerationSettingsValidation.validateLengths(baseUrl, workflowJson)
+            ComfyUiConfig(baseUrl.trim()).validate()
+            require(workflowJson.isNotBlank()) { "Workflow JSON is required" }
+            ComfyUiWorkflowTemplate.validateTemplate(workflowJson)
+        }.isSuccess
         GenerationSettings(
-            comfyUiBaseUrl = prefs[baseUrlKey].orEmpty(),
-            workflowJson = prefs[workflowKey].orEmpty()
+            comfyUiBaseUrl = baseUrl,
+            workflowJson = workflowJson,
+            isConfigured = valid
         )
     }
 
