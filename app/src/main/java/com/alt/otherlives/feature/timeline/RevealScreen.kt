@@ -73,6 +73,7 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
     var activeTransformer by remember { mutableStateOf<Transformer?>(null) }
     var exportJob by remember { mutableStateOf<Job?>(null) }
     var completedVideoUri by remember { mutableStateOf<Uri?>(null) }
+    var isRenderingShareImage by remember { mutableStateOf(false) }
     var generatedScenes by remember(scenario.id) { mutableStateOf(sceneStore.load(scenario.id)) }
     var isGeneratingAi by remember { mutableStateOf(false) }
     var aiCompleted by remember { mutableStateOf(0) }
@@ -265,20 +266,62 @@ fun RevealScreen(photoUri: Uri?, scenario: Scenario, generationSettings: Generat
 
                 Button(
                     onClick = {
-                        val shareUri = ShareCardRenderer.render(context, photoUri, scenario)
-                        ShareCardRenderer.share(context, shareUri, scenario)
+                        if (!isRenderingShareImage) {
+                            isRenderingShareImage = true
+                            scope.launch {
+                                val rendered = runCatching {
+                                    withContext(Dispatchers.Default) {
+                                        ShareCardRenderer.render(context, photoUri, scenario)
+                                    }
+                                }
+                                isRenderingShareImage = false
+                                rendered.onSuccess { shareUri ->
+                                    ShareCardRenderer.share(context, shareUri, scenario)
+                                }.onFailure {
+                                    Toast.makeText(
+                                        context,
+                                        "Could not create share image: " + (it.message ?: "unknown error"),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        }
                     },
+                    enabled = !isRenderingShareImage,
                     modifier = Modifier.fillMaxWidth().height(58.dp),
                     shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AltPrimary, contentColor = Color(0xFF16111F))
-                ) { Text("Share this ALT life", fontWeight = FontWeight.Bold) }
+                ) {
+                    Text(
+                        if (isRenderingShareImage) "Preparing share image…" else "Share this ALT life",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 Spacer(Modifier.height(12.dp))
                 Button(
                     onClick = {
-                        runCatching { ShareCardRenderer.saveToGallery(context, photoUri, scenario) }
-                            .onSuccess { Toast.makeText(context, "Saved to Pictures/ALT", Toast.LENGTH_SHORT).show() }
-                            .onFailure { Toast.makeText(context, "Could not save image", Toast.LENGTH_SHORT).show() }
+                        if (!isRenderingShareImage) {
+                            isRenderingShareImage = true
+                            scope.launch {
+                                val saved = runCatching {
+                                    withContext(Dispatchers.IO) {
+                                        ShareCardRenderer.saveToGallery(context, photoUri, scenario)
+                                    }
+                                }
+                                isRenderingShareImage = false
+                                saved.onSuccess {
+                                    Toast.makeText(context, "Saved to Pictures/ALT", Toast.LENGTH_SHORT).show()
+                                }.onFailure {
+                                    Toast.makeText(
+                                        context,
+                                        "Could not save image: " + (it.message ?: "unknown error"),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        }
                     },
+                    enabled = !isRenderingShareImage,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(20.dp)
                 ) { Text("Save 9:16 image", fontWeight = FontWeight.Bold) }
