@@ -3,10 +3,12 @@ package com.alt.otherlives.core.generation
 import android.content.Context
 import android.net.Uri
 import androidx.core.content.FileProvider
+import android.webkit.MimeTypeMap
 import java.io.File
 
 class GeneratedSceneStore(private val context: Context) {
-    internal fun filenameForChapter(chapterIndex: Int): String = "scene-" + chapterIndex + ".png"
+    internal fun filenameForChapter(chapterIndex: Int, extension: String = "png"): String =
+        "scene-" + chapterIndex + "." + extension
 
     internal fun chapterIndexFromFilename(name: String): Int? = name
         .substringAfter("scene-")
@@ -42,7 +44,18 @@ class GeneratedSceneStore(private val context: Context) {
         val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
 
         return scenes.map { scene ->
-            val target = File(root, filenameForChapter(scene.chapterIndex))
+            val mimeType = context.contentResolver.getType(scene.imageUri)
+            val extension = mimeType
+                ?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
+                ?.takeIf { it.isNotBlank() }
+                ?: scene.imageUri.lastPathSegment
+                    ?.substringAfterLast(".", "")
+                    ?.takeIf { it.isNotBlank() }
+                ?: "png"
+            root.listFiles()
+                ?.filter { it.isFile && chapterIndexFromFilename(it.name) == scene.chapterIndex }
+                ?.forEach { it.delete() }
+            val target = File(root, filenameForChapter(scene.chapterIndex, extension))
             context.contentResolver.openInputStream(scene.imageUri)?.use { input ->
                 target.outputStream().use { output -> input.copyTo(output) }
             } ?: error("Unable to persist generated scene " + scene.chapterIndex)
