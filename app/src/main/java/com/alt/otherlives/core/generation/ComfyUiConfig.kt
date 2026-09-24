@@ -8,8 +8,8 @@ data class ComfyUiConfig(
         get() = baseUrl.trim().removeSuffix("/")
 
     fun validate() {
-        require(normalizedBaseUrl.startsWith("http://") || normalizedBaseUrl.startsWith("https://")) {
-            "ComfyUI base URL must use http or https"
+        require(normalizedBaseUrl.startsWith("https://")) {
+            "ComfyUI base URL must use HTTPS. For a local server, expose it through a secure HTTPS tunnel instead of plain HTTP."
         }
     }
 }
