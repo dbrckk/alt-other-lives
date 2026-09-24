@@ -260,7 +260,11 @@ class ComfyUiClient(
             val body = runCatching {
                 connection.errorStream?.bufferedReader()?.use { it.readText() }
             }.getOrNull().orEmpty()
-            val suffix = if (body.isBlank()) "" else ": " + body
+            val safeBody = body
+                .replace(Regex("\\s+"), " ")
+                .trim()
+                .take(MAX_ERROR_BODY_CHARS)
+            val suffix = if (safeBody.isBlank()) "" else ": " + safeBody
             error("ComfyUI HTTP " + code + suffix)
         }
     }
@@ -279,5 +283,6 @@ class ComfyUiClient(
 
     private companion object {
         const val CACHE_MAX_AGE_MS = 24L * 60L * 60L * 1000L
+        const val MAX_ERROR_BODY_CHARS = 500
     }
 }
