@@ -1,15 +1,33 @@
 package com.alt.otherlives.core.generation
 
+import java.net.URI
+
 data class ComfyUiConfig(
     val baseUrl: String,
     val clientId: String = "alt-android"
 ) {
     val normalizedBaseUrl: String
-        get() = baseUrl.trim().removeSuffix("/")
+        get() = baseUrl.trim().trimEnd('/')
 
     fun validate() {
-        require(normalizedBaseUrl.startsWith("https://")) {
+        val normalized = normalizedBaseUrl
+        val uri = runCatching { URI(normalized) }
+            .getOrElse { throw IllegalArgumentException("ComfyUI base URL is invalid", it) }
+
+        require(uri.scheme.equals("https", ignoreCase = true)) {
             "ComfyUI base URL must use HTTPS. For a local server, expose it through a secure HTTPS tunnel instead of plain HTTP."
+        }
+        require(!uri.host.isNullOrBlank()) {
+            "ComfyUI base URL must include a valid host"
+        }
+        require(uri.userInfo == null) {
+            "ComfyUI base URL must not include embedded credentials"
+        }
+        require(uri.query == null) {
+            "ComfyUI base URL must not include a query string"
+        }
+        require(uri.fragment == null) {
+            "ComfyUI base URL must not include a fragment"
         }
     }
 }
