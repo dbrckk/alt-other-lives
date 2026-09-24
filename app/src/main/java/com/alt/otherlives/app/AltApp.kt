@@ -70,6 +70,10 @@ fun AltApp() {
                                 }.onSuccess { stored ->
                                     photoUri = stored.uri
                                     photoFileName = stored.fileName
+                                    val keep = history.mapNotNull { it.photoFileName }.toSet() + stored.fileName
+                                    withContext(Dispatchers.IO) {
+                                        sourcePhotoStore.deleteUnreferenced(keep)
+                                    }
                                 }
                             }
                         },
@@ -82,7 +86,12 @@ fun AltApp() {
                         onBack = { screen = Screen.HOME },
                         onSelect = {
                             selectedScenario = it
-                            scope.launch { historyRepository.record(it.id, photoFileName) }
+                            scope.launch {
+                                val keep = historyRepository.record(it.id, photoFileName)
+                                withContext(Dispatchers.IO) {
+                                    sourcePhotoStore.deleteUnreferenced(keep)
+                                }
+                            }
                             screen = Screen.REVEAL
                         }
                     )
