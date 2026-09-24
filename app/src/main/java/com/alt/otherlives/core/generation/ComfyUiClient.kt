@@ -97,6 +97,7 @@ class ComfyUiClient(
         ensureSuccess(connection)
 
         val dir = File(context.cacheDir, "generation").apply { mkdirs() }
+        cleanupGenerationCache(dir)
         val file = File(dir, "scene-" + System.currentTimeMillis() + "-" + index + ".png")
         connection.inputStream.buffered().use { input ->
             file.outputStream().use { outputStream -> input.copyTo(outputStream) }
@@ -182,6 +183,19 @@ class ComfyUiClient(
         }
     }
 
+    private fun cleanupGenerationCache(dir: File) {
+        val cutoff = System.currentTimeMillis() - CACHE_MAX_AGE_MS
+        dir.listFiles()?.forEach { file ->
+            if (file.isFile && file.lastModified() < cutoff) {
+                file.delete()
+            }
+        }
+    }
+
     private fun encode(value: String): String =
         URLEncoder.encode(value, Charsets.UTF_8.name())
+
+    private companion object {
+        const val CACHE_MAX_AGE_MS = 24L * 60L * 60L * 1000L
+    }
 }
