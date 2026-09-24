@@ -10,6 +10,7 @@ import androidx.core.content.FileProvider
 import com.alt.otherlives.core.model.Scenario
 import java.io.File
 import java.io.FileOutputStream
+import java.util.UUID
 
 object ShareCardRenderer {
     private const val WIDTH = 1080
@@ -47,11 +48,31 @@ object ShareCardRenderer {
         val footer=Paint(Paint.ANTI_ALIAS_FLAG).apply { color=Color.rgb(130,127,140); textSize=27f }
         canvas.drawText("See the lives you could have lived.",72f,1815f,footer)
         canvas.drawText("ALT",930f,1815f,accent)
-        val dir=File(context.cacheDir,"shares").apply { mkdirs() }
-        val file=File(dir,"alt-"+scenario.id+".jpg")
-        FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.JPEG,94,it) }
-        bitmap.recycle()
-        return FileProvider.getUriForFile(context,context.packageName+".fileprovider",file)
+        val dir = File(context.cacheDir, "shares").apply { mkdirs() }
+        val file = File(dir, "alt-" + scenario.id + "-" + UUID.randomUUID() + ".jpg")
+        val temporary = File(dir, "." + file.name + ".tmp")
+        try {
+            FileOutputStream(temporary).use { output ->
+                check(bitmap.compress(Bitmap.CompressFormat.JPEG, 94, output)) {
+                    "Unable to encode ALT share image"
+                }
+            }
+            require(temporary.length() > 0L) { "ALT share image is empty" }
+            if (!temporary.renameTo(file)) {
+                error("Unable to finalize ALT share image")
+            }
+            return FileProvider.getUriForFile(
+                context,
+                context.packageName + ".fileprovider",
+                file
+            )
+        } catch (error: Throwable) {
+            temporary.delete()
+            file.delete()
+            throw error
+        } finally {
+            bitmap.recycle()
+        }
     }
     fun saveToGallery(
         context: Context,
