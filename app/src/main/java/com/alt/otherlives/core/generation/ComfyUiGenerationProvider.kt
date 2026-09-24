@@ -92,17 +92,7 @@ class ComfyUiGenerationProvider(
                 )
                 val promptId = client.queuePrompt(workflow)
                 val outputs = client.awaitOutputs(promptId)
-                val selected = outputs
-                    .filter { it.filename.isNotBlank() }
-                    .maxWithOrNull(
-                        compareBy<ComfyUiClient.OutputImage> {
-                            if (it.type.equals("output", ignoreCase = true)) 1 else 0
-                        }.thenBy {
-                            it.nodeId.toIntOrNull() ?: Int.MIN_VALUE
-                        }.thenBy {
-                            it.filename
-                        }
-                    )
+                val selected = selectOutput(outputs)
                     ?: error("ComfyUI returned no image for chapter " + (index + 1))
                 val uri = client.download(selected, index)
                 return GeneratedScene(chapterIndex = index, imageUri = uri)
@@ -119,7 +109,20 @@ class ComfyUiGenerationProvider(
         )
     }
 
-    private companion object {
+    internal companion object {
         const val MAX_CHAPTER_ATTEMPTS = 2
+
+        fun selectOutput(outputs: List<ComfyUiClient.OutputImage>): ComfyUiClient.OutputImage? =
+            outputs
+                .filter { it.filename.isNotBlank() }
+                .maxWithOrNull(
+                    compareBy<ComfyUiClient.OutputImage> {
+                        if (it.type.equals("output", ignoreCase = true)) 1 else 0
+                    }.thenBy {
+                        it.nodeId.toIntOrNull() ?: Int.MIN_VALUE
+                    }.thenBy {
+                        it.filename
+                    }
+                )
     }
 }
