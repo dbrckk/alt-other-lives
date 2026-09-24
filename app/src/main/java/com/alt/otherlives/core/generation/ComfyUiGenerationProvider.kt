@@ -105,6 +105,9 @@ class ComfyUiGenerationProvider(
                 throw error
             } catch (error: Throwable) {
                 lastError = error
+                if (!ComfyUiRetryPolicy.shouldRetry(error)) {
+                    throw error
+                }
                 if (attempt < MAX_CHAPTER_ATTEMPTS - 1) {
                     delay(RETRY_DELAY_MS)
                 }
