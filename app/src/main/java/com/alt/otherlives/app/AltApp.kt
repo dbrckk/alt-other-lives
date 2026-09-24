@@ -88,8 +88,7 @@ fun AltApp() {
         val photoFileNames = history.mapNotNull { it.photoFileName }.distinct()
         val preflight = withContext(Dispatchers.IO) {
             val recentEntries = history.take(HISTORY_PREVIEW_LIMIT)
-            val recentPhotoFileNames = recentEntries.mapNotNull { it.photoFileName }.distinct()
-            val availablePhotos = recentPhotoFileNames.mapNotNull { fileName ->
+            val availablePhotos = photoFileNames.mapNotNull { fileName ->
                 runCatching { sourcePhotoStore.uriFor(fileName) }
                     .getOrNull()
                     ?.let { fileName to it }
@@ -106,7 +105,6 @@ fun AltApp() {
         historyPhotoUris = preflight.first
         historyGeneratedPreviewUris = preflight.second
         unavailablePhotoFileNames = photoFileNames
-            .filter { it in history.take(HISTORY_PREVIEW_LIMIT).mapNotNull { entry -> entry.photoFileName } }
             .filterNot { it in preflight.first }
             .toSet()
     }
