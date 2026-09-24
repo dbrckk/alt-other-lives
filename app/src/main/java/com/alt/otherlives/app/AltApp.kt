@@ -219,7 +219,6 @@ fun AltApp() {
                                 }
                             }
                         },
-                        unavailablePhotoFileNames = unavailablePhotoFileNames,
                         onClear = {
                             scope.launch {
                                 generationSettingsRepository.clear()
@@ -233,6 +232,7 @@ fun AltApp() {
                         entries = history,
                         scenarios = ScenarioCatalog.scenarios,
                         onBack = { screen = Screen.HOME },
+                        unavailablePhotoFileNames = unavailablePhotoFileNames,
                         onOpen = { scenario, entry ->
                             selectedScenario = scenario
                             activeTimelineKey = scenario.id + "-" + entry.createdAt
