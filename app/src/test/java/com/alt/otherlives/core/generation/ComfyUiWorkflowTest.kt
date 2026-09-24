@@ -22,6 +22,16 @@ class ComfyUiWorkflowTest {
         assertFalse(prompt.contains("__ALT_"))
     }
 
+    @Test
+    fun configAcceptsHttpsEndpoint() {
+        ComfyUiConfig("https://example.test").validate()
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun configRejectsPlainHttpEndpoint() {
+        ComfyUiConfig("http://192.168.1.10:8188").validate()
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun configRejectsNonHttpEndpoint() {
         ComfyUiConfig("ftp://example.test").validate()
