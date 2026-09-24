@@ -129,6 +129,92 @@ class GeneratedSceneStore(private val context: Context) {
         }
     }
 
+    fun replaceBatchAtomically(
+        timelineKey: String,
+        scenes: List<GeneratedScene>
+    ): List<GeneratedScene> {
+        if (scenes.isEmpty()) return emptyList()
+        val root = File(context.filesDir, "generated/$timelineKey").apply { mkdirs() }
+        val transaction = File(root, ".batch-" + System.nanoTime()).apply { mkdirs() }
+        val stagedDir = File(transaction, "staged").apply { mkdirs() }
+        val backupDir = File(transaction, "backup").apply { mkdirs() }
+
+        val staged = mutableListOf<Pair<Int, File>>()
+        try {
+            scenes.forEach { scene ->
+                val mimeType = context.contentResolver.getType(scene.imageUri)
+                val extension = mimeType
+                    ?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
+                    ?.takeIf { it.isNotBlank() }
+                    ?: scene.imageUri.lastPathSegment
+                        ?.substringAfterLast(".", "")
+                        ?.takeIf { it.isNotBlank() }
+                    ?: "png"
+                val stagedFile = File(stagedDir, filenameForChapter(scene.chapterIndex, extension))
+                context.contentResolver.openInputStream(scene.imageUri)?.use { input ->
+                    stagedFile.outputStream().use { output -> input.copyTo(output) }
+                } ?: error("Unable to stage generated scene " + scene.chapterIndex)
+                require(isValidImage(stagedFile)) {
+                    "Generated scene is invalid for chapter " + (scene.chapterIndex + 1)
+                }
+                staged += scene.chapterIndex to stagedFile
+            }
+
+            val affectedIndexes = staged.map { it.first }.toSet()
+            val previousFiles = root.listFiles()
+                ?.filter {
+                    it.isFile &&
+                        it.name.startsWith("scene-") &&
+                        chapterIndexFromFilename(it.name) in affectedIndexes
+                }
+                .orEmpty()
+
+            previousFiles.forEach { oldFile ->
+                val backup = File(backupDir, oldFile.name)
+                if (!oldFile.renameTo(backup)) {
+                    error("Unable to prepare atomic scene replacement")
+                }
+            }
+
+            val committed = mutableListOf<File>()
+            try {
+                staged.forEach { (_, stagedFile) ->
+                    val target = File(root, stagedFile.name)
+                    if (!stagedFile.renameTo(target)) {
+                        error("Unable to commit atomic scene replacement")
+                    }
+                    committed += target
+                }
+            } catch (error: Throwable) {
+                committed.forEach { it.delete() }
+                backupDir.listFiles()?.forEach { backup ->
+                    backup.renameTo(File(root, backup.name))
+                }
+                throw error
+            }
+
+            transaction.deleteRecursively()
+            return staged.map { (chapterIndex, stagedFile) ->
+                val target = File(root, stagedFile.name)
+                GeneratedScene(
+                    chapterIndex,
+                    FileProvider.getUriForFile(
+                        context,
+                        context.packageName + ".fileprovider",
+                        target
+                    )
+                )
+            }
+        } catch (error: Throwable) {
+            backupDir.listFiles()?.forEach { backup ->
+                val target = File(root, backup.name)
+                if (!target.exists()) backup.renameTo(target)
+            }
+            transaction.deleteRecursively()
+            throw error
+        }
+    }
+
     fun load(timelineKey: String): List<GeneratedScene> {
         val root = File(context.filesDir, "generated/$timelineKey")
         if (!root.exists()) return emptyList()
