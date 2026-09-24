@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import com.alt.otherlives.core.io.BoundedStreamCopy
 import java.net.HttpURLConnection
 import java.net.URLEncoder
 import java.net.URL
@@ -158,7 +159,13 @@ class ComfyUiClient(
                 "scene-" + System.currentTimeMillis() + "-" + index + "." + extension
             )
             connection.inputStream.buffered().use { input ->
-                file.outputStream().use { outputStream -> input.copyTo(outputStream) }
+                file.outputStream().use { outputStream ->
+                    BoundedStreamCopy.copy(
+                        input = input,
+                        output = outputStream,
+                        maxBytes = MAX_GENERATED_IMAGE_BYTES
+                    )
+                }
             }
 
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
@@ -294,5 +301,6 @@ class ComfyUiClient(
     private companion object {
         const val CACHE_MAX_AGE_MS = 24L * 60L * 60L * 1000L
         const val MAX_ERROR_BODY_CHARS = 500
+        const val MAX_GENERATED_IMAGE_BYTES = 100L * 1024L * 1024L
     }
 }
