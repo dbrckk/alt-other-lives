@@ -152,6 +152,23 @@ fun RevealScreen(
                 }
             }
         }
+        if (isLoadingStoredScenes) {
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 14.dp)
+                ) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Restoring saved ALT scenes…",
+                        color = AltDimmed,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+        }
         itemsIndexed(scenario.chapters) { index, chapter ->
             Column(Modifier.padding(horizontal = 24.dp, vertical = 18.dp)) {
                 generatedScenes.firstOrNull { it.chapterIndex == index }?.let { generated ->
