@@ -28,7 +28,8 @@ fun GenerationSettingsScreen(
     settings: GenerationSettings,
     onBack: () -> Unit,
     onSave: (String, String) -> Unit,
-    onClear: () -> Unit
+    onClear: () -> Unit,
+    statusMessage: String? = null
 ) {
     var baseUrl by remember(settings.comfyUiBaseUrl) { mutableStateOf(settings.comfyUiBaseUrl) }
     var workflow by remember(settings.workflowJson) { mutableStateOf(settings.workflowJson) }
@@ -73,6 +74,11 @@ fun GenerationSettingsScreen(
             enabled = baseUrl.isNotBlank() && workflow.isNotBlank(),
             modifier = Modifier.fillMaxWidth()
         ) { Text("Save ComfyUI settings") }
+
+        statusMessage?.let {
+            Spacer(Modifier.height(10.dp))
+            Text(it, color = AltMuted)
+        }
 
         if (settings.isConfigured) {
             Spacer(Modifier.height(10.dp))
