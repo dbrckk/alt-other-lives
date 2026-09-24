@@ -275,6 +275,31 @@ fun AltApp() {
                             }
                             screen = Screen.REVEAL
                         },
+                        onDelete = { entry ->
+                            scope.launch {
+                                val keep = historyRepository.remove(entry)
+                                withContext(Dispatchers.IO) {
+                                    sourcePhotoStore.deleteUnreferenced(keep.photoFileNames)
+                                    generatedSceneStore.deleteUnreferenced(keep.timelineKeys)
+                                }
+                                val deletedTimelineKey = entry.scenarioId + "-" + entry.createdAt
+                                historyGeneratedPreviewUris = historyGeneratedPreviewUris - deletedTimelineKey
+                                entry.photoFileName?.let { deletedPhotoFileName ->
+                                    if (deletedPhotoFileName !in keep.photoFileNames) {
+                                        historyPhotoUris = historyPhotoUris - deletedPhotoFileName
+                                        unavailablePhotoFileNames =
+                                            unavailablePhotoFileNames - deletedPhotoFileName
+                                        if (photoFileName == deletedPhotoFileName) {
+                                            photoUri = null
+                                            photoFileName = null
+                                        }
+                                    }
+                                }
+                                if (activeTimelineKey == deletedTimelineKey) {
+                                    activeTimelineKey = null
+                                }
+                            }
+                        },
                         onClear = {
                             scope.launch {
                                 historyRepository.clear()
