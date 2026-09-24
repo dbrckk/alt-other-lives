@@ -493,7 +493,7 @@ class GeneratedSceneStore(private val context: Context) {
                 } else {
                     val restored = File(root, originalName)
                     if (!backup.renameTo(restored)) {
-                        backup.delete()
+                        return@forEach
                     }
                 }
             }
