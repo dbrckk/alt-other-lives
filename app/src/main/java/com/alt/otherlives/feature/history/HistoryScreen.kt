@@ -36,12 +36,14 @@ fun HistoryScreen(
     scenarios: List<Scenario>,
     onBack: () -> Unit,
     onOpen: (Scenario, HistoryEntry) -> Unit,
+    onDelete: (HistoryEntry) -> Unit,
     onClear: () -> Unit,
     unavailablePhotoFileNames: Set<String> = emptySet(),
     photoUrisByFileName: Map<String, Uri> = emptyMap(),
     generatedPreviewUrisByTimelineKey: Map<String, Uri> = emptyMap()
 ) {
     var showClearConfirmation by remember { mutableStateOf(false) }
+    var pendingDeleteEntry by remember { mutableStateOf<HistoryEntry?>(null) }
 
     Column(Modifier.fillMaxSize().padding(top = 42.dp)) {
         Row(
@@ -177,7 +179,18 @@ fun HistoryScreen(
                                     }
                                 }
 
-                                Text("›", color = AltMuted, fontSize = 28.sp)
+                                Column(
+                                    horizontalAlignment = Alignment.End,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text("›", color = AltMuted, fontSize = 28.sp)
+                                    TextButton(
+                                        onClick = { pendingDeleteEntry = entry },
+                                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
+                                    ) {
+                                        Text("Delete", color = AltMuted, fontSize = 11.sp)
+                                    }
+                                }
                             }
                         }
                     }
@@ -191,6 +204,31 @@ fun HistoryScreen(
                 Text("Clear local history")
             }
         }
+    }
+
+    pendingDeleteEntry?.let { entry ->
+        AlertDialog(
+            onDismissRequest = { pendingDeleteEntry = null },
+            title = { Text("Delete this ALT life?") },
+            text = {
+                Text("This removes this saved timeline and any private media no longer used by another timeline.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pendingDeleteEntry = null
+                        onDelete(entry)
+                    }
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingDeleteEntry = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     if (showClearConfirmation) {
