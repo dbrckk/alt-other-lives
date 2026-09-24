@@ -28,6 +28,7 @@ fun GenerationSettingsScreen(
     settings: GenerationSettings,
     onBack: () -> Unit,
     onSave: (String, String) -> Unit,
+    onTestConnection: (String) -> Unit,
     onClear: () -> Unit,
     statusMessage: String? = null
 ) {
@@ -74,6 +75,13 @@ fun GenerationSettingsScreen(
             enabled = baseUrl.isNotBlank() && workflow.isNotBlank(),
             modifier = Modifier.fillMaxWidth()
         ) { Text("Save ComfyUI settings") }
+
+        Spacer(Modifier.height(10.dp))
+        TextButton(
+            onClick = { onTestConnection(baseUrl) },
+            enabled = baseUrl.isNotBlank(),
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Test connection") }
 
         statusMessage?.let {
             Spacer(Modifier.height(10.dp))
