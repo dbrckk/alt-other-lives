@@ -53,6 +53,7 @@ fun AltApp() {
     var hasRestoredStartupPhoto by remember { mutableStateOf(false) }
     var unavailablePhotoFileNames by remember { mutableStateOf<Set<String>>(emptySet()) }
     var historyPhotoUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
+    var historyGeneratedPreviewUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
     val context = LocalContext.current
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
     val sourcePhotoStore = remember(context) { SourcePhotoStore(context.applicationContext) }
@@ -82,15 +83,24 @@ fun AltApp() {
 
     LaunchedEffect(history) {
         val photoFileNames = history.mapNotNull { it.photoFileName }.distinct()
-        val available = withContext(Dispatchers.IO) {
-            photoFileNames.mapNotNull { fileName ->
+        val preflight = withContext(Dispatchers.IO) {
+            val availablePhotos = photoFileNames.mapNotNull { fileName ->
                 runCatching { sourcePhotoStore.uriFor(fileName) }
                     .getOrNull()
                     ?.let { fileName to it }
             }.toMap()
+            val generatedPreviews = history.mapNotNull { entry ->
+                val timelineKey = entry.scenarioId + "-" + entry.createdAt
+                generatedSceneStore.load(timelineKey)
+                    .minByOrNull { it.chapterIndex }
+                    ?.imageUri
+                    ?.let { timelineKey to it }
+            }.toMap()
+            availablePhotos to generatedPreviews
         }
-        historyPhotoUris = available
-        unavailablePhotoFileNames = photoFileNames.filterNot { it in available }.toSet()
+        historyPhotoUris = preflight.first
+        historyGeneratedPreviewUris = preflight.second
+        unavailablePhotoFileNames = photoFileNames.filterNot { it in preflight.first }.toSet()
     }
 
     LaunchedEffect(history, hasRestoredStartupPhoto) {
@@ -239,6 +249,7 @@ fun AltApp() {
                         onBack = { screen = Screen.HOME },
                         unavailablePhotoFileNames = unavailablePhotoFileNames,
                         photoUrisByFileName = historyPhotoUris,
+                        generatedPreviewUrisByTimelineKey = historyGeneratedPreviewUris,
                         onOpen = { scenario, entry ->
                             selectedScenario = scenario
                             activeTimelineKey = scenario.id + "-" + entry.createdAt
