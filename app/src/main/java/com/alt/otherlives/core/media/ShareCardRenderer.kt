@@ -14,11 +14,11 @@ import java.io.FileOutputStream
 object ShareCardRenderer {
     private const val WIDTH = 1080
     private const val HEIGHT = 1920
-    fun render(context: Context, photoUri: Uri?, scenario: Scenario): Uri {
+    fun render(context: Context, photoUri: Uri?, scenario: Scenario, fallbackImageUri: Uri? = null): Uri {
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         canvas.drawColor(Color.rgb(8, 8, 10))
-        photoUri?.let { uri ->
+        (photoUri ?: fallbackImageUri)?.let { uri ->
             BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)?.let { source ->
                 drawCover(canvas, source, Rect(0, 0, WIDTH, 900))
                 source.recycle()
@@ -53,11 +53,16 @@ object ShareCardRenderer {
         bitmap.recycle()
         return FileProvider.getUriForFile(context,context.packageName+".fileprovider",file)
     }
-    fun saveToGallery(context: Context, photoUri: Uri?, scenario: Scenario): Uri {
+    fun saveToGallery(
+        context: Context,
+        photoUri: Uri?,
+        scenario: Scenario,
+        fallbackImageUri: Uri? = null
+    ): Uri {
         require(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             "Direct gallery save requires Android 10 or newer"
         }
-        val rendered = render(context, photoUri, scenario)
+        val rendered = render(context, photoUri, scenario, fallbackImageUri)
         val values = android.content.ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, "ALT-" + scenario.id + "-" + System.currentTimeMillis() + ".jpg")
             put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
