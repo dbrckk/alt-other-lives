@@ -113,9 +113,11 @@ fun AltApp() {
             }.toMap()
             val generatedPreviews = recentEntries.mapNotNull { entry ->
                 val timelineKey = entry.timelineKey
-                generatedSceneStore.load(timelineKey)
-                    .minByOrNull { it.chapterIndex }
-                    ?.imageUri
+                runCatching {
+                    generatedSceneStore.load(timelineKey)
+                        .minByOrNull { it.chapterIndex }
+                        ?.imageUri
+                }.getOrNull()
                     ?.let { timelineKey to it }
             }.toMap()
             availablePhotos to generatedPreviews
