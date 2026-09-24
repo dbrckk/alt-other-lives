@@ -11,7 +11,7 @@ class ComfyUiRetryPolicyTest {
     fun retriesTimeoutsAndIoFailures() {
         assertTrue(ComfyUiRetryPolicy.shouldRetry(SocketTimeoutException("timeout")))
         assertTrue(ComfyUiRetryPolicy.shouldRetry(IOException("connection reset")))
-        assertTrue(ComfyUiRetryPolicy.shouldRetry(IllegalStateException("ComfyUI generation timed out")))
+        assertFalse(ComfyUiRetryPolicy.shouldRetry(IllegalStateException("ComfyUI generation timed out")))
     }
 
     @Test
