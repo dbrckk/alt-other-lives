@@ -76,27 +76,34 @@ fun AltApp() {
 
     LaunchedEffect(Unit) {
         if (photoUri == null && !isImportingPhoto) {
-            withContext(Dispatchers.IO) {
-                sourcePhotoStore.latestStoredPhoto()
-            }?.let { stored ->
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    sourcePhotoStore.latestStoredPhoto()
+                }
+            }.getOrNull()?.let { stored ->
                 photoUri = stored.uri
                 photoFileName = stored.fileName
             }
         }
 
-        val startupHistory = historyRepository.history.first()
+        val startupHistory = runCatching {
+            historyRepository.history.first()
+        }.getOrDefault(emptyList())
+
         startupHistory.firstOrNull()?.let { latest ->
             ScenarioCatalog.scenarios.firstOrNull { it.id == latest.scenarioId }?.let { scenario ->
                 selectedScenario = scenario
                 activeTimelineKey = latest.timelineKey
                 if (photoUri == null) {
                     latest.photoFileName?.let { fileName ->
-                        runCatching { sourcePhotoStore.uriFor(fileName) }
-                            .getOrNull()
-                            ?.let { uri ->
-                                photoUri = uri
-                                photoFileName = fileName
+                        runCatching {
+                            withContext(Dispatchers.IO) {
+                                sourcePhotoStore.uriFor(fileName)
                             }
+                        }.getOrNull()?.let { uri ->
+                            photoUri = uri
+                            photoFileName = fileName
+                        }
                     }
                 }
             }
