@@ -2,12 +2,12 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 4 — Reliable AI generation and history UX",
-  "currentTask": "Remove main-thread media/storage work from Reveal while preserving atomic AI generation and export consistency.",
-  "lastKnownBlocker": "The async scene callback interface produced one expected intermediate CI failure before the ComfyUI implementation was updated.",
-  "fixApplied": "Persisted scenes now restore on IO, generated chapters persist asynchronously, seed access is off-main, AI scene removal is asynchronous, restore progress is visible, and MP4 gallery saves run on IO.",
+  "currentTask": "Harden full AI regeneration so scenes and seed commit atomically and recover safely after crashes.",
+  "lastKnownBlocker": "Atomic regeneration originally replaced chapters one by one and could leave mixed old/new state if persistence failed mid-batch.",
+  "fixApplied": "Full regeneration now stages all scenes, validates chapter indexes, commits scenes and seed together, distinguishes completed vs interrupted transactions, performs idempotent rollback, rebuilds missing manifests when possible, and has JVM tests for recovery planning and filename/index validation.",
   "next": [
-    "Verify cumulative CI for asynchronous AI scene removal and MP4 gallery saving",
-    "Audit remaining Reveal actions for main-thread disk work",
+    "Verify filename codec CI runs #276–#278",
+    "Audit remaining generation/export state transitions for stale UI after process interruption",
     "Continue premium Reveal polish only after CI remains green",
     "Preserve deterministic ComfyUI output selection and atomic regeneration guarantees"
   ],
