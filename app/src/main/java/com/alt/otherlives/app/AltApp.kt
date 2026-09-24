@@ -51,6 +51,7 @@ fun AltApp() {
     var isTestingConnection by remember { mutableStateOf(false) }
     var connectionTestJob by remember { mutableStateOf<Job?>(null) }
     var hasRestoredStartupPhoto by remember { mutableStateOf(false) }
+    var unavailablePhotoFileNames by remember { mutableStateOf<Set<String>>(emptySet()) }
     val context = LocalContext.current
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
     val sourcePhotoStore = remember(context) { SourcePhotoStore(context.applicationContext) }
@@ -76,6 +77,15 @@ fun AltApp() {
             }
         }
         hasRestoredStartupPhoto = true
+    }
+
+    LaunchedEffect(history) {
+        unavailablePhotoFileNames = withContext(Dispatchers.IO) {
+            history.mapNotNull { it.photoFileName }
+                .distinct()
+                .filterNot { sourcePhotoStore.isAvailable(it) }
+                .toSet()
+        }
     }
 
     LaunchedEffect(history, hasRestoredStartupPhoto) {
@@ -209,6 +219,7 @@ fun AltApp() {
                                 }
                             }
                         },
+                        unavailablePhotoFileNames = unavailablePhotoFileNames,
                         onClear = {
                             scope.launch {
                                 generationSettingsRepository.clear()
