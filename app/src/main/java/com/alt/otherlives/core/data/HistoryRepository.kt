@@ -52,6 +52,9 @@ class HistoryRepository(private val context: Context) {
         photoFileName: String? = null,
         createdAt: Long = System.currentTimeMillis()
     ): RecordResult {
+        require(HistoryEntryValidation.isValid(scenarioId, createdAt, photoFileName)) {
+            "Invalid history entry"
+        }
         var referencedPhotoFileNames = emptySet<String>()
         var referencedTimelineKeys = emptySet<String>()
         context.altDataStore.edit { prefs ->
