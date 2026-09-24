@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 4 — Reliable AI generation and history UX",
-  "currentTask": "Harden full AI regeneration so scenes and seed commit atomically and recover safely after crashes.",
-  "lastKnownBlocker": "Atomic regeneration originally replaced chapters one by one and could leave mixed old/new state if persistence failed mid-batch.",
-  "fixApplied": "Full regeneration now stages all scenes, validates chapter indexes, commits scenes and seed together, distinguishes completed vs interrupted transactions, performs idempotent rollback, rebuilds missing manifests when possible, and has JVM tests for recovery planning and filename/index validation.",
+  "currentTask": "Harden persisted storage paths, history/settings validation, and crash recovery around full AI regeneration.",
+  "lastKnownBlocker": "A crash during the pre-commit backup phase could move old scene files into a transaction directory before commit.started existed, risking data loss on recovery.",
+  "fixApplied": "Pre-commit backups are now restored before cleanup, timeline keys and source-photo filenames are canonically validated, history invariants apply on read/write, persisted ComfyUI settings are bounded and revalidated, and invalid saved settings remain editable with a visible warning.",
   "next": [
-    "Verify filename codec CI runs #276–#278",
-    "Audit remaining generation/export state transitions for stale UI after process interruption",
-    "Continue premium Reveal polish only after CI remains green",
-    "Preserve deterministic ComfyUI output selection and atomic regeneration guarantees"
+    "Verify cumulative CI runs #297–#303",
+    "Continue auditing crash windows in private media transactions",
+    "Keep invalid persisted state recoverable instead of deleting user data automatically",
+    "Preserve deterministic ComfyUI output selection and atomic full-regeneration guarantees"
   ],
   "updated": "2026-09-24"
 }
