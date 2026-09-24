@@ -14,6 +14,7 @@ import java.net.URLEncoder
 import java.net.URL
 import java.util.UUID
 import android.webkit.MimeTypeMap
+import android.graphics.BitmapFactory
 
 class ComfyUiClient(
     private val context: Context,
@@ -130,6 +131,14 @@ class ComfyUiClient(
         connection.inputStream.buffered().use { input ->
             file.outputStream().use { outputStream -> input.copyTo(outputStream) }
         }
+
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
+            file.delete()
+            error("ComfyUI returned an invalid image for chapter " + (index + 1))
+        }
+
         FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
     }
 
