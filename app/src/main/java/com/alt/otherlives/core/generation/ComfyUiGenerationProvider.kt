@@ -3,6 +3,7 @@ package com.alt.otherlives.core.generation
 import android.content.Context
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
+import java.security.SecureRandom
 
 class ComfyUiGenerationProvider(
     context: Context,
@@ -30,9 +31,7 @@ class ComfyUiGenerationProvider(
 
         val uploaded = client.uploadImage(request.sourcePhoto)
         val result = mutableListOf<GeneratedScene>()
-        val sessionSeed = request.seed
-            ?.takeIf { it > 0L }
-            ?: (System.currentTimeMillis() and Long.MAX_VALUE).coerceAtLeast(1L)
+        val sessionSeed = resolveSessionSeed(request.seed)
 
         val failures = mutableListOf<String>()
         var processed = 0
@@ -122,6 +121,15 @@ class ComfyUiGenerationProvider(
     internal companion object {
         const val MAX_CHAPTER_ATTEMPTS = 2
         const val RETRY_DELAY_MS = 750L
+        private val seedRandom = SecureRandom()
+
+        fun resolveSessionSeed(seed: Long?): Long {
+            if (seed != null) {
+                require(seed > 0L) { "Generation seed must be positive" }
+                return seed
+            }
+            return (seedRandom.nextLong() and Long.MAX_VALUE).coerceAtLeast(1L)
+        }
 
         fun validateRequestedChapterIndexes(
             requested: Set<Int>?,
