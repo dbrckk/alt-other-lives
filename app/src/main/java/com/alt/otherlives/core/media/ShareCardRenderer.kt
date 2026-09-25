@@ -118,7 +118,11 @@ object ShareCardRenderer {
             require(copiedBytes > 0L) { "Rendered share image copy was empty" }
             values.clear()
             values.put(MediaStore.Images.Media.IS_PENDING, 0)
-            context.contentResolver.update(target, values, null, null)
+            require(
+                context.contentResolver.update(target, values, null, null) > 0
+            ) {
+                "Unable to finalize image gallery item"
+            }
             return target
         } catch (error: Throwable) {
             context.contentResolver.delete(target, null, null)
