@@ -3,6 +3,11 @@ package com.alt.otherlives.core.media
 internal object BitmapSampling {
     const val MAX_DECODE_PIXELS = 12_000_000L
 
+    fun isDecodedSizeSafe(width: Int, height: Int): Boolean =
+        width > 0 &&
+            height > 0 &&
+            width.toLong() * height.toLong() <= MAX_DECODE_PIXELS
+
     fun calculateSampleSize(
         sourceWidth: Int,
         sourceHeight: Int,
