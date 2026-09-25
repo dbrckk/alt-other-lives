@@ -52,9 +52,12 @@ object ComfyUiWorkflow {
             append("cinematic portrait photography, same person and facial identity, ")
             append("use the source photo as the immutable identity anchor for every chapter, ")
             append("preserve identity-defining facial geometry, eye color, skin tone, hairline and hair texture, ")
+            append("preserve face shape, eyebrow shape, nose bridge and tip, lip shape, jaw and chin proportions, ear shape and natural facial asymmetries, ")
             append("preserve apparent gender presentation and distinctive facial features unless the narrative explicitly requires a change, ")
+            append("clothing, hairstyle, grooming and environment may evolve with the chapter while the underlying face remains the same person, ")
             append("no identity swap, no lookalike drift, no face replacement, ")
-            append("age progression only when narratively justified and always recognizably the same person, ")
+            append("keep facial age consistent unless the timeline explicitly advances time; when aging is justified, evolve from the same facial baseline rather than recasting the person, ")
+            append("age progression must remain recognizably the same person, ")
             append("premium editorial lighting, realistic skin, coherent anatomy, ")
             append("vertical 9:16 composition, no text, no watermark, ")
             append("cinematic continuity, consistent lens language and premium color grading across the sequence, ")
@@ -72,6 +75,7 @@ object ComfyUiWorkflow {
 
     fun negativePrompt(): String =
         "different person, identity drift, identity swap, face replacement, altered facial geometry, " +
+            "changed nose, changed lip shape, changed jawline, changed face shape, genericized face, " +
             "inconsistent eye color, inconsistent skin tone, malformed face, deformed anatomy, " +
             "extra fingers, extra limbs, duplicate person, low-detail skin, plastic skin, " +
             "text, caption, logo, watermark, frame, collage"
