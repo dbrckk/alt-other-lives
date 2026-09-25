@@ -19,6 +19,7 @@ class GeneratedSceneStore(private val context: Context) {
 
     fun getOrCreateSeed(timelineKey: String): Long {
         val root = timelineRoot(timelineKey).apply { mkdirs() }
+        recoverInterruptedWrites(root)
         val seedFile = File(root, "seed.txt")
         seedFile.takeIf { it.exists() }
             ?.readText()
@@ -42,6 +43,7 @@ class GeneratedSceneStore(private val context: Context) {
     fun setSeed(timelineKey: String, seed: Long) {
         require(seed > 0L) { "Seed must be positive" }
         val root = timelineRoot(timelineKey).apply { mkdirs() }
+        recoverInterruptedWrites(root)
         val target = File(root, "seed.txt")
         val temporary = File(root, ".seed-" + System.nanoTime() + ".tmp")
         val backup = File(root, ".seed.bak")
@@ -465,15 +467,7 @@ class GeneratedSceneStore(private val context: Context) {
             ?.filter { it.isFile && it.name.startsWith(".seed-") && it.name.endsWith(".tmp") }
             ?.forEach { it.delete() }
 
-        val seedBackup = File(root, ".seed.bak")
-        val seedTarget = File(root, "seed.txt")
-        if (seedBackup.exists()) {
-            if (seedTarget.exists()) {
-                seedBackup.delete()
-            } else {
-                seedBackup.renameTo(seedTarget)
-            }
-        }
+        SeedFileRecovery.recover(root)
 
         root.listFiles()
             ?.filter { it.isFile && it.name.startsWith(".scene-") && it.name.endsWith(".tmp") }
