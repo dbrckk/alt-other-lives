@@ -174,9 +174,12 @@ object CinematicVideoExporter {
         )
 
         try {
-            resolver.openOutputStream(target)?.use { output ->
-                resolver.openInputStream(uri)?.use { input -> input.copyTo(output) }
+            val copiedBytes = resolver.openOutputStream(target)?.use { output ->
+                val input = resolver.openInputStream(uri)
+                    ?: error("Unable to open exported video")
+                input.use { it.copyTo(output) }
             } ?: error("Unable to open video gallery output")
+            require(copiedBytes > 0L) { "Exported video copy was empty" }
 
             values.clear()
             values.put(MediaStore.Video.Media.IS_PENDING, 0)
