@@ -6,6 +6,12 @@ import org.junit.Test
 
 class BitmapSamplingTest {
     @Test
+    fun actualDecodedSizeMustStayWithinMemoryCap() {
+        assertTrue(BitmapSampling.isDecodedSizeSafe(3000, 4000))
+        assertTrue(!BitmapSampling.isDecodedSizeSafe(4000, 4000))
+    }
+
+    @Test
     fun keepsSmallImagesAtFullResolution() {
         assertEquals(
             1,
