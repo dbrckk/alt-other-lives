@@ -56,6 +56,7 @@ import com.alt.otherlives.core.model.Scenario
 import com.alt.otherlives.core.media.ShareCardRenderer
 import com.alt.otherlives.core.media.CinematicVideoExporter
 import com.alt.otherlives.core.media.TimelineSceneRenderer
+import com.alt.otherlives.core.media.RenderedTimelineScenes
 import com.alt.otherlives.core.generation.ComfyUiConfig
 import com.alt.otherlives.core.generation.ComfyUiGenerationProvider
 import com.alt.otherlives.core.generation.GenerationRequest
@@ -79,6 +80,7 @@ fun RevealScreen(
     var isExporting by remember { mutableStateOf(false) }
     var exportProgress by remember { mutableStateOf<Int?>(null) }
     var activeTransformer by remember { mutableStateOf<Transformer?>(null) }
+    var activeRenderedScenes by remember { mutableStateOf<RenderedTimelineScenes?>(null) }
     var exportJob by remember { mutableStateOf<Job?>(null) }
     var completedVideoUri by remember(timelineKey) { mutableStateOf<Uri?>(null) }
     var isRenderingShareImage by remember { mutableStateOf(false) }
@@ -138,6 +140,7 @@ fun RevealScreen(
             aiGenerationJob?.cancel()
             exportJob?.cancel()
             activeTransformer?.let { CinematicVideoExporter.cancel(it) }
+            activeRenderedScenes?.deleteCacheFiles()
         }
     }
     LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 40.dp)) {
@@ -618,42 +621,74 @@ fun RevealScreen(
                                     }
                                 }
 
-                                prepared.onSuccess { sceneUris ->
-                                    activeTransformer = CinematicVideoExporter.export(
-                                        context = context,
-                                        imageUris = sceneUris,
-                                        scenario = scenario,
-                                        onCompleted = { videoUri ->
-                                            isExporting = false
-                                            exportProgress = 100
-                                            activeTransformer = null
-                                            exportJob = null
-                                            completedVideoUri = videoUri
-                                            Toast.makeText(context, "Video ready", Toast.LENGTH_SHORT).show()
-                                        },
-                                        onError = {
-                                            isExporting = false
-                                            exportProgress = null
-                                            activeTransformer = null
-                                            exportJob = null
-                                            completedVideoUri = null
+                                prepared.onSuccess { renderedScenes ->
+                                    activeRenderedScenes = renderedScenes
+                                    runCatching {
+                                        CinematicVideoExporter.export(
+                                            context = context,
+                                            imageUris = renderedScenes.imageUris,
+                                            scenario = scenario,
+                                            onCompleted = { videoUri ->
+                                                renderedScenes.deleteCacheFiles()
+                                                activeRenderedScenes = null
+                                                isExporting = false
+                                                exportProgress = 100
+                                                activeTransformer = null
+                                                exportJob = null
+                                                completedVideoUri = videoUri
+                                                Toast.makeText(
+                                                    context,
+                                                    "Video ready",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            },
+                                            onError = {
+                                                renderedScenes.deleteCacheFiles()
+                                                activeRenderedScenes = null
+                                                isExporting = false
+                                                exportProgress = null
+                                                activeTransformer = null
+                                                exportJob = null
+                                                completedVideoUri = null
+                                                Toast.makeText(
+                                                    context,
+                                                    "Video export failed: " +
+                                                        (it.message ?: "unknown error"),
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        )
+                                    }.onSuccess { transformer ->
+                                        activeTransformer = transformer
+                                    }.onFailure {
+                                        renderedScenes.deleteCacheFiles()
+                                        activeRenderedScenes = null
+                                        isExporting = false
+                                        exportProgress = null
+                                        activeTransformer = null
+                                        exportJob = null
+                                        completedVideoUri = null
+                                        if (it !is CancellationException) {
                                             Toast.makeText(
                                                 context,
-                                                "Video export failed: " + (it.message ?: "unknown error"),
+                                                "Could not start video export: " +
+                                                    (it.message ?: "unknown error"),
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
-                                    )
+                                    }
                                 }.onFailure {
                                     isExporting = false
                                     exportProgress = null
                                     activeTransformer = null
+                                    activeRenderedScenes = null
                                     exportJob = null
                                     completedVideoUri = null
-                                    if (it !is kotlinx.coroutines.CancellationException) {
+                                    if (it !is CancellationException) {
                                         Toast.makeText(
                                             context,
-                                            "Could not prepare video: " + (it.message ?: "unknown error"),
+                                            "Could not prepare video: " +
+                                                (it.message ?: "unknown error"),
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     }
@@ -688,6 +723,8 @@ fun RevealScreen(
                             exportJob = null
                             activeTransformer?.let { CinematicVideoExporter.cancel(it) }
                             activeTransformer = null
+                            activeRenderedScenes?.deleteCacheFiles()
+                            activeRenderedScenes = null
                             isExporting = false
                             exportProgress = null
                         },
