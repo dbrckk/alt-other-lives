@@ -65,9 +65,9 @@ class ComfyUiClient(
         }
 
         try {
-            val mimeType = context.contentResolver.getType(uri)
-                ?.takeIf { it.startsWith("image/") }
-                ?: "image/jpeg"
+            val mimeType = requireImageMimeType(
+                context.contentResolver.getType(uri)
+            )
             val extension = MimeTypeMap.getSingleton()
                 .getExtensionFromMimeType(mimeType)
                 ?.takeIf { it.isNotBlank() }
@@ -388,6 +388,18 @@ class ComfyUiClient(
 
     internal companion object {
         const val CACHE_MAX_AGE_MS = 24L * 60L * 60L * 1000L
+
+        fun requireImageMimeType(mimeType: String?): String {
+            val normalized = mimeType
+                ?.substringBefore(";")
+                ?.trim()
+                ?.lowercase()
+                .orEmpty()
+            require(normalized.startsWith("image/")) {
+                "Source photo MIME type is missing or not an image"
+            }
+            return normalized
+        }
 
         fun sourceUploadFileName(sourceKey: String, extension: String): String {
             require(sourceKey.isNotBlank()) { "Source upload key is required" }
