@@ -260,20 +260,6 @@ class ComfyUiClient(
         }
     }
 
-    internal companion object {
-        fun sourceUploadFileName(sourceKey: String, extension: String): String {
-            require(sourceKey.isNotBlank()) { "Source upload key is required" }
-            val safeExtension = extension
-                .lowercase()
-                .takeIf { it.matches(Regex("[a-z0-9]{1,8}")) }
-                ?: "jpg"
-            val digest = MessageDigest.getInstance("SHA-256")
-                .digest(sourceKey.toByteArray(Charsets.UTF_8))
-                .joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
-            return "alt-source-" + digest.take(32) + "." + safeExtension
-        }
-    }
-
     private data class HistorySnapshot(
         val status: String?,
         val completed: Boolean,
@@ -399,8 +385,21 @@ class ComfyUiClient(
     private fun encode(value: String): String =
         URLEncoder.encode(value, Charsets.UTF_8.name())
 
-    private companion object {
+    internal companion object {
         const val CACHE_MAX_AGE_MS = 24L * 60L * 60L * 1000L
+
+        fun sourceUploadFileName(sourceKey: String, extension: String): String {
+            require(sourceKey.isNotBlank()) { "Source upload key is required" }
+            val safeExtension = extension
+                .lowercase()
+                .takeIf { it.matches(Regex("[a-z0-9]{1,8}")) }
+                ?: "jpg"
+            val digest = MessageDigest.getInstance("SHA-256")
+                .digest(sourceKey.toByteArray(Charsets.UTF_8))
+                .joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
+            return "alt-source-" + digest.take(32) + "." + safeExtension
+        }
+
         const val MAX_ERROR_BODY_CHARS = 500
         const val MAX_ERROR_BODY_READ_CHARS = 4_096
         const val MAX_RESPONSE_BODY_CHARS = 4_000_000
