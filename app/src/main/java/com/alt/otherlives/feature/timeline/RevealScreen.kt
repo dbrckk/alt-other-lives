@@ -58,6 +58,7 @@ import com.alt.otherlives.core.media.CinematicVideoExporter
 import com.alt.otherlives.core.media.TimelineSceneRenderer
 import com.alt.otherlives.core.media.RenderedTimelineScenes
 import com.alt.otherlives.core.generation.ComfyUiConfig
+import com.alt.otherlives.core.generation.GenerationDownloadCache
 import com.alt.otherlives.core.generation.ComfyUiGenerationProvider
 import com.alt.otherlives.core.generation.GenerationRequest
 import com.alt.otherlives.core.generation.GenerationSettings
@@ -266,6 +267,10 @@ fun RevealScreen(
                                             if (!resetSeed) {
                                                 generatedScenes = withContext(Dispatchers.IO) {
                                                     sceneStore.persist(timelineKey, listOf(generated))
+                                                    GenerationDownloadCache.deleteIfOwned(
+                                                        context,
+                                                        generated.imageUri
+                                                    )
                                                     sceneStore.load(timelineKey)
                                                 }
                                             }
@@ -286,8 +291,23 @@ fun RevealScreen(
                                                     scenes = newScenes,
                                                     seed = generationSeed
                                                 )
+                                                newScenes.forEach { scene ->
+                                                    GenerationDownloadCache.deleteIfOwned(
+                                                        context,
+                                                        scene.imageUri
+                                                    )
+                                                }
                                             }
                                             sceneStore.load(timelineKey)
+                                        }
+                                    } else if (resetSeed) {
+                                        withContext(Dispatchers.IO) {
+                                            newScenes.forEach { scene ->
+                                                GenerationDownloadCache.deleteIfOwned(
+                                                    context,
+                                                    scene.imageUri
+                                                )
+                                            }
                                         }
                                     }
 
