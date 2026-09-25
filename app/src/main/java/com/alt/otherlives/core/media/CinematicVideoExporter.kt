@@ -31,6 +31,9 @@ object CinematicVideoExporter {
     private val activeOutputs = Collections.synchronizedMap(
         WeakHashMap<Transformer, File>()
     )
+    private val cancelledExports = Collections.synchronizedMap(
+        WeakHashMap<Transformer, Boolean>()
+    )
 
     private const val INTRO_DURATION_MS = 1800L
     private const val CHAPTER_DURATION_MS = 2200L
@@ -93,7 +96,14 @@ object CinematicVideoExporter {
         val transformer = Transformer.Builder(context)
             .addListener(object : Transformer.Listener {
                 override fun onCompleted(composition: Composition, result: ExportResult) {
-                    transformerHolder[0]?.let { activeOutputs.remove(it) }
+                    val wasCancelled = transformerHolder[0]?.let { transformer ->
+                        activeOutputs.remove(transformer)
+                        cancelledExports.remove(transformer) == true
+                    } ?: false
+                    if (wasCancelled) {
+                        outputFile.delete()
+                        return
+                    }
                     if (!outputFile.exists() || outputFile.length() <= 0L) {
                         outputFile.delete()
                         onError(IllegalStateException("Video export completed without a valid MP4 file"))
@@ -112,9 +122,14 @@ object CinematicVideoExporter {
                     result: ExportResult,
                     exception: ExportException
                 ) {
-                    transformerHolder[0]?.let { activeOutputs.remove(it) }
+                    val wasCancelled = transformerHolder[0]?.let { transformer ->
+                        activeOutputs.remove(transformer)
+                        cancelledExports.remove(transformer) == true
+                    } ?: false
                     outputFile.delete()
-                    onError(exception)
+                    if (!wasCancelled) {
+                        onError(exception)
+                    }
                 }
             })
             .build()
@@ -125,6 +140,7 @@ object CinematicVideoExporter {
             transformer.start(composition, outputFile.absolutePath)
         } catch (error: Throwable) {
             activeOutputs.remove(transformer)
+            cancelledExports.remove(transformer)
             outputFile.delete()
             throw error
         }
@@ -149,6 +165,7 @@ object CinematicVideoExporter {
     }
 
     fun cancel(transformer: Transformer) {
+        cancelledExports[transformer] = true
         transformer.cancel()
         activeOutputs.remove(transformer)?.delete()
     }
