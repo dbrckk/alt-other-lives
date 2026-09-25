@@ -183,7 +183,9 @@ object CinematicVideoExporter {
 
             values.clear()
             values.put(MediaStore.Video.Media.IS_PENDING, 0)
-            resolver.update(target, values, null, null)
+            require(resolver.update(target, values, null, null) > 0) {
+                "Unable to finalize video gallery item"
+            }
             return target
         } catch (error: Throwable) {
             resolver.delete(target, null, null)
