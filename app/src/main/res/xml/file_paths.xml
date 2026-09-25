@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <cache-path name="shared_images" path="shares/" />
+    <cache-path name="generated_downloads" path="generation/" />
     <files-path name="generated_scenes" path="generated/" />
     <files-path name="source_photos" path="source-photos/" />
 </paths>
