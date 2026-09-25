@@ -133,8 +133,16 @@ object CinematicVideoExporter {
 
     private fun cleanupOldVideos(outputDir: File) {
         val cutoff = System.currentTimeMillis() - 24L * 60L * 60L * 1000L
+        val activeFiles = synchronized(activeOutputs) {
+            activeOutputs.values.toSet()
+        }
         outputDir.listFiles()?.forEach { file ->
-            if (file.isFile && file.extension.equals("mp4", ignoreCase = true) && file.lastModified() < cutoff) {
+            if (
+                file.isFile &&
+                file !in activeFiles &&
+                file.extension.equals("mp4", ignoreCase = true) &&
+                file.lastModified() < cutoff
+            ) {
                 file.delete()
             }
         }
