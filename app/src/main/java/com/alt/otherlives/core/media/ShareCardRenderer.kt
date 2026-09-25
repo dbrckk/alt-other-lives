@@ -130,6 +130,11 @@ object ShareCardRenderer {
         }
     }
     fun share(context: Context, uri: Uri, scenario: Scenario) {
+        val length = context.contentResolver.openAssetFileDescriptor(uri, "r")
+            ?.use { it.length }
+            ?: error("Rendered share image is no longer available")
+        require(length != 0L) { "Rendered share image is empty" }
+
         val intent=Intent(Intent.ACTION_SEND).apply {
             type="image/jpeg"; putExtra(Intent.EXTRA_STREAM,uri); putExtra(Intent.EXTRA_TEXT,scenario.title)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
