@@ -28,6 +28,7 @@ class ComfyUiGenerationProvider(
             requested = request.chapterIndexes,
             chapterCount = chapters.size
         )
+        ComfyUiWorkflowTemplate.validateTemplate(workflowTemplateJson)
 
         val sessionSeed = resolveSessionSeed(request.seed)
         val uploaded = client.uploadImage(request.sourcePhoto)
