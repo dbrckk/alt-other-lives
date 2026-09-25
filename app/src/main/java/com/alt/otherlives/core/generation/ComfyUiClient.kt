@@ -18,6 +18,7 @@ import java.net.HttpURLConnection
 import java.net.URLEncoder
 import java.net.URL
 import java.util.UUID
+import java.security.MessageDigest
 import android.webkit.MimeTypeMap
 import android.graphics.BitmapFactory
 
@@ -71,7 +72,10 @@ class ComfyUiClient(
                 .getExtensionFromMimeType(mimeType)
                 ?.takeIf { it.isNotBlank() }
                 ?: "jpg"
-            val filename = "alt-source-" + UUID.randomUUID() + "." + extension
+            val filename = sourceUploadFileName(
+                sourceKey = uri.toString(),
+                extension = extension
+            )
             connection.outputStream.buffered().use { output ->
                 fun write(value: String) = output.write(value.toByteArray(Charsets.UTF_8))
                 write("--$boundary\r\n")
@@ -253,6 +257,20 @@ class ComfyUiClient(
             throw error
         } finally {
             connection.disconnect()
+        }
+    }
+
+    internal companion object {
+        fun sourceUploadFileName(sourceKey: String, extension: String): String {
+            require(sourceKey.isNotBlank()) { "Source upload key is required" }
+            val safeExtension = extension
+                .lowercase()
+                .takeIf { it.matches(Regex("[a-z0-9]{1,8}")) }
+                ?: "jpg"
+            val digest = MessageDigest.getInstance("SHA-256")
+                .digest(sourceKey.toByteArray(Charsets.UTF_8))
+                .joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
+            return "alt-source-" + digest.take(32) + "." + safeExtension
         }
     }
 
