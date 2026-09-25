@@ -110,9 +110,12 @@ object ShareCardRenderer {
         }
         val target = requireNotNull(context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values))
         try {
-            context.contentResolver.openOutputStream(target)?.use { output ->
-                context.contentResolver.openInputStream(rendered)?.use { input -> input.copyTo(output) }
+            val copiedBytes = context.contentResolver.openOutputStream(target)?.use { output ->
+                val input = context.contentResolver.openInputStream(rendered)
+                    ?: error("Unable to open rendered share image")
+                input.use { it.copyTo(output) }
             } ?: error("Unable to open gallery output")
+            require(copiedBytes > 0L) { "Rendered share image copy was empty" }
             values.clear()
             values.put(MediaStore.Images.Media.IS_PENDING, 0)
             context.contentResolver.update(target, values, null, null)
