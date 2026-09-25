@@ -21,8 +21,23 @@ class ComfyUiWorkflowTest {
         assertTrue(prompt.contains("immutable identity anchor"))
         assertTrue(prompt.contains("no identity swap"))
         assertTrue(prompt.contains("recognizably the same person"))
+        assertTrue(prompt.contains("nose bridge and tip"))
+        assertTrue(prompt.contains("jaw and chin proportions"))
+        assertTrue(prompt.contains("natural facial asymmetries"))
+        assertTrue(prompt.contains("clothing, hairstyle, grooming and environment may evolve"))
+        assertTrue(prompt.contains("same facial baseline"))
         assertTrue(prompt.contains("vertical 9:16"))
         assertFalse(prompt.contains("__ALT_"))
+    }
+
+    @Test
+    fun negativePromptBlocksStructuralIdentityDrift() {
+        val negative = ComfyUiWorkflow.negativePrompt()
+
+        assertTrue(negative.contains("changed nose"))
+        assertTrue(negative.contains("changed lip shape"))
+        assertTrue(negative.contains("changed jawline"))
+        assertTrue(negative.contains("genericized face"))
     }
 
     @Test
