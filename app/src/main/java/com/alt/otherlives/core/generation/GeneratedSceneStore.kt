@@ -21,12 +21,7 @@ class GeneratedSceneStore(private val context: Context) {
         val root = timelineRoot(timelineKey).apply { mkdirs() }
         recoverInterruptedWrites(root)
         val seedFile = File(root, "seed.txt")
-        seedFile.takeIf { it.exists() }
-            ?.readText()
-            ?.trim()
-            ?.toLongOrNull()
-            ?.takeIf { it > 0L }
-            ?.let { return it }
+        SeedFileRecovery.readSeedOrNull(seedFile)?.let { return it }
 
         return resetSeed(timelineKey)
     }
