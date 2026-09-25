@@ -13,6 +13,8 @@ import java.io.FileOutputStream
 import java.util.UUID
 
 object ShareCardRenderer {
+    private data class RenderedShareImage(val uri: Uri, val file: File)
+
     private const val WIDTH = 1080
     private const val HEIGHT = 1920
     private const val CACHE_MAX_AGE_MS = 24L * 60L * 60L * 1000L
@@ -21,7 +23,19 @@ object ShareCardRenderer {
         photoUri: Uri?,
         scenario: Scenario,
         fallbackImageUri: Uri? = null
-    ): Uri {
+    ): Uri = renderArtifact(
+        context = context,
+        photoUri = photoUri,
+        scenario = scenario,
+        fallbackImageUri = fallbackImageUri
+    ).uri
+
+    private fun renderArtifact(
+        context: Context,
+        photoUri: Uri?,
+        scenario: Scenario,
+        fallbackImageUri: Uri? = null
+    ): RenderedShareImage {
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
         try {
             val canvas = Canvas(bitmap)
@@ -127,10 +141,13 @@ object ShareCardRenderer {
                 if (!temporary.renameTo(file)) {
                     error("Unable to finalize ALT share image")
                 }
-                return FileProvider.getUriForFile(
-                    context,
-                    context.packageName + ".fileprovider",
-                    file
+                return RenderedShareImage(
+                    uri = FileProvider.getUriForFile(
+                        context,
+                        context.packageName + ".fileprovider",
+                        file
+                    ),
+                    file = file
                 )
             } catch (error: Throwable) {
                 temporary.delete()
@@ -169,7 +186,7 @@ object ShareCardRenderer {
         require(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             "Direct gallery save requires Android 10 or newer"
         }
-        val rendered = render(context, photoUri, scenario, fallbackImageUri)
+        val rendered = renderArtifact(context, photoUri, scenario, fallbackImageUri)
         val values = android.content.ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, "ALT-" + scenario.id + "-" + System.currentTimeMillis() + ".jpg")
             put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
@@ -179,7 +196,7 @@ object ShareCardRenderer {
         val target = requireNotNull(context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values))
         try {
             val copiedBytes = context.contentResolver.openOutputStream(target)?.use { output ->
-                val input = context.contentResolver.openInputStream(rendered)
+                val input = context.contentResolver.openInputStream(rendered.uri)
                     ?: error("Unable to open rendered share image")
                 input.use { it.copyTo(output) }
             } ?: error("Unable to open gallery output")
@@ -195,6 +212,8 @@ object ShareCardRenderer {
         } catch (error: Throwable) {
             context.contentResolver.delete(target, null, null)
             throw error
+        } finally {
+            rendered.file.delete()
         }
     }
     fun share(context: Context, uri: Uri, scenario: Scenario) {
