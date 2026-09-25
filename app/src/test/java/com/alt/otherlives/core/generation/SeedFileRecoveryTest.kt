@@ -73,6 +73,20 @@ class SeedFileRecoveryTest {
     }
 
     @Test
+    fun boundedReaderAcceptsPositiveSeedAndRejectsOversizedContent() {
+        val root = Files.createTempDirectory("alt-seed-recovery").toFile()
+        try {
+            val valid = root.resolve("valid.txt").apply { writeText(" 12345 ") }
+            val oversized = root.resolve("oversized.txt").apply { writeText("9".repeat(64)) }
+
+            assertEquals(12345L, SeedFileRecovery.readSeedOrNull(valid))
+            assertEquals(null, SeedFileRecovery.readSeedOrNull(oversized))
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
     fun missingBackupIsNoOp() {
         val root = Files.createTempDirectory("alt-seed-recovery").toFile()
         try {
