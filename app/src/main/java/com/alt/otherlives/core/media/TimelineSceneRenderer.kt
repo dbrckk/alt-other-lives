@@ -16,11 +16,29 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.UUID
 
+data class RenderedTimelineScenes(
+    val imageUris: List<Uri>,
+    private val cacheFiles: List<File>
+) {
+    fun deleteCacheFiles() {
+        cacheFiles.forEach { file ->
+            if (file.exists()) {
+                file.delete()
+            }
+        }
+    }
+}
+
 object TimelineSceneRenderer {
     private const val WIDTH = 1080
     private const val HEIGHT = 1920
 
-    fun render(context: Context, photoUri: Uri?, scenario: Scenario, chapterImages: Map<Int, Uri> = emptyMap()): List<Uri> {
+    fun render(
+        context: Context,
+        photoUri: Uri?,
+        scenario: Scenario,
+        chapterImages: Map<Int, Uri> = emptyMap()
+    ): RenderedTimelineScenes {
         cleanupOldScenes(context)
         val createdFiles = mutableListOf<File>()
         return try {
@@ -102,9 +120,13 @@ object TimelineSceneRenderer {
                 .minByOrNull { it.key }
                 ?.value
 
-            listOf(renderIntro(context, introImage, scenario, createdFiles)) +
-                chapterScenes +
-                listOf(renderOutro(context, scenario, createdFiles))
+            RenderedTimelineScenes(
+                imageUris =
+                    listOf(renderIntro(context, introImage, scenario, createdFiles)) +
+                        chapterScenes +
+                        listOf(renderOutro(context, scenario, createdFiles)),
+                cacheFiles = createdFiles.toList()
+            )
         } catch (error: Throwable) {
             createdFiles.forEach { it.delete() }
             throw error
