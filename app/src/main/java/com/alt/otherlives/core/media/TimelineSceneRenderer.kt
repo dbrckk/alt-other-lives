@@ -31,7 +31,10 @@ object TimelineSceneRenderer {
 
             (chapterImages[index] ?: photoUri)?.let { uri ->
                 val source = BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)
-                    ?: error("Unable to decode visual for chapter " + (index + 1))
+                    ?: run {
+                        bitmap.recycle()
+                        error("Unable to decode visual for chapter " + (index + 1))
+                    }
                 try {
                     drawCover(canvas, source, Rect(0, 0, WIDTH, 1180), index)
                 } finally {
@@ -118,7 +121,10 @@ object TimelineSceneRenderer {
 
         photoUri?.let { uri ->
             val source = BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)
-                ?: error("Unable to decode timeline intro visual")
+                ?: run {
+                    bitmap.recycle()
+                    error("Unable to decode timeline intro visual")
+                }
             try {
                 drawCover(canvas, source, Rect(0, 0, WIDTH, 1260), 0)
             } finally {
