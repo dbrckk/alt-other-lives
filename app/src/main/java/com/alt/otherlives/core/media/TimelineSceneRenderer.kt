@@ -28,8 +28,11 @@ object TimelineSceneRenderer {
             canvas.drawColor(Color.rgb(8, 8, 10))
 
             (chapterImages[index] ?: photoUri)?.let { uri ->
-                BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)?.let { source ->
+                val source = BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)
+                    ?: error("Unable to decode visual for chapter " + (index + 1))
+                try {
                     drawCover(canvas, source, Rect(0, 0, WIDTH, 1180), index)
+                } finally {
                     source.recycle()
                 }
             }
@@ -103,8 +106,11 @@ object TimelineSceneRenderer {
         canvas.drawColor(Color.rgb(8, 8, 10))
 
         photoUri?.let { uri ->
-            BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)?.let { source ->
+            val source = BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)
+                ?: error("Unable to decode timeline intro visual")
+            try {
                 drawCover(canvas, source, Rect(0, 0, WIDTH, 1260), 0)
+            } finally {
                 source.recycle()
             }
         }
