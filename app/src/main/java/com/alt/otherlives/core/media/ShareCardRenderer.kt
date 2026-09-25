@@ -16,66 +16,134 @@ object ShareCardRenderer {
     private const val WIDTH = 1080
     private const val HEIGHT = 1920
     private const val CACHE_MAX_AGE_MS = 24L * 60L * 60L * 1000L
-    fun render(context: Context, photoUri: Uri?, scenario: Scenario, fallbackImageUri: Uri? = null): Uri {
+    fun render(
+        context: Context,
+        photoUri: Uri?,
+        scenario: Scenario,
+        fallbackImageUri: Uri? = null
+    ): Uri {
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        canvas.drawColor(Color.rgb(8, 8, 10))
-        (photoUri ?: fallbackImageUri)?.let { uri ->
-            BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)?.let { source ->
-                drawCover(canvas, source, Rect(0, 0, WIDTH, 900))
-                source.recycle()
-            }
-        }
-        val overlay = Paint().apply { shader = LinearGradient(0f, 280f, 0f, 1050f,
-            intArrayOf(Color.TRANSPARENT, Color.argb(180,8,8,10), Color.rgb(8,8,10)), null, Shader.TileMode.CLAMP) }
-        canvas.drawRect(0f, 250f, WIDTH.toFloat(), 1100f, overlay)
-        val accent = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color=Color.rgb(183,167,255); textSize=34f; typeface=Typeface.create(Typeface.DEFAULT,Typeface.BOLD)
-        }
-        canvas.drawText("ALT  •  YOUR OTHER LIFE",72f,760f,accent)
-        val title=Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color=Color.WHITE; textSize=70f; typeface=Typeface.create(Typeface.DEFAULT,Typeface.BOLD)
-        }
-        var y=drawWrappedText(canvas,scenario.title,title,72f,845f,936f,82f)
-        val body=Paint(Paint.ANTI_ALIAS_FLAG).apply { color=Color.rgb(232,230,238); textSize=36f }
-        val label=Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color=Color.rgb(183,167,255); textSize=27f; typeface=Typeface.create(Typeface.DEFAULT,Typeface.BOLD)
-        }
-        y+=28f
-        scenario.chapters.take(5).forEach { chapter ->
-            canvas.drawText(chapter.label.uppercase(),72f,y,label); y+=48f
-            y=drawWrappedText(canvas,chapter.narrative,body,72f,y,936f,47f); y+=34f
-        }
-        val footer=Paint(Paint.ANTI_ALIAS_FLAG).apply { color=Color.rgb(130,127,140); textSize=27f }
-        canvas.drawText("See the lives you could have lived.",72f,1815f,footer)
-        canvas.drawText("ALT",930f,1815f,accent)
-        val dir = File(context.cacheDir, "shares").apply { mkdirs() }
-        cleanupOldShareImages(dir)
-        val file = File(dir, "alt-" + scenario.id + "-" + UUID.randomUUID() + ".jpg")
-        val temporary = File(dir, "." + file.name + ".tmp")
         try {
-            FileOutputStream(temporary).use { output ->
-                check(bitmap.compress(Bitmap.CompressFormat.JPEG, 94, output)) {
-                    "Unable to encode ALT share image"
+            val canvas = Canvas(bitmap)
+            canvas.drawColor(Color.rgb(8, 8, 10))
+
+            (photoUri ?: fallbackImageUri)?.let { uri ->
+                val source = BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)
+                    ?: error("Unable to decode ALT share visual")
+                try {
+                    drawCover(canvas, source, Rect(0, 0, WIDTH, 900))
+                } finally {
+                    source.recycle()
                 }
             }
-            require(temporary.length() > 0L) { "ALT share image is empty" }
-            if (!temporary.renameTo(file)) {
-                error("Unable to finalize ALT share image")
+
+            val overlay = Paint().apply {
+                shader = LinearGradient(
+                    0f,
+                    280f,
+                    0f,
+                    1050f,
+                    intArrayOf(
+                        Color.TRANSPARENT,
+                        Color.argb(180, 8, 8, 10),
+                        Color.rgb(8, 8, 10)
+                    ),
+                    null,
+                    Shader.TileMode.CLAMP
+                )
             }
-            return FileProvider.getUriForFile(
-                context,
-                context.packageName + ".fileprovider",
-                file
+            canvas.drawRect(0f, 250f, WIDTH.toFloat(), 1100f, overlay)
+
+            val accent = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.rgb(183, 167, 255)
+                textSize = 34f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            canvas.drawText("ALT  •  YOUR OTHER LIFE", 72f, 760f, accent)
+
+            val title = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                textSize = 70f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            var y = drawWrappedText(
+                canvas,
+                scenario.title,
+                title,
+                72f,
+                845f,
+                936f,
+                82f
             )
-        } catch (error: Throwable) {
-            temporary.delete()
-            file.delete()
-            throw error
+
+            val body = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.rgb(232, 230, 238)
+                textSize = 36f
+            }
+            val label = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.rgb(183, 167, 255)
+                textSize = 27f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+
+            y += 28f
+            scenario.chapters.take(5).forEach { chapter ->
+                canvas.drawText(chapter.label.uppercase(), 72f, y, label)
+                y += 48f
+                y = drawWrappedText(
+                    canvas,
+                    chapter.narrative,
+                    body,
+                    72f,
+                    y,
+                    936f,
+                    47f
+                )
+                y += 34f
+            }
+
+            val footer = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.rgb(130, 127, 140)
+                textSize = 27f
+            }
+            canvas.drawText("See the lives you could have lived.", 72f, 1815f, footer)
+            canvas.drawText("ALT", 930f, 1815f, accent)
+
+            val dir = File(context.cacheDir, "shares").apply { mkdirs() }
+            cleanupOldShareImages(dir)
+            val file = File(
+                dir,
+                "alt-" + scenario.id + "-" + UUID.randomUUID() + ".jpg"
+            )
+            val temporary = File(dir, "." + file.name + ".tmp")
+
+            try {
+                FileOutputStream(temporary).use { output ->
+                    check(bitmap.compress(Bitmap.CompressFormat.JPEG, 94, output)) {
+                        "Unable to encode ALT share image"
+                    }
+                }
+                require(temporary.length() > 0L) { "ALT share image is empty" }
+                if (!temporary.renameTo(file)) {
+                    error("Unable to finalize ALT share image")
+                }
+                return FileProvider.getUriForFile(
+                    context,
+                    context.packageName + ".fileprovider",
+                    file
+                )
+            } catch (error: Throwable) {
+                temporary.delete()
+                file.delete()
+                throw error
+            }
         } finally {
-            bitmap.recycle()
+            if (!bitmap.isRecycled) {
+                bitmap.recycle()
+            }
         }
     }
+
     private fun cleanupOldShareImages(dir: File) {
         val cutoff = System.currentTimeMillis() - CACHE_MAX_AGE_MS
         dir.listFiles()?.forEach { file ->
