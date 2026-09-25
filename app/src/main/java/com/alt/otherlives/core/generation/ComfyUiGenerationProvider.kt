@@ -29,9 +29,9 @@ class ComfyUiGenerationProvider(
             chapterCount = chapters.size
         )
 
+        val sessionSeed = resolveSessionSeed(request.seed)
         val uploaded = client.uploadImage(request.sourcePhoto)
         val result = mutableListOf<GeneratedScene>()
-        val sessionSeed = resolveSessionSeed(request.seed)
 
         val failures = mutableListOf<String>()
         var processed = 0
