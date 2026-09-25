@@ -58,10 +58,13 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - Video preparation returns a cleanup-aware render session; intermediate scene JPEGs are deleted on success, failure, cancellation, navigation, or Media3 startup failure.
 - Gallery saves reject empty copies and verify MediaStore finalization; share actions revalidate cache URIs at share time and fail gracefully if media disappeared.
 - Cross-chapter identity prompts now explicitly preserve nose/lip/jaw/face proportions and natural asymmetries while allowing clothing, grooming, hairstyle and environment to evolve.
+- ComfyUI generation cache is explicitly exposed through FileProvider, downloaded chapter images are deleted immediately after private persistence, and cancelled full-regeneration downloads are cleaned with cancellation-safe cleanup.
+- Gallery saves expire unfinished pending MediaStore rows after 24 hours, share-image gallery copies delete their temporary cache immediately, and Media3 late callbacks are suppressed after explicit cancellation.
+- Startup restoration keeps the active photo and active timeline context consistent; a newly imported loose photo no longer inherits an older timeline key.
 - Persisted Reveal scenes are restored off the main thread with explicit restore progress, and generation callbacks can persist completed chapters asynchronously without blocking Compose.
 - Timeline seed reads/writes and generated-scene persistence are dispatched to IO; AI scene removal and exported MP4 gallery copies are also performed asynchronously.
 - CI validates unit tests, Android lint and debug APK assembly.
-- Latest confirmed green run: #416. Runs #417–#421 validate decoded-size guarding and stronger cross-chapter identity continuity.
+- Latest confirmed green run: #436. Runs #437–#438 validate the isolated ComfyUI cache-path policy and its JVM tests.
 
 ## Current priority
 Keep the end-to-end AI generation path reliable, then improve identity continuity, partial-failure recovery and production UX before monetization.
