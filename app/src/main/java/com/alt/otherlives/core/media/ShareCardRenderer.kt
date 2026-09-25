@@ -18,6 +18,7 @@ object ShareCardRenderer {
     private const val WIDTH = 1080
     private const val HEIGHT = 1920
     private const val CACHE_MAX_AGE_MS = 24L * 60L * 60L * 1000L
+    private const val PENDING_MEDIA_EXPIRY_SECONDS = 24L * 60L * 60L
     fun render(
         context: Context,
         photoUri: Uri?,
@@ -192,6 +193,10 @@ object ShareCardRenderer {
             put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
             put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ALT")
             put(MediaStore.Images.Media.IS_PENDING, 1)
+            put(
+                MediaStore.MediaColumns.DATE_EXPIRES,
+                System.currentTimeMillis() / 1000L + PENDING_MEDIA_EXPIRY_SECONDS
+            )
         }
         var target: Uri? = null
         try {
@@ -211,6 +216,7 @@ object ShareCardRenderer {
 
             values.clear()
             values.put(MediaStore.Images.Media.IS_PENDING, 0)
+            values.putNull(MediaStore.MediaColumns.DATE_EXPIRES)
             require(
                 context.contentResolver.update(target, values, null, null) > 0
             ) {
