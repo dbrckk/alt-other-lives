@@ -98,27 +98,14 @@ fun AltApp() {
         }.getOrDefault(emptyList())
 
         startupHistory.firstOrNull()?.let { latest ->
-            val currentPhotoMatchesHistory =
-                latest.photoFileName != null &&
-                    latest.photoFileName == photoFileName
-
-            if (currentPhotoMatchesHistory) {
-                ScenarioCatalog.scenarios
-                    .firstOrNull { it.id == latest.scenarioId }
-                    ?.let { scenario ->
-                        selectedScenario = scenario
-                        activeTimelineKey = latest.timelineKey
-                    }
-            } else if (latestStoredPhoto == null && latest.photoFileName != null) {
-                val restoredHistoryPhoto = runCatching {
-                    withContext(Dispatchers.IO) {
-                        sourcePhotoStore.uriFor(latest.photoFileName)
-                    }
-                }.getOrNull()
-
-                if (restoredHistoryPhoto != null) {
-                    photoUri = restoredHistoryPhoto
-                    photoFileName = latest.photoFileName
+            when (
+                StartupRestorePolicy.decide(
+                    currentPhotoFileName = photoFileName,
+                    latestHistoryPhotoFileName = latest.photoFileName,
+                    hasLatestStoredPhoto = latestStoredPhoto != null
+                )
+            ) {
+                StartupRestoreDecision.USE_CURRENT_HISTORY_CONTEXT -> {
                     ScenarioCatalog.scenarios
                         .firstOrNull { it.id == latest.scenarioId }
                         ?.let { scenario ->
@@ -126,6 +113,27 @@ fun AltApp() {
                             activeTimelineKey = latest.timelineKey
                         }
                 }
+
+                StartupRestoreDecision.RESTORE_HISTORY_PHOTO -> {
+                    val restoredHistoryPhoto = runCatching {
+                        withContext(Dispatchers.IO) {
+                            sourcePhotoStore.uriFor(requireNotNull(latest.photoFileName))
+                        }
+                    }.getOrNull()
+
+                    if (restoredHistoryPhoto != null) {
+                        photoUri = restoredHistoryPhoto
+                        photoFileName = latest.photoFileName
+                        ScenarioCatalog.scenarios
+                            .firstOrNull { it.id == latest.scenarioId }
+                            ?.let { scenario ->
+                                selectedScenario = scenario
+                                activeTimelineKey = latest.timelineKey
+                            }
+                    }
+                }
+
+                StartupRestoreDecision.KEEP_CURRENT_PHOTO -> Unit
             }
         }
     }
