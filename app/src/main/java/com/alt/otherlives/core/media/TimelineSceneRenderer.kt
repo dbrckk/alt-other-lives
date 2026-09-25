@@ -25,8 +25,9 @@ object TimelineSceneRenderer {
         val createdFiles = mutableListOf<File>()
         return try {
             val chapterScenes = scenario.chapters.take(5).mapIndexed { index, chapter ->
-            val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bitmap)
+                val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
+                recycleOnFailure(bitmap) {
+                    val canvas = Canvas(bitmap)
             canvas.drawColor(Color.rgb(8, 8, 10))
 
             (chapterImages[index] ?: photoUri)?.let { uri ->
@@ -89,12 +90,13 @@ object TimelineSceneRenderer {
                 baseName = "alt-${scenario.id}-scene-$index"
             ).also(createdFiles::add)
 
-            FileProvider.getUriForFile(
-                context,
-                context.packageName + ".fileprovider",
-                file
-            )
-        }
+                    FileProvider.getUriForFile(
+                        context,
+                        context.packageName + ".fileprovider",
+                        file
+                    )
+                }
+            }
 
             val introImage = photoUri ?: chapterImages.entries
                 .minByOrNull { it.key }
@@ -116,8 +118,9 @@ object TimelineSceneRenderer {
         createdFiles: MutableList<File>
     ): Uri {
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        canvas.drawColor(Color.rgb(8, 8, 10))
+        return recycleOnFailure(bitmap) {
+            val canvas = Canvas(bitmap)
+            canvas.drawColor(Color.rgb(8, 8, 10))
 
         photoUri?.let { uri ->
             val source = BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)
@@ -165,7 +168,8 @@ object TimelineSceneRenderer {
             bitmap = bitmap,
             baseName = "alt-${scenario.id}-intro"
         ).also(createdFiles::add)
-        return FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
+            FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
+        }
     }
 
     private fun renderOutro(
@@ -174,8 +178,9 @@ object TimelineSceneRenderer {
         createdFiles: MutableList<File>
     ): Uri {
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        canvas.drawColor(Color.rgb(8, 8, 10))
+        return recycleOnFailure(bitmap) {
+            val canvas = Canvas(bitmap)
+            canvas.drawColor(Color.rgb(8, 8, 10))
 
         val glow = Paint().apply {
             shader = LinearGradient(
@@ -216,7 +221,20 @@ object TimelineSceneRenderer {
             bitmap = bitmap,
             baseName = "alt-${scenario.id}-outro"
         ).also(createdFiles::add)
-        return FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
+            FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
+        }
+    }
+
+    private inline fun <T> recycleOnFailure(
+        bitmap: Bitmap,
+        block: () -> T
+    ): T = try {
+        block()
+    } catch (error: Throwable) {
+        if (!bitmap.isRecycled) {
+            bitmap.recycle()
+        }
+        throw error
     }
 
     private fun writeJpegAtomically(
