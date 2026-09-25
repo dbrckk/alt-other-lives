@@ -23,11 +23,10 @@ class ComfyUiGenerationProvider(
         val chapters = request.scenario.chapters.take(5)
         require(chapters.isNotEmpty()) { "Scenario has no chapters" }
 
-        val requestedIndexes = request.chapterIndexes
-            ?.filter { it in chapters.indices }
-            ?.toSet()
-            ?: chapters.indices.toSet()
-        require(requestedIndexes.isNotEmpty()) { "No chapters selected for generation" }
+        val requestedIndexes = validateRequestedChapterIndexes(
+            requested = request.chapterIndexes,
+            chapterCount = chapters.size
+        )
 
         val uploaded = client.uploadImage(request.sourcePhoto)
         val result = mutableListOf<GeneratedScene>()
@@ -123,6 +122,21 @@ class ComfyUiGenerationProvider(
     internal companion object {
         const val MAX_CHAPTER_ATTEMPTS = 2
         const val RETRY_DELAY_MS = 750L
+
+        fun validateRequestedChapterIndexes(
+            requested: Set<Int>?,
+            chapterCount: Int
+        ): Set<Int> {
+            require(chapterCount > 0) { "Scenario has no chapters" }
+            if (requested == null) return (0 until chapterCount).toSet()
+
+            require(requested.isNotEmpty()) { "No chapters selected for generation" }
+            val invalid = requested.filterNot { it in 0 until chapterCount }.sorted()
+            require(invalid.isEmpty()) {
+                "Invalid chapter indexes: " + invalid.joinToString(", ")
+            }
+            return requested
+        }
 
         fun selectOutput(
             outputs: List<ComfyUiClient.OutputImage>,
