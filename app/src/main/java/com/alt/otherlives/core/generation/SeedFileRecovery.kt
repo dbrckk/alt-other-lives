@@ -3,12 +3,14 @@ package com.alt.otherlives.core.generation
 import java.io.File
 
 internal object SeedFileRecovery {
+    private const val MAX_SEED_FILE_BYTES = 32L
+
     fun recover(root: File) {
         val backup = File(root, ".seed.bak")
         if (!backup.exists()) return
 
         val target = File(root, "seed.txt")
-        if (isValidSeedFile(target)) {
+        if (readSeedOrNull(target) != null) {
             backup.delete()
             return
         }
@@ -17,7 +19,7 @@ internal object SeedFileRecovery {
             error("Unable to discard invalid timeline seed")
         }
 
-        if (isValidSeedFile(backup)) {
+        if (readSeedOrNull(backup) != null) {
             if (!backup.renameTo(target)) {
                 error("Unable to recover interrupted timeline seed write")
             }
@@ -26,13 +28,16 @@ internal object SeedFileRecovery {
         }
     }
 
-    internal fun isValidSeedFile(file: File): Boolean =
-        file.takeIf { it.isFile }
-            ?.runCatching {
-                readText()
-                    .trim()
-                    .toLongOrNull()
-                    ?.takeIf { it > 0L }
-            }
-            ?.getOrNull() != null
+    fun readSeedOrNull(file: File): Long? {
+        if (!file.isFile) return null
+        val length = file.length()
+        if (length <= 0L || length > MAX_SEED_FILE_BYTES) return null
+
+        return runCatching {
+            file.readText()
+                .trim()
+                .toLongOrNull()
+                ?.takeIf { it > 0L }
+        }.getOrNull()
+    }
 }
