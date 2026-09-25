@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 4 — Reliable AI generation and history UX",
-  "currentTask": "Harden media rendering/export lifecycle and improve cross-chapter identity continuity without increasing user setup.",
-  "lastKnownBlocker": "Media cache files and large decoded bitmaps could survive or consume excessive memory across failure paths, while identity continuity still had room for stronger structural constraints.",
-  "fixApplied": "Gallery copies now reject empty sources and verify MediaStore finalization, share URIs are revalidated at share time, video render sessions clean intermediate JPEGs across all lifecycle exits, bitmap decoding has a sampled pixel budget and actual-size guard, render bitmaps recycle on failure, and prompts preserve additional facial structure while allowing chapter styling to evolve.",
+  "currentTask": "Close remaining media-cache lifecycle gaps and keep startup photo/timeline restoration consistent.",
+  "lastKnownBlocker": "ComfyUI downloads were written under cache/generation but that path was not exposed by FileProvider, which could fail at runtime when creating the generated scene URI.",
+  "fixApplied": "FileProvider now exposes cache/generation, persisted ComfyUI downloads are deleted immediately, cancelled full-regeneration downloads are cleaned safely, pending MediaStore saves expire automatically, late Media3 callbacks are ignored after cancel, and startup context no longer pairs a loose photo with an older timeline key.",
   "next": [
-    "Verify cumulative CI runs #417–#421",
-    "Continue auditing remaining media cache lifecycle and process-interruption edge cases",
-    "Evaluate identity continuity improvements before adding heavier model-specific workflow assumptions",
-    "Preserve atomic full-regeneration and no-duplicate-job ComfyUI guarantees"
+    "Verify cumulative CI runs #437–#438",
+    "Continue auditing private/cache media lifecycle for process interruption edge cases",
+    "Preserve tested startup photo/timeline consistency",
+    "Keep atomic full-regeneration and deterministic ComfyUI output guarantees intact"
   ],
   "updated": "2026-09-25"
 }
