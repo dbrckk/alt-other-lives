@@ -88,6 +88,9 @@ class GeneratedSceneStore(private val context: Context) {
     }
 
     fun persist(timelineKey: String, scenes: List<GeneratedScene>): List<GeneratedScene> {
+        SceneBatchValidation.validateChapterIndexes(
+            scenes.map { it.chapterIndex }
+        )
         val root = timelineRoot(timelineKey).apply { mkdirs() }
         recoverInterruptedWrites(root)
 
