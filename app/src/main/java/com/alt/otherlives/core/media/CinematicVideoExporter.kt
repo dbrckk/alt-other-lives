@@ -39,6 +39,7 @@ object CinematicVideoExporter {
     private const val CHAPTER_DURATION_MS = 2200L
     private const val OUTRO_DURATION_MS = 1600L
     private const val FRAME_RATE = 30
+    private const val PENDING_MEDIA_EXPIRY_SECONDS = 24L * 60L * 60L
 
     fun export(
         context: Context,
@@ -191,6 +192,10 @@ object CinematicVideoExporter {
             put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
             put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/ALT")
             put(MediaStore.Video.Media.IS_PENDING, 1)
+            put(
+                MediaStore.MediaColumns.DATE_EXPIRES,
+                System.currentTimeMillis() / 1000L + PENDING_MEDIA_EXPIRY_SECONDS
+            )
         }
 
         val resolver = context.contentResolver
@@ -208,6 +213,7 @@ object CinematicVideoExporter {
 
             values.clear()
             values.put(MediaStore.Video.Media.IS_PENDING, 0)
+            values.putNull(MediaStore.MediaColumns.DATE_EXPIRES)
             require(resolver.update(target, values, null, null) > 0) {
                 "Unable to finalize video gallery item"
             }
