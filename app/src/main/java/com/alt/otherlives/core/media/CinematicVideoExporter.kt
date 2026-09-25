@@ -194,6 +194,11 @@ object CinematicVideoExporter {
     }
 
     fun share(context: Context, uri: Uri, scenario: Scenario) {
+        val length = context.contentResolver.openAssetFileDescriptor(uri, "r")
+            ?.use { it.length }
+            ?: error("Exported video is no longer available")
+        require(length != 0L) { "Exported video is empty" }
+
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "video/mp4"
             putExtra(Intent.EXTRA_STREAM, uri)
