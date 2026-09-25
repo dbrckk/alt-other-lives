@@ -54,10 +54,14 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - Partial AI generation no longer re-persists successful chapters at completion, and missing failed chapters have an explicit targeted retry action.
 - ComfyUI remote filenames/subfolders and local cache image extensions are normalized and validated before use.
 - Heavy JPEG/MP4 preparation work runs off the main UI thread.
+- Bitmap decoding now enforces a post-sampling pixel budget, validates actual decoder output size, and recycles oversized or failed render bitmaps to reduce OOM risk.
+- Video preparation returns a cleanup-aware render session; intermediate scene JPEGs are deleted on success, failure, cancellation, navigation, or Media3 startup failure.
+- Gallery saves reject empty copies and verify MediaStore finalization; share actions revalidate cache URIs at share time and fail gracefully if media disappeared.
+- Cross-chapter identity prompts now explicitly preserve nose/lip/jaw/face proportions and natural asymmetries while allowing clothing, grooming, hairstyle and environment to evolve.
 - Persisted Reveal scenes are restored off the main thread with explicit restore progress, and generation callbacks can persist completed chapters asynchronously without blocking Compose.
 - Timeline seed reads/writes and generated-scene persistence are dispatched to IO; AI scene removal and exported MP4 gallery copies are also performed asynchronously.
 - CI validates unit tests, Android lint and debug APK assembly.
-- Latest confirmed green run: #385. Runs #386–#388 validate ambiguous queue handling, same-output download retries, and targeted chapter retry UX.
+- Latest confirmed green run: #416. Runs #417–#421 validate decoded-size guarding and stronger cross-chapter identity continuity.
 
 ## Current priority
 Keep the end-to-end AI generation path reliable, then improve identity continuity, partial-failure recovery and production UX before monetization.
