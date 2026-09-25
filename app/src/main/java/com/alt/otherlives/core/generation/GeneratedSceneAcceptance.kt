@@ -1,10 +1,10 @@
 package com.alt.otherlives.core.generation
 
 internal object GeneratedSceneAcceptance {
-    suspend fun accept(
-        scene: GeneratedScene,
-        onSceneGenerated: suspend (GeneratedScene) -> Unit,
-        accepted: MutableList<GeneratedScene>
+    suspend fun <T> accept(
+        scene: T,
+        onSceneGenerated: suspend (T) -> Unit,
+        accepted: MutableList<T>
     ) {
         onSceneGenerated(scene)
         accepted += scene
