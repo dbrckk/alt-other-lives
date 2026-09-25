@@ -233,6 +233,7 @@ fun RevealScreen(
                             aiChapterFailures = emptyMap()
                             aiGenerationJob = scope.launch {
                                 var previousSeed: Long? = null
+                                val pendingResetDownloads = mutableListOf<Uri>()
                                 try {
                                     previousSeed = withContext(Dispatchers.IO) {
                                         sceneStore.getOrCreateSeed(timelineKey)
@@ -264,7 +265,9 @@ fun RevealScreen(
                                         onSceneGenerated = { generated ->
                                             aiChapterFailures =
                                                 aiChapterFailures - generated.chapterIndex
-                                            if (!resetSeed) {
+                                            if (resetSeed) {
+                                                pendingResetDownloads += generated.imageUri
+                                            } else {
                                                 generatedScenes = withContext(Dispatchers.IO) {
                                                     sceneStore.persist(timelineKey, listOf(generated))
                                                     GenerationDownloadCache.deleteIfOwned(
@@ -291,23 +294,25 @@ fun RevealScreen(
                                                     scenes = newScenes,
                                                     seed = generationSeed
                                                 )
-                                                newScenes.forEach { scene ->
+                                                pendingResetDownloads.forEach { uri ->
                                                     GenerationDownloadCache.deleteIfOwned(
                                                         context,
-                                                        scene.imageUri
+                                                        uri
                                                     )
                                                 }
+                                                pendingResetDownloads.clear()
                                             }
                                             sceneStore.load(timelineKey)
                                         }
                                     } else if (resetSeed) {
                                         withContext(Dispatchers.IO) {
-                                            newScenes.forEach { scene ->
+                                            pendingResetDownloads.forEach { uri ->
                                                 GenerationDownloadCache.deleteIfOwned(
                                                     context,
-                                                    scene.imageUri
+                                                    uri
                                                 )
                                             }
+                                            pendingResetDownloads.clear()
                                         }
                                     }
 
@@ -333,8 +338,24 @@ fun RevealScreen(
                                     }
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 } catch (cancelled: CancellationException) {
+                                    if (resetSeed && pendingResetDownloads.isNotEmpty()) {
+                                        withContext(kotlinx.coroutines.NonCancellable + Dispatchers.IO) {
+                                            pendingResetDownloads.forEach { uri ->
+                                                GenerationDownloadCache.deleteIfOwned(context, uri)
+                                            }
+                                            pendingResetDownloads.clear()
+                                        }
+                                    }
                                     throw cancelled
                                 } catch (error: Throwable) {
+                                    if (resetSeed && pendingResetDownloads.isNotEmpty()) {
+                                        withContext(Dispatchers.IO) {
+                                            pendingResetDownloads.forEach { uri ->
+                                                GenerationDownloadCache.deleteIfOwned(context, uri)
+                                            }
+                                            pendingResetDownloads.clear()
+                                        }
+                                    }
                                     Toast.makeText(
                                         context,
                                         "AI generation failed: " +
