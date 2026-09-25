@@ -193,14 +193,22 @@ object ShareCardRenderer {
             put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ALT")
             put(MediaStore.Images.Media.IS_PENDING, 1)
         }
-        val target = requireNotNull(context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values))
+        var target: Uri? = null
         try {
+            target = requireNotNull(
+                context.contentResolver.insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    values
+                )
+            ) { "Unable to create image gallery item" }
+
             val copiedBytes = context.contentResolver.openOutputStream(target)?.use { output ->
                 val input = context.contentResolver.openInputStream(rendered.uri)
                     ?: error("Unable to open rendered share image")
                 input.use { it.copyTo(output) }
             } ?: error("Unable to open gallery output")
             require(copiedBytes > 0L) { "Rendered share image copy was empty" }
+
             values.clear()
             values.put(MediaStore.Images.Media.IS_PENDING, 0)
             require(
@@ -210,7 +218,7 @@ object ShareCardRenderer {
             }
             return target
         } catch (error: Throwable) {
-            context.contentResolver.delete(target, null, null)
+            target?.let { context.contentResolver.delete(it, null, null) }
             throw error
         } finally {
             rendered.file.delete()
