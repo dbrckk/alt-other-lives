@@ -52,8 +52,11 @@ class ComfyUiGenerationProvider(
                     prompt = prompt,
                     seed = sessionSeed
                 )
-                onSceneGenerated(generated)
-                result += generated
+                GeneratedSceneAcceptance.accept(
+                    scene = generated,
+                    onSceneGenerated = onSceneGenerated,
+                    accepted = result
+                )
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
