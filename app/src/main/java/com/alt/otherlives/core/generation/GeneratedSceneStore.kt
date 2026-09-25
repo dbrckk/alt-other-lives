@@ -6,6 +6,7 @@ import androidx.core.content.FileProvider
 import android.webkit.MimeTypeMap
 import android.graphics.BitmapFactory
 import java.io.File
+import java.security.SecureRandom
 import com.alt.otherlives.core.io.BoundedStreamCopy
 import com.alt.otherlives.core.media.ImageBoundsValidation
 
@@ -30,7 +31,7 @@ class GeneratedSceneStore(private val context: Context) {
     }
 
     fun createSeed(): Long =
-        (System.nanoTime() and Long.MAX_VALUE).coerceAtLeast(1L)
+        positiveSeedFrom(seedRandom.nextLong())
 
     fun resetSeed(timelineKey: String): Long {
         val seed = createSeed()
@@ -554,7 +555,11 @@ class GeneratedSceneStore(private val context: Context) {
         return timeline
     }
 
-    private companion object {
+    internal companion object {
         const val MAX_PERSISTED_SCENE_BYTES = 100L * 1024L * 1024L
+        private val seedRandom = SecureRandom()
+
+        fun positiveSeedFrom(raw: Long): Long =
+            (raw and Long.MAX_VALUE).coerceAtLeast(1L)
     }
 }
