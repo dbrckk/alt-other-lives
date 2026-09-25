@@ -78,15 +78,19 @@ fun AltApp() {
     )
 
     LaunchedEffect(Unit) {
-        if (photoUri == null && !isImportingPhoto) {
+        val latestStoredPhoto = if (photoUri == null && !isImportingPhoto) {
             runCatching {
                 withContext(Dispatchers.IO) {
                     sourcePhotoStore.latestStoredPhoto()
                 }
-            }.getOrNull()?.let { stored ->
-                photoUri = stored.uri
-                photoFileName = stored.fileName
-            }
+            }.getOrNull()
+        } else {
+            null
+        }
+
+        latestStoredPhoto?.let { stored ->
+            photoUri = stored.uri
+            photoFileName = stored.fileName
         }
 
         val startupHistory = runCatching {
@@ -94,20 +98,33 @@ fun AltApp() {
         }.getOrDefault(emptyList())
 
         startupHistory.firstOrNull()?.let { latest ->
-            ScenarioCatalog.scenarios.firstOrNull { it.id == latest.scenarioId }?.let { scenario ->
-                selectedScenario = scenario
-                activeTimelineKey = latest.timelineKey
-                if (photoUri == null) {
-                    latest.photoFileName?.let { fileName ->
-                        runCatching {
-                            withContext(Dispatchers.IO) {
-                                sourcePhotoStore.uriFor(fileName)
-                            }
-                        }.getOrNull()?.let { uri ->
-                            photoUri = uri
-                            photoFileName = fileName
-                        }
+            val currentPhotoMatchesHistory =
+                latest.photoFileName != null &&
+                    latest.photoFileName == photoFileName
+
+            if (currentPhotoMatchesHistory) {
+                ScenarioCatalog.scenarios
+                    .firstOrNull { it.id == latest.scenarioId }
+                    ?.let { scenario ->
+                        selectedScenario = scenario
+                        activeTimelineKey = latest.timelineKey
                     }
+            } else if (latestStoredPhoto == null && latest.photoFileName != null) {
+                val restoredHistoryPhoto = runCatching {
+                    withContext(Dispatchers.IO) {
+                        sourcePhotoStore.uriFor(latest.photoFileName)
+                    }
+                }.getOrNull()
+
+                if (restoredHistoryPhoto != null) {
+                    photoUri = restoredHistoryPhoto
+                    photoFileName = latest.photoFileName
+                    ScenarioCatalog.scenarios
+                        .firstOrNull { it.id == latest.scenarioId }
+                        ?.let { scenario ->
+                            selectedScenario = scenario
+                            activeTimelineKey = latest.timelineKey
+                        }
                 }
             }
         }
