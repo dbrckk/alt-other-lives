@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 4 — Reliable AI generation and history UX",
-  "currentTask": "Harden ComfyUI network retry semantics and media cache lifecycle without creating duplicate remote jobs.",
-  "lastKnownBlocker": "Transient polling/download failures could escalate into a second queued prompt, and interrupted media renders could leave stale partial cache files.",
-  "fixApplied": "Polling now retries in-place, global generation timeouts do not auto-requeue, ambiguous queue POST I/O failures require manual retry, image downloads retry the same output, remote identifiers/types/text sizes are validated, share/timeline JPEG writes are atomic and unique, cancelled MP4s are deleted, and partial generation avoids duplicate persistence.",
+  "currentTask": "Harden media rendering/export lifecycle and improve cross-chapter identity continuity without increasing user setup.",
+  "lastKnownBlocker": "Media cache files and large decoded bitmaps could survive or consume excessive memory across failure paths, while identity continuity still had room for stronger structural constraints.",
+  "fixApplied": "Gallery copies now reject empty sources and verify MediaStore finalization, share URIs are revalidated at share time, video render sessions clean intermediate JPEGs across all lifecycle exits, bitmap decoding has a sampled pixel budget and actual-size guard, render bitmaps recycle on failure, and prompts preserve additional facial structure while allowing chapter styling to evolve.",
   "next": [
-    "Verify cumulative CI runs #386–#388",
-    "Continue auditing network stages for duplicate-job ambiguity",
-    "Polish targeted chapter retry feedback after CI remains green",
-    "Preserve atomic full-regeneration and deterministic output selection guarantees"
+    "Verify cumulative CI runs #417–#421",
+    "Continue auditing remaining media cache lifecycle and process-interruption edge cases",
+    "Evaluate identity continuity improvements before adding heavier model-specific workflow assumptions",
+    "Preserve atomic full-regeneration and no-duplicate-job ComfyUI guarantees"
   ],
-  "updated": "2026-09-24"
+  "updated": "2026-09-25"
 }
