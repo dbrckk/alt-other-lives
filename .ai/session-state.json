@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 4 — Reliable AI generation and history UX",
-  "currentTask": "Close remaining media-cache lifecycle gaps and keep startup photo/timeline restoration consistent.",
-  "lastKnownBlocker": "ComfyUI downloads were written under cache/generation but that path was not exposed by FileProvider, which could fail at runtime when creating the generated scene URI.",
-  "fixApplied": "FileProvider now exposes cache/generation, persisted ComfyUI downloads are deleted immediately, cancelled full-regeneration downloads are cleaned safely, pending MediaStore saves expire automatically, late Media3 callbacks are ignored after cancel, and startup context no longer pairs a loose photo with an older timeline key.",
+  "currentTask": "Continue end-to-end AI reliability hardening after deterministic ComfyUI source reuse and resilient timeline seed recovery.",
+  "lastKnownBlocker": "No active blocker. Latest cumulative CI run #456 is green across unit tests, Android lint, debug APK assembly and artifact upload.",
+  "fixApplied": "ComfyUI source uploads now reuse deterministic opaque names per private source; targeted chapter requests reject invalid indexes before network work; fresh variation seeds use SecureRandom; interrupted or corrupt seed writes recover the last valid backup before reuse; startup transient cache cleanup remains enabled.",
   "next": [
-    "Verify cumulative CI runs #437–#438",
-    "Continue auditing private/cache media lifecycle for process interruption edge cases",
-    "Preserve tested startup photo/timeline consistency",
-    "Keep atomic full-regeneration and deterministic ComfyUI output guarantees intact"
+    "Audit remaining atomic scene transaction recovery edge cases without weakening rollback semantics",
+    "Audit Reveal lifecycle cancellation and stale callback handling around AI generation",
+    "Preserve tested startup photo/timeline consistency and deterministic output continuity",
+    "Keep cumulative CI green after each reliability change"
   ],
   "updated": "2026-09-25"
 }
