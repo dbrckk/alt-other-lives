@@ -8,13 +8,31 @@ internal object SeedFileRecovery {
         if (!backup.exists()) return
 
         val target = File(root, "seed.txt")
-        if (target.exists()) {
+        if (isValidSeedFile(target)) {
             backup.delete()
             return
         }
 
-        if (!backup.renameTo(target)) {
-            error("Unable to recover interrupted timeline seed write")
+        if (target.exists() && !target.delete()) {
+            error("Unable to discard invalid timeline seed")
+        }
+
+        if (isValidSeedFile(backup)) {
+            if (!backup.renameTo(target)) {
+                error("Unable to recover interrupted timeline seed write")
+            }
+        } else if (!backup.delete()) {
+            error("Unable to discard invalid timeline seed backup")
         }
     }
+
+    internal fun isValidSeedFile(file: File): Boolean =
+        file.takeIf { it.isFile }
+            ?.runCatching {
+                readText()
+                    .trim()
+                    .toLongOrNull()
+                    ?.takeIf { it > 0L }
+            }
+            ?.getOrNull() != null
 }
