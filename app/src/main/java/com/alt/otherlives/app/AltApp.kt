@@ -28,6 +28,7 @@ import com.alt.otherlives.core.generation.GenerationSettingsRepository
 import com.alt.otherlives.core.generation.GeneratedSceneStore
 import com.alt.otherlives.core.generation.ComfyUiClient
 import com.alt.otherlives.core.generation.ComfyUiConfig
+import com.alt.otherlives.core.media.TransientMediaCache
 import androidx.compose.ui.Modifier
 import com.alt.otherlives.core.data.ScenarioCatalog
 import com.alt.otherlives.core.designsystem.AltBackground
@@ -78,6 +79,12 @@ fun AltApp() {
     )
 
     LaunchedEffect(Unit) {
+        runCatching {
+            withContext(Dispatchers.IO) {
+                TransientMediaCache.cleanup(context.applicationContext)
+            }
+        }
+
         val latestStoredPhoto = if (photoUri == null && !isImportingPhoto) {
             runCatching {
                 withContext(Dispatchers.IO) {
