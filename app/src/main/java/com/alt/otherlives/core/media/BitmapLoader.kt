@@ -21,18 +21,12 @@ object BitmapLoader {
             return null
         }
 
-        require(targetWidth > 0 && targetHeight > 0) {
-            "Target bitmap dimensions must be positive"
-        }
-
-        var sampleSize = 1
-        while (
-            sampleSize <= Int.MAX_VALUE / 2 &&
-            bounds.outWidth / 2 / sampleSize >= targetWidth &&
-            bounds.outHeight / 2 / sampleSize >= targetHeight
-        ) {
-            sampleSize *= 2
-        }
+        val sampleSize = BitmapSampling.calculateSampleSize(
+            sourceWidth = bounds.outWidth,
+            sourceHeight = bounds.outHeight,
+            targetWidth = targetWidth,
+            targetHeight = targetHeight
+        )
 
         val options = BitmapFactory.Options().apply {
             inSampleSize = sampleSize
