@@ -534,7 +534,16 @@ fun RevealScreen(
                                 }
                                 isRenderingShareImage = false
                                 rendered.onSuccess { shareUri ->
-                                    ShareCardRenderer.share(context, shareUri, scenario)
+                                    runCatching {
+                                        ShareCardRenderer.share(context, shareUri, scenario)
+                                    }.onFailure {
+                                        Toast.makeText(
+                                            context,
+                                            "Could not share image: " +
+                                                (it.message ?: "unknown error"),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 }.onFailure {
                                     Toast.makeText(
                                         context,
@@ -689,7 +698,19 @@ fun RevealScreen(
                 completedVideoUri?.let { videoUri ->
                     Spacer(Modifier.height(12.dp))
                     Button(
-                        onClick = { CinematicVideoExporter.share(context, videoUri, scenario) },
+                        onClick = {
+                            runCatching {
+                                CinematicVideoExporter.share(context, videoUri, scenario)
+                            }.onFailure {
+                                completedVideoUri = null
+                                Toast.makeText(
+                                    context,
+                                    "Could not share video: " +
+                                        (it.message ?: "unknown error"),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        },
                         enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isGeneratingAi && !isExporting,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
