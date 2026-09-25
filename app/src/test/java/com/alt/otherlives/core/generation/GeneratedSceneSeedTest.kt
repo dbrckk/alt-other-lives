@@ -14,10 +14,7 @@ class GeneratedSceneSeedTest {
     }
 
     @Test
-    fun generatedSeedsStayWithinComfyUiPositiveRange() {
-        val storeClass = GeneratedSceneStore::class.java
-        val method = storeClass.getDeclaredMethod("positiveSeedFrom", Long::class.javaPrimitiveType)
-
+    fun representativeRawValuesStayWithinComfyUiPositiveRange() {
         listOf(
             Long.MIN_VALUE,
             -123456789L,
@@ -27,7 +24,7 @@ class GeneratedSceneSeedTest {
             123456789L,
             Long.MAX_VALUE
         ).forEach { raw ->
-            val seed = method.invoke(null, raw) as Long
+            val seed = GeneratedSceneStore.positiveSeedFrom(raw)
             assertTrue(seed > 0L)
             assertTrue(seed <= Long.MAX_VALUE)
         }
