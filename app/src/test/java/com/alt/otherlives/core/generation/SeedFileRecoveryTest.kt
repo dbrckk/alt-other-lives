@@ -41,6 +41,38 @@ class SeedFileRecoveryTest {
     }
 
     @Test
+    fun restoresValidBackupWhenTargetIsCorrupt() {
+        val root = Files.createTempDirectory("alt-seed-recovery").toFile()
+        try {
+            root.resolve("seed.txt").writeText("not-a-seed")
+            root.resolve(".seed.bak").writeText("777")
+
+            SeedFileRecovery.recover(root)
+
+            assertEquals("777", root.resolve("seed.txt").readText())
+            assertFalse(root.resolve(".seed.bak").exists())
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun removesCorruptTargetAndCorruptBackup() {
+        val root = Files.createTempDirectory("alt-seed-recovery").toFile()
+        try {
+            root.resolve("seed.txt").writeText("-5")
+            root.resolve(".seed.bak").writeText("broken")
+
+            SeedFileRecovery.recover(root)
+
+            assertFalse(root.resolve("seed.txt").exists())
+            assertFalse(root.resolve(".seed.bak").exists())
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
     fun missingBackupIsNoOp() {
         val root = Files.createTempDirectory("alt-seed-recovery").toFile()
         try {
