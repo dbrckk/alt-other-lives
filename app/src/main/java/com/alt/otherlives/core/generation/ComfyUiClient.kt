@@ -162,9 +162,10 @@ class ComfyUiClient(
                 continue
             }
 
-            if (snapshot.status == "error") {
-                error(snapshot.errorMessage ?: "ComfyUI generation failed")
-            }
+            generationFailureMessage(
+                status = snapshot.status,
+                errorMessage = snapshot.errorMessage
+            )?.let { error(it) }
             if (snapshot.outputs.isNotEmpty()) return snapshot.outputs
             if (snapshot.completed) {
                 error("ComfyUI completed without image outputs")
@@ -399,6 +400,12 @@ class ComfyUiClient(
                 .joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
             return "alt-source-" + digest.take(32) + "." + safeExtension
         }
+
+        fun generationFailureMessage(status: String?, errorMessage: String?): String? =
+            errorMessage?.takeIf { it.isNotBlank() }
+                ?: status
+                    ?.takeIf { it.equals("error", ignoreCase = true) }
+                    ?.let { "ComfyUI generation failed" }
 
         const val MAX_ERROR_BODY_CHARS = 500
         const val MAX_ERROR_BODY_READ_CHARS = 4_096
