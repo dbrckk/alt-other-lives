@@ -33,8 +33,14 @@ object BitmapLoader {
             inPreferredConfig = Bitmap.Config.ARGB_8888
         }
 
-        return context.contentResolver.openInputStream(uri)?.use { input ->
+        val decoded = context.contentResolver.openInputStream(uri)?.use { input ->
             BitmapFactory.decodeStream(input, null, options)
+        } ?: return null
+
+        if (!BitmapSampling.isDecodedSizeSafe(decoded.width, decoded.height)) {
+            decoded.recycle()
+            return null
         }
+        return decoded
     }
 }
