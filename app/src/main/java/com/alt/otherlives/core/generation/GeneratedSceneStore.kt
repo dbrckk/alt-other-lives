@@ -384,14 +384,13 @@ class GeneratedSceneStore(private val context: Context) {
         root: File,
         backup: File
     ): Boolean {
-        val isSeed = backup.name == "seed.txt"
-        val isScene = chapterIndexFromFilename(backup.name) != null
-        if (!isSeed && !isScene) return false
+        val kind = RecoveryBackupKind.fromName(backup.name)
+        if (kind == RecoveryBackupKind.UNKNOWN) return false
 
-        val backupValid = if (isSeed) {
-            SeedFileRecovery.readSeedOrNull(backup) != null
-        } else {
-            isValidImage(backup)
+        val backupValid = when (kind) {
+            RecoveryBackupKind.SEED -> SeedFileRecovery.readSeedOrNull(backup) != null
+            RecoveryBackupKind.SCENE -> isValidImage(backup)
+            RecoveryBackupKind.UNKNOWN -> false
         }
         if (!backupValid) return false
 
@@ -402,10 +401,10 @@ class GeneratedSceneStore(private val context: Context) {
                     input.copyTo(output)
                 }
             }
-            if (isSeed) {
-                SeedFileRecovery.readSeedOrNull(target) != null
-            } else {
-                isValidImage(target)
+            when (kind) {
+                RecoveryBackupKind.SEED -> SeedFileRecovery.readSeedOrNull(target) != null
+                RecoveryBackupKind.SCENE -> isValidImage(target)
+                RecoveryBackupKind.UNKNOWN -> false
             }
         }.getOrDefault(false)
     }
