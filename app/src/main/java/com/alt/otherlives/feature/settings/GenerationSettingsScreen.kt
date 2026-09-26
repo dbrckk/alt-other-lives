@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.alt.otherlives.core.designsystem.AltMuted
+import com.alt.otherlives.core.designsystem.AltBackButton
 import com.alt.otherlives.core.generation.GenerationSettings
 import com.alt.otherlives.core.generation.GenerationSettingsValidation
 
@@ -49,7 +50,7 @@ fun GenerationSettingsScreen(
             .verticalScroll(rememberScrollState())
             .padding(24.dp)
     ) {
-        TextButton(onClick = onBack) { Text("‹ Back") }
+        AltBackButton(onClick = onBack)
         Text("Advanced AI setup", fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(6.dp))
         Text(
