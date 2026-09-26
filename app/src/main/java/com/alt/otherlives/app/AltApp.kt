@@ -258,8 +258,11 @@ fun AltApp() {
                                     }
 
                                     recordResult.onSuccess { keep ->
+                                        val recordedEntry = requireNotNull(keep.recordedEntry) {
+                                            "Timeline record did not return its persisted entry"
+                                        }
                                         selectedScenario = scenario
-                                        activeTimelineKey = scenario.id + "-" + createdAt
+                                        activeTimelineKey = recordedEntry.timelineKey
                                         screen = Screen.REVEAL
 
                                         runCatching {
