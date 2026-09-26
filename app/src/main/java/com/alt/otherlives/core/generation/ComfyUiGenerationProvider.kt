@@ -4,6 +4,7 @@ import android.content.Context
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import java.security.SecureRandom
+import com.alt.otherlives.core.model.TimelineConstraints
 
 class ComfyUiGenerationProvider(
     context: Context,
@@ -21,7 +22,10 @@ class ComfyUiGenerationProvider(
         onSceneGenerated: suspend (GeneratedScene) -> Unit,
         onChapterFailure: (chapterIndex: Int, message: String) -> Unit
     ): List<GeneratedScene> {
-        val chapters = request.scenario.chapters.take(5)
+        require(request.scenario.chapters.size <= TimelineConstraints.MAX_CHAPTER_COUNT) {
+            "Scenario exceeds the supported timeline chapter limit"
+        }
+        val chapters = request.scenario.chapters
         require(chapters.isNotEmpty()) { "Scenario has no chapters" }
 
         val requestedIndexes = validateRequestedChapterIndexes(
