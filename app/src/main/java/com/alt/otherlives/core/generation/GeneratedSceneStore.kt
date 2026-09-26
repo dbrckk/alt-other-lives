@@ -479,6 +479,10 @@ class GeneratedSceneStore(private val context: Context) {
                 }
 
                 recoveryPlan?.let { plan ->
+                    if (!SceneTransactionRecoveryPlan.isActionable(plan)) {
+                        return@forEach
+                    }
+
                     root.listFiles()
                         ?.filter {
                             it.isFile &&
