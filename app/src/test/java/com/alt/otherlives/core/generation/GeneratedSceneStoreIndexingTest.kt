@@ -25,6 +25,17 @@ class GeneratedSceneStoreIndexingTest {
     }
 
     @Test
+    fun rejectsOutOfRangeChapterNames() {
+        assertNull(GeneratedSceneFileName.chapterIndex("scene-5.png"))
+        assertNull(GeneratedSceneFileName.chapterIndex("scene-999.png"))
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun refusesOutOfRangeChapterIndexes() {
+        GeneratedSceneFileName.forChapter(5)
+    }
+
+    @Test
     fun normalizesUppercaseSupportedExtension() {
         assertEquals(
             "scene-1.webp",
