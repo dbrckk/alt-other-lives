@@ -380,6 +380,36 @@ class GeneratedSceneStore(private val context: Context) {
         }
     }
 
+    private fun restoreRollbackBackup(
+        root: File,
+        backup: File
+    ): Boolean {
+        val isSeed = backup.name == "seed.txt"
+        val isScene = chapterIndexFromFilename(backup.name) != null
+        if (!isSeed && !isScene) return false
+
+        val backupValid = if (isSeed) {
+            SeedFileRecovery.readSeedOrNull(backup) != null
+        } else {
+            isValidImage(backup)
+        }
+        if (!backupValid) return false
+
+        val target = File(root, backup.name)
+        return runCatching {
+            backup.inputStream().use { input ->
+                target.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            if (isSeed) {
+                SeedFileRecovery.readSeedOrNull(target) != null
+            } else {
+                isValidImage(target)
+            }
+        }.getOrDefault(false)
+    }
+
     private fun recoverInterruptedBatchWrites(root: File) {
         root.listFiles()
             ?.filter { it.isDirectory && it.name.startsWith(".batch-") }
@@ -465,15 +495,10 @@ class GeneratedSceneStore(private val context: Context) {
                     val restoreSucceeded = backupDir.listFiles()
                         .orEmpty()
                         .all { backup ->
-                            val target = File(root, backup.name)
-                            runCatching {
-                                backup.inputStream().use { input ->
-                                    target.outputStream().use { output ->
-                                        input.copyTo(output)
-                                    }
-                                }
-                                target.length() == backup.length() && target.length() > 0L
-                            }.getOrDefault(false)
+                            restoreRollbackBackup(
+                                root = root,
+                                backup = backup
+                            )
                         }
 
                     if (!restoreSucceeded) {
