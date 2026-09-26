@@ -65,6 +65,9 @@ import com.alt.otherlives.core.generation.GenerationRequest
 import com.alt.otherlives.core.generation.GenerationSettings
 import com.alt.otherlives.core.generation.GeneratedScene
 import com.alt.otherlives.core.generation.GeneratedSceneStore
+import com.alt.otherlives.core.generation.AiGenerationReport
+import com.alt.otherlives.core.generation.AiGenerationReportReason
+import com.alt.otherlives.core.generation.AiGenerationReportStore
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
@@ -78,6 +81,7 @@ fun RevealScreen(
 ) {
     val context = LocalContext.current
     val sceneStore = remember(context) { GeneratedSceneStore(context.applicationContext) }
+    val reportStore = remember(context) { AiGenerationReportStore(context.applicationContext) }
     val scope = rememberCoroutineScope()
     var isExporting by remember { mutableStateOf(false) }
     var exportProgress by remember { mutableStateOf<Int?>(null) }
@@ -100,6 +104,11 @@ fun RevealScreen(
     var showRegenerateAllDialog by remember { mutableStateOf(false) }
     var showClearAiDialog by remember { mutableStateOf(false) }
     var isClearingAi by remember { mutableStateOf(false) }
+    var showAiReportDialog by remember(timelineKey) { mutableStateOf(false) }
+    var selectedAiReportReason by remember(timelineKey) {
+        mutableStateOf<AiGenerationReportReason?>(null)
+    }
+    var isSavingAiReport by remember(timelineKey) { mutableStateOf(false) }
     val primaryGeneratedSceneUri = generatedScenes
         .minByOrNull { it.chapterIndex }
         ?.imageUri
@@ -217,6 +226,120 @@ fun RevealScreen(
                         },
                         color = AltDimmed,
                         fontSize = 12.sp
+                    )
+                }
+            }
+        }
+        if (generatedScenes.isNotEmpty()) {
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 4.dp)
+                ) {
+                    TextButton(
+                        onClick = {
+                            selectedAiReportReason = null
+                            showAiReportDialog = true
+                        },
+                        enabled = !isSavingAiReport &&
+                            !isGeneratingAi &&
+                            !isExporting &&
+                            !isRenderingShareImage,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Flag unsafe AI generation")
+                    }
+                    Text(
+                        "Flags are stored locally for now and do not include your photo or generated images.",
+                        color = AltDimmed,
+                        fontSize = 11.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                if (showAiReportDialog) {
+                    AlertDialog(
+                        onDismissRequest = {
+                            if (!isSavingAiReport) {
+                                showAiReportDialog = false
+                            }
+                        },
+                        title = { Text("Flag this AI generation") },
+                        text = {
+                            Column {
+                                Text(
+                                    "Choose the reason. ALT stores only the timeline ID, scenario, reason and time."
+                                )
+                                Spacer(Modifier.height(10.dp))
+                                AiGenerationReportReason.entries.forEach { reason ->
+                                    TextButton(
+                                        onClick = { selectedAiReportReason = reason },
+                                        enabled = !isSavingAiReport,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(
+                                            if (selectedAiReportReason == reason) {
+                                                "✓ " + reason.label
+                                            } else {
+                                                reason.label
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(
+                                enabled = selectedAiReportReason != null && !isSavingAiReport,
+                                onClick = {
+                                    val reason = selectedAiReportReason ?: return@TextButton
+                                    isSavingAiReport = true
+                                    scope.launch {
+                                        val saved = runCatching {
+                                            withContext(Dispatchers.IO) {
+                                                reportStore.record(
+                                                    AiGenerationReport(
+                                                        timelineKey = timelineKey,
+                                                        scenarioId = scenario.id,
+                                                        reason = reason,
+                                                        createdAt = System.currentTimeMillis()
+                                                    )
+                                                )
+                                            }
+                                        }
+                                        isSavingAiReport = false
+                                        saved.onSuccess {
+                                            showAiReportDialog = false
+                                            selectedAiReportReason = null
+                                            Toast.makeText(
+                                                context,
+                                                "Flag saved locally",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }.onFailure {
+                                            Toast.makeText(
+                                                context,
+                                                "Could not save flag: " +
+                                                    (it.message ?: "unknown error"),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                }
+                            ) {
+                                Text(if (isSavingAiReport) "Saving…" else "Save flag")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = { showAiReportDialog = false },
+                                enabled = !isSavingAiReport
+                            ) {
+                                Text("Cancel")
+                            }
+                        }
                     )
                 }
             }
