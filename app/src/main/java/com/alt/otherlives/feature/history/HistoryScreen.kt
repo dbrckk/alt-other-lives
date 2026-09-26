@@ -52,14 +52,12 @@ fun HistoryScreen(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                "‹",
-                fontSize = 36.sp,
-                modifier = Modifier.clickable(
-                    enabled = !isClearingHistory,
-                    onClick = onBack
-                )
-            )
+            TextButton(
+                onClick = onBack,
+                enabled = !isClearingHistory
+            ) {
+                Text("Back")
+            }
             Column(Modifier.padding(start = 12.dp).weight(1f)) {
                 Text("Your other lives", fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
                 Text(
@@ -197,7 +195,7 @@ fun HistoryScreen(
                                     horizontalAlignment = Alignment.End,
                                     verticalArrangement = Arrangement.Center
                                 ) {
-                                    Text("›", color = AltMuted, fontSize = 28.sp)
+                                    Text("Open", color = AltMuted, fontSize = 11.sp)
                                     TextButton(
                                         onClick = { pendingDeleteEntry = entry },
                                         enabled = !isDeleting && !isClearingHistory,
