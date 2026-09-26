@@ -346,7 +346,7 @@ fun RevealScreen(
         }
         item {
             Column(Modifier.padding(24.dp)) {
-                if (generationSettings.isConfigured && photoUri != null) {
+                if (generationSettings.isReadyForRemoteGeneration && photoUri != null) {
                     val startGeneration: (Set<Int>, Boolean) -> Unit = { targetIndexes, resetSeed ->
                         if (!isGeneratingAi) {
                             completedVideoUri = null
@@ -672,9 +672,12 @@ fun RevealScreen(
                     val aiUnavailableMessage = when {
                         photoUri == null ->
                             "AI generation needs the original source photo. Saved generated scenes can still be viewed and exported."
-                        generationSettings.hasPersistedValues ->
+                        generationSettings.hasPersistedValues && !generationSettings.isConfigured ->
                             "Saved AI settings need attention: " +
                                 (generationSettings.validationError ?: "configuration is invalid")
+                        generationSettings.isConfigured &&
+                            !generationSettings.remotePhotoUploadConsent ->
+                            "Remote AI generation is configured, but photo upload consent is not enabled."
                         else ->
                             "AI generation is not configured yet."
                     }
