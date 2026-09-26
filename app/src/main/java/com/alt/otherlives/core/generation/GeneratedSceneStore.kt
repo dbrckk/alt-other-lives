@@ -479,20 +479,35 @@ class GeneratedSceneStore(private val context: Context) {
                         backup.delete()
                         return@forEach
                     }
-                val hasScene = root.listFiles()
-                    ?.any { file ->
+                val currentScenes = root.listFiles()
+                    ?.filter { file ->
                         file.isFile &&
                             file.name.startsWith("scene-") &&
                             chapterIndexFromFilename(file.name) == chapterIndex
                     }
-                    ?: false
-                if (hasScene) {
-                    backup.delete()
-                } else {
-                    val restored = File(root, originalName)
-                    if (!backup.renameTo(restored)) {
-                        return@forEach
+                    .orEmpty()
+                val validCurrentScenes = currentScenes.filter(::isValidImage)
+                currentScenes
+                    .filterNot { it in validCurrentScenes }
+                    .forEach { it.delete() }
+
+                when (
+                    SceneBackupRecovery.decide(
+                        hasValidCurrent = validCurrentScenes.isNotEmpty(),
+                        hasValidBackup = isValidImage(backup)
+                    )
+                ) {
+                    SceneBackupRecovery.Action.KEEP_CURRENT -> backup.delete()
+                    SceneBackupRecovery.Action.RESTORE_BACKUP -> {
+                        val restored = File(root, originalName)
+                        if (restored.exists() && !restored.delete()) {
+                            return@forEach
+                        }
+                        if (!backup.renameTo(restored)) {
+                            return@forEach
+                        }
                     }
+                    SceneBackupRecovery.Action.DISCARD_BACKUP -> backup.delete()
                 }
             }
     }
