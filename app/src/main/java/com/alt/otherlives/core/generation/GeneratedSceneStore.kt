@@ -341,6 +341,45 @@ class GeneratedSceneStore(private val context: Context) {
         )
     }
 
+    private fun restorePreCommitBackup(
+        root: File,
+        backup: File
+    ): Boolean {
+        val target = File(root, backup.name)
+        val targetValid = when (backup.name) {
+            "seed.txt" -> SeedFileRecovery.readSeedOrNull(target) != null
+            else -> chapterIndexFromFilename(backup.name) != null && isValidImage(target)
+        }
+        val backupValid = when (backup.name) {
+            "seed.txt" -> SeedFileRecovery.readSeedOrNull(backup) != null
+            else -> chapterIndexFromFilename(backup.name) != null && isValidImage(backup)
+        }
+
+        return when (
+            BatchBackupRecovery.decide(
+                hasValidTarget = targetValid,
+                hasValidBackup = backupValid
+            )
+        ) {
+            BatchBackupRecovery.Action.KEEP_TARGET -> true
+            BatchBackupRecovery.Action.PRESERVE_RECOVERY_DATA -> false
+            BatchBackupRecovery.Action.RESTORE_BACKUP -> runCatching {
+                if (target.exists() && !target.delete()) {
+                    return@runCatching false
+                }
+                backup.inputStream().use { input ->
+                    target.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                when (backup.name) {
+                    "seed.txt" -> SeedFileRecovery.readSeedOrNull(target) != null
+                    else -> isValidImage(target)
+                }
+            }.getOrDefault(false)
+        }
+    }
+
     private fun recoverInterruptedBatchWrites(root: File) {
         root.listFiles()
             ?.filter { it.isDirectory && it.name.startsWith(".batch-") }
@@ -365,19 +404,10 @@ class GeneratedSceneStore(private val context: Context) {
                     val restoreSucceeded = backupDir.listFiles()
                         .orEmpty()
                         .all { backup ->
-                            val target = File(root, backup.name)
-                            if (target.exists()) {
-                                true
-                            } else {
-                                runCatching {
-                                    backup.inputStream().use { input ->
-                                        target.outputStream().use { output ->
-                                            input.copyTo(output)
-                                        }
-                                    }
-                                    target.length() == backup.length() && target.length() > 0L
-                                }.getOrDefault(false)
-                            }
+                            restorePreCommitBackup(
+                                root = root,
+                                backup = backup
+                            )
                         }
 
                     if (restoreSucceeded) {
