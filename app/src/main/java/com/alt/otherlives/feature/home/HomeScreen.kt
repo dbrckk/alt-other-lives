@@ -19,6 +19,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -33,6 +34,7 @@ import com.alt.otherlives.core.designsystem.AltDimmed
 import com.alt.otherlives.core.designsystem.AltMuted
 import com.alt.otherlives.core.designsystem.AltPrimary
 import com.alt.otherlives.core.designsystem.AltAccent
+import com.alt.otherlives.R
 
 @Composable
 fun HomeScreen(
@@ -51,11 +53,11 @@ fun HomeScreen(
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Column {
-            Text("ALT", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AltAccent)
+            Text(stringResource(R.string.home_brand), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AltAccent)
             Spacer(Modifier.height(14.dp))
-            Text("See the lives\nyou could have lived.", fontSize = 42.sp, lineHeight = 44.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.home_headline), fontSize = 42.sp, lineHeight = 44.sp, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(12.dp))
-            Text("One photo. One choice. A completely different timeline.", color = AltMuted, fontSize = 17.sp)
+            Text(stringResource(R.string.home_subtitle), color = AltMuted, fontSize = 17.sp)
         }
 
         Box(
@@ -65,13 +67,13 @@ fun HomeScreen(
             contentAlignment = Alignment.Center
         ) {
             if (photoUri != null) {
-                AsyncImage(model = photoUri, contentDescription = "Selected photo", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                AsyncImage(model = photoUri, contentDescription = stringResource(R.string.home_selected_photo), modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                 Box(
                     modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()
                         .background(Color.Black.copy(alpha = 0.48f)).padding(16.dp)
                 ) {
                     Text(
-                        if (isImportingPhoto) "Importing photo…" else "Tap to change photo",
+                        if (isImportingPhoto) stringResource(R.string.home_importing_photo) else stringResource(R.string.home_change_photo),
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
                     )
@@ -79,8 +81,8 @@ fun HomeScreen(
             } else {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("+", fontSize = 48.sp, color = AltPrimary)
-                    Text("Choose your photo", fontSize = 19.sp, fontWeight = FontWeight.Medium)
-                    Text("Your original stays on this device.", color = AltMuted, fontSize = 13.sp)
+                    Text(stringResource(R.string.home_choose_photo), fontSize = 19.sp, fontWeight = FontWeight.Medium)
+                    Text(stringResource(R.string.home_photo_local), color = AltMuted, fontSize = 13.sp)
                 }
             }
         }
@@ -99,7 +101,7 @@ fun HomeScreen(
             )
         ) {
             Text(
-                if (isImportingPhoto) "Preparing photo…" else "Choose another life",
+                if (isImportingPhoto) stringResource(R.string.home_preparing_photo) else stringResource(R.string.home_choose_life),
                 fontWeight = FontWeight.Bold
             )
         }
@@ -108,7 +110,7 @@ fun HomeScreen(
                 onClick = onHistory,
                 enabled = !isImportingPhoto,
                 modifier = Modifier.fillMaxWidth()
-            ) { Text("View my other lives", color = AltMuted) }
+            ) { Text(stringResource(R.string.home_view_history), color = AltMuted) }
         }
     }
 }
