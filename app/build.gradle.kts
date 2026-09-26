@@ -16,6 +16,35 @@ android {
         versionName = "0.1.0"
     }
 
+    val releaseKeystorePath = System.getenv("ALT_KEYSTORE_PATH")
+    val releaseKeystorePassword = System.getenv("ALT_KEYSTORE_PASSWORD")
+    val releaseKeyAlias = System.getenv("ALT_KEY_ALIAS")
+    val releaseKeyPassword = System.getenv("ALT_KEY_PASSWORD")
+    val hasReleaseSigning =
+        !releaseKeystorePath.isNullOrBlank() &&
+            !releaseKeystorePassword.isNullOrBlank() &&
+            !releaseKeyAlias.isNullOrBlank() &&
+            !releaseKeyPassword.isNullOrBlank()
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(requireNotNull(releaseKeystorePath))
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        getByName("release") {
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
