@@ -14,6 +14,11 @@ class SceneBatchValidationTest {
     }
 
     @Test(expected = IllegalArgumentException::class)
+    fun rejectsIndexesBeyondSupportedTimeline() {
+        SceneBatchValidation.validateChapterIndexes(listOf(0, 5))
+    }
+
+    @Test(expected = IllegalArgumentException::class)
     fun rejectsDuplicateIndexes() {
         SceneBatchValidation.validateChapterIndexes(listOf(0, 1, 1, 2))
     }
