@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ALT</string>
+    <string name="home_brand">ALT</string>
+    <string name="home_headline">See the lives\nyou could have lived.</string>
+    <string name="home_subtitle">One photo. One choice. A completely different timeline.</string>
+    <string name="home_selected_photo">Selected photo</string>
+    <string name="home_importing_photo">Importing photo…</string>
+    <string name="home_change_photo">Tap to change photo</string>
+    <string name="home_choose_photo">Choose your photo</string>
+    <string name="home_photo_local">Your original stays on this device.</string>
+    <string name="home_preparing_photo">Preparing photo…</string>
+    <string name="home_choose_life">Choose another life</string>
+    <string name="home_view_history">View my other lives</string>
 </resources>
