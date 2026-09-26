@@ -20,6 +20,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -69,6 +70,7 @@ fun ScenarioScreen(
                         .fillMaxWidth()
                         .clickable(
                             enabled = !isCreatingTimeline,
+                            role = Role.Button,
                             onClick = { onSelect(scenario) }
                         ),
                     shape = RoundedCornerShape(24.dp),
