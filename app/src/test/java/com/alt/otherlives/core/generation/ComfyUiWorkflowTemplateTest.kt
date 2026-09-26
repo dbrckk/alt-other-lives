@@ -38,6 +38,36 @@ class ComfyUiWorkflowTemplateTest {
         )
     }
 
+    @Test(expected = IllegalArgumentException::class)
+    fun validateTemplateRejectsPlaceholderUsedOnlyAsJsonKey() {
+        ComfyUiWorkflowTemplate.validateTemplate(
+            """{
+              "__ALT_SOURCE_IMAGE__":{"value":"source.png"},
+              "2":{"inputs":{"text":"__ALT_PROMPT__"}}
+            }"""
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun validateTemplateRejectsEmbeddedPromptPlaceholder() {
+        ComfyUiWorkflowTemplate.validateTemplate(
+            """{
+              "1":{"inputs":{"image":"__ALT_SOURCE_IMAGE__"}},
+              "2":{"inputs":{"text":"prefix __ALT_PROMPT__ suffix"}}
+            }"""
+        )
+    }
+
+    @Test
+    fun validateTemplateAcceptsRequiredPlaceholdersInsideArrays() {
+        ComfyUiWorkflowTemplate.validateTemplate(
+            """{
+              "1":{"inputs":{"images":["__ALT_SOURCE_IMAGE__"]}},
+              "2":{"inputs":{"texts":["__ALT_PROMPT__"]}}
+            }"""
+        )
+    }
+
     @Test
     fun preferredOutputNodeIdFindsAltOutputMarker() {
         val workflow = org.json.JSONObject(
