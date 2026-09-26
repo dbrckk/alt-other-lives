@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -122,6 +123,7 @@ fun HistoryScreen(
                                 .fillMaxWidth()
                                 .clickable(
                                     enabled = !isDeleting && !isClearingHistory,
+                                    role = Role.Button,
                                     onClick = { onOpen(scenario, entry) }
                                 ),
                             shape = RoundedCornerShape(24.dp),
