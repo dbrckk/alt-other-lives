@@ -4,7 +4,8 @@ import com.alt.otherlives.core.model.Scenario
 import com.alt.otherlives.core.model.TimelineChapter
 
 object ScenarioCatalog {
-    val scenarios = listOf(
+    val scenarios = ScenarioCatalogValidation.validate(
+        listOf(
         Scenario(
             id = "wealth",
             title = "What if I became wealthy?",
@@ -100,6 +101,7 @@ object ScenarioCatalog {
                 TimelineChapter("Year 5", "The decisions that once felt radical now look obvious."),
                 TimelineChapter("Year 10", "You barely recognize the path you once thought was fixed.")
             )
+        )
         )
     )
 }
