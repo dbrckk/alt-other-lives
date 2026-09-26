@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">ALT</string>
     <string name="home_brand">ALT</string>
     <string name="home_headline">Découvre les vies\nque tu aurais pu vivre.</string>
     <string name="home_subtitle">Une photo. Un choix. Une chronologie complètement différente.</string>
