@@ -72,6 +72,32 @@ class SceneTransactionRecoveryPlanTest {
     }
 
     @Test
+    fun emptyCommittedPlanIsNotActionable() {
+        val plan = requireNotNull(
+            SceneTransactionRecoveryPlan.build(
+                commitStarted = true,
+                affectedIndexesText = "",
+                seedIncluded = false
+            )
+        )
+
+        assertFalse(SceneTransactionRecoveryPlan.isActionable(plan))
+    }
+
+    @Test
+    fun seedOnlyCommittedPlanRemainsActionable() {
+        val plan = requireNotNull(
+            SceneTransactionRecoveryPlan.build(
+                commitStarted = true,
+                affectedIndexesText = "",
+                seedIncluded = true
+            )
+        )
+
+        assertTrue(SceneTransactionRecoveryPlan.isActionable(plan))
+    }
+
+    @Test
     fun committedBatchRestoresAffectedScenesWithoutSeedDeletionWhenSeedWasNotIncluded() {
         val plan = requireNotNull(
             SceneTransactionRecoveryPlan.build(
