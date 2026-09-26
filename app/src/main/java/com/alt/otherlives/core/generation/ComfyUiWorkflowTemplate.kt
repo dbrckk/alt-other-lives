@@ -8,14 +8,47 @@ object ComfyUiWorkflowTemplate {
     fun validateTemplate(templateJson: String) {
         require(templateJson.isNotBlank()) { "Workflow JSON is required" }
         require(templateJson.trimStart().startsWith("{")) { "Workflow must be a JSON object" }
-        runCatching { JSONObject(templateJson) }
+        val root = runCatching { JSONObject(templateJson) }
             .getOrElse { throw IllegalArgumentException("Workflow JSON is malformed", it) }
-        require(templateJson.contains(ComfyUiWorkflow.PLACEHOLDER_SOURCE_IMAGE)) {
-            "Workflow must contain " + ComfyUiWorkflow.PLACEHOLDER_SOURCE_IMAGE
+        require(
+            containsExactPlaceholderValue(
+                root,
+                ComfyUiWorkflow.PLACEHOLDER_SOURCE_IMAGE
+            )
+        ) {
+            "Workflow must contain " + ComfyUiWorkflow.PLACEHOLDER_SOURCE_IMAGE +
+                " as an exact JSON value"
         }
-        require(templateJson.contains(ComfyUiWorkflow.PLACEHOLDER_PROMPT)) {
-            "Workflow must contain " + ComfyUiWorkflow.PLACEHOLDER_PROMPT
+        require(
+            containsExactPlaceholderValue(
+                root,
+                ComfyUiWorkflow.PLACEHOLDER_PROMPT
+            )
+        ) {
+            "Workflow must contain " + ComfyUiWorkflow.PLACEHOLDER_PROMPT +
+                " as an exact JSON value"
         }
+    }
+
+    internal fun containsExactPlaceholderValue(
+        value: Any?,
+        placeholder: String
+    ): Boolean = when (value) {
+        is JSONObject -> value.keys()
+            .asSequence()
+            .any { key ->
+                val child = value.get(key)
+                child == placeholder ||
+                    containsExactPlaceholderValue(child, placeholder)
+            }
+
+        is JSONArray -> (0 until value.length()).any { index ->
+            val child = value.get(index)
+            child == placeholder ||
+                containsExactPlaceholderValue(child, placeholder)
+        }
+
+        else -> false
     }
 
     fun prepare(
