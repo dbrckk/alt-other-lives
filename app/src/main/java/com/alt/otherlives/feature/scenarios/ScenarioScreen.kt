@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,14 +39,12 @@ fun ScenarioScreen(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                "‹",
-                fontSize = 36.sp,
-                modifier = Modifier.clickable(
-                    enabled = !isCreatingTimeline,
-                    onClick = onBack
-                )
-            )
+            TextButton(
+                onClick = onBack,
+                enabled = !isCreatingTimeline
+            ) {
+                Text("Back")
+            }
             Text("What if…", fontSize = 32.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 12.dp))
         }
         if (isCreatingTimeline) {
