@@ -42,7 +42,8 @@ class HistoryRepository(private val context: Context) {
 
     data class RecordResult(
         val photoFileNames: Set<String>,
-        val timelineKeys: Set<String>
+        val timelineKeys: Set<String>,
+        val recordedEntry: HistoryEntry? = null
     )
 
     suspend fun record(
@@ -55,16 +56,25 @@ class HistoryRepository(private val context: Context) {
         }
         var referencedPhotoFileNames = emptySet<String>()
         var referencedTimelineKeys = emptySet<String>()
+        var recordedEntry: HistoryEntry? = null
         context.altDataStore.edit { prefs ->
             val current = decode(prefs[historyKey].orEmpty())
-            val updated = (listOf(HistoryEntry(scenarioId, createdAt, photoFileName)) + current).take(MAX_ENTRIES)
+            val uniqueCreatedAt = HistoryTimestampAllocator.nextAvailable(
+                scenarioId = scenarioId,
+                requestedCreatedAt = createdAt,
+                existingEntries = current
+            )
+            val entry = HistoryEntry(scenarioId, uniqueCreatedAt, photoFileName)
+            val updated = (listOf(entry) + current).take(MAX_ENTRIES)
+            recordedEntry = entry
             prefs[historyKey] = encode(updated)
             referencedPhotoFileNames = updated.mapNotNull { it.photoFileName }.toSet()
             referencedTimelineKeys = updated.map { it.timelineKey }.toSet()
         }
         return RecordResult(
             photoFileNames = referencedPhotoFileNames,
-            timelineKeys = referencedTimelineKeys
+            timelineKeys = referencedTimelineKeys,
+            recordedEntry = recordedEntry
         )
     }
 
