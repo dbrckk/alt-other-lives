@@ -159,7 +159,7 @@ fun RevealScreen(
             Box(modifier = Modifier.fillMaxWidth().height(500.dp)) {
                 AsyncImage(
                     model = revealHeroUri,
-                    contentDescription = null,
+                    contentDescription = "Hero image for ${scenario.title}",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
@@ -168,7 +168,12 @@ fun RevealScreen(
                         Brush.verticalGradient(listOf(Color.Transparent, AltBackground), startY = 120f)
                     )
                 )
-                Text("‹", fontSize = 38.sp, modifier = Modifier.padding(start = 24.dp, top = 44.dp).clickable(onClick = onBack))
+                TextButton(
+                    onClick = onBack,
+                    modifier = Modifier.padding(start = 16.dp, top = 36.dp)
+                ) {
+                    Text("Back")
+                }
                 Column(modifier = Modifier.align(Alignment.BottomStart).padding(24.dp)) {
                     if (primaryGeneratedSceneUri != null) {
                         Text(
@@ -207,7 +212,7 @@ fun RevealScreen(
                 generatedScenes.firstOrNull { it.chapterIndex == index }?.let { generated ->
                     AsyncImage(
                         model = generated.imageUri,
-                        contentDescription = "Generated alternate life scene",
+                        contentDescription = "Generated scene for ${chapter.label}",
                         modifier = Modifier.fillMaxWidth().height(240.dp),
                         contentScale = ContentScale.Crop
                     )
