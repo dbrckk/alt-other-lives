@@ -314,7 +314,7 @@ fun AltApp() {
                             generationSettingsMessage = null
                             screen = settingsReturnScreen
                         },
-                        onSave = { baseUrl, workflowJson ->
+                        onSave = { baseUrl, workflowJson, remotePhotoUploadConsent ->
                             if (
                                 !isTestingConnection &&
                                 !isSavingGenerationSettings &&
@@ -323,7 +323,11 @@ fun AltApp() {
                                 isSavingGenerationSettings = true
                                 scope.launch {
                                     val result = runCatching {
-                                        generationSettingsRepository.save(baseUrl, workflowJson)
+                                        generationSettingsRepository.save(
+                                            baseUrl,
+                                            workflowJson,
+                                            remotePhotoUploadConsent
+                                        )
                                     }
                                     if (screen == Screen.SETTINGS) {
                                         result.onSuccess {
