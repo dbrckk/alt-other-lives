@@ -12,4 +12,6 @@
     <string name="home_preparing_photo">Preparing photo…</string>
     <string name="home_choose_life">Choose another life</string>
     <string name="home_view_history">View my other lives</string>
+    <string name="home_photo_action_choose">Choose a photo</string>
+    <string name="home_photo_action_change">Change the selected photo</string>
 </resources>
