@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.alt.otherlives.core.designsystem.AltAccent
+import com.alt.otherlives.core.designsystem.AltBackButton
 import com.alt.otherlives.core.designsystem.AltBackground
 import com.alt.otherlives.core.designsystem.AltDimmed
 import com.alt.otherlives.core.designsystem.AltPrimary
