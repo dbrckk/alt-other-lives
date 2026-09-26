@@ -692,7 +692,7 @@ fun RevealScreen(
                         enabled = !isGeneratingAi && !isExporting && !isRenderingShareImage,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Open AI generation settings")
+                        Text("Set up AI generation")
                     }
                     Spacer(Modifier.height(12.dp))
                 }
