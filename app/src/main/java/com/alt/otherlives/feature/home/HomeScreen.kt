@@ -40,8 +40,7 @@ fun HomeScreen(
     isImportingPhoto: Boolean,
     onPhotoSelected: (Uri) -> Unit,
     onContinue: () -> Unit,
-    onHistory: () -> Unit,
-    onAiSettings: () -> Unit
+    onHistory: () -> Unit
 ) {
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let(onPhotoSelected)
@@ -110,11 +109,6 @@ fun HomeScreen(
                 enabled = !isImportingPhoto,
                 modifier = Modifier.fillMaxWidth()
             ) { Text("View my other lives", color = AltMuted) }
-            androidx.compose.material3.TextButton(
-                onClick = onAiSettings,
-                enabled = !isImportingPhoto,
-                modifier = Modifier.fillMaxWidth()
-            ) { Text("AI generation settings", color = AltMuted) }
         }
     }
 }
