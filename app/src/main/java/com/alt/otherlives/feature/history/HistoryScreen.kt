@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.alt.otherlives.core.data.HistoryEntry
 import com.alt.otherlives.core.designsystem.AltAccent
+import com.alt.otherlives.core.designsystem.AltBackButton
 import com.alt.otherlives.core.designsystem.AltCard
 import com.alt.otherlives.core.designsystem.AltMuted
 import com.alt.otherlives.core.designsystem.AltSurface
