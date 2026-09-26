@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.alt.otherlives"
-    compileSdk = 35
+    compileSdk = 36
 
     val releaseVersionCode = System.getenv("ALT_VERSION_CODE")
         ?.toIntOrNull()
@@ -20,7 +20,7 @@ android {
     defaultConfig {
         applicationId = "com.alt.otherlives"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = releaseVersionCode
         versionName = releaseVersionName
     }
