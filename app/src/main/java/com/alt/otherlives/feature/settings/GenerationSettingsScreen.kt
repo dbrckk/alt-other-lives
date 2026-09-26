@@ -50,10 +50,10 @@ fun GenerationSettingsScreen(
             .padding(24.dp)
     ) {
         TextButton(onClick = onBack) { Text("‹ Back") }
-        Text("AI generation", fontWeight = FontWeight.Bold)
+        Text("Advanced AI setup", fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(6.dp))
         Text(
-            "Configure your own ComfyUI endpoint. Settings stay on this device.",
+            "Developer setup for a custom ComfyUI endpoint. Most users should not need to change this once ALT has a managed backend.",
             color = AltMuted
         )
         Spacer(Modifier.height(20.dp))
