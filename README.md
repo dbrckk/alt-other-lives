@@ -20,4 +20,6 @@ ALT is an Android-first app that turns one photo and a “What if…?” scenari
 
 ## Status
 
-Initial Android scaffold and first end-to-end local prototype are being built now.
+ALT has a working end-to-end Android prototype with photo import, eight alternate-life scenarios, persisted history, ComfyUI image generation, partial retry and cancellation, cinematic 9:16 JPEG/MP4 export, gallery save and Android sharing.
+
+The current engineering phase focuses on production reliability, privacy, release hardening and UX polish before store publication.
