@@ -16,6 +16,22 @@ class GenerationSettingsTest {
     }
 
     @Test
+    fun configuredSettingsStillRequireUploadConsent() {
+        val settings = GenerationSettings(
+            comfyUiBaseUrl = "https://example.com",
+            workflowJson = "{}",
+            isConfigured = true,
+            remotePhotoUploadConsent = false
+        )
+
+        assertFalse(settings.isReadyForRemoteGeneration)
+        assertTrue(
+            settings.copy(remotePhotoUploadConsent = true)
+                .isReadyForRemoteGeneration
+        )
+    }
+
+    @Test
     fun invalidPersistedSettingsRemainEditableButBlocked() {
         val settings = GenerationSettings(
             comfyUiBaseUrl = "http://invalid",
