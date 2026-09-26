@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 4 — Reliable AI generation and history UX",
-  "currentTask": "Continue end-to-end AI reliability hardening after deterministic ComfyUI source reuse and resilient timeline seed recovery.",
-  "lastKnownBlocker": "No active blocker. Latest cumulative CI run #456 is green across unit tests, Android lint, debug APK assembly and artifact upload.",
-  "fixApplied": "ComfyUI source uploads now reuse deterministic opaque names per private source; targeted chapter requests reject invalid indexes before network work; fresh variation seeds use SecureRandom; interrupted or corrupt seed writes recover the last valid backup before reuse; startup transient cache cleanup remains enabled.",
+  "currentTask": "Continue end-to-end reliability hardening after ComfyUI preflight, generated-scene recovery and history consistency fixes.",
+  "lastKnownBlocker": "No active blocker. Latest cumulative CI run #499 is green across unit tests, Android lint, debug APK assembly and artifact upload.",
+  "fixApplied": "AI requests now validate indexes, workflow, seed and source MIME before unsafe network work; execution errors surface immediately; generated scenes are accepted only after persistence; seed and scene recovery validate real content; scene indexes are bounded to 0..4; history timeline keys are collision-free and restored history is bounded and deduplicated.",
   "next": [
-    "Audit remaining atomic scene transaction recovery edge cases without weakening rollback semantics",
+    "Audit remaining generated-scene transaction cleanup and recovery edge cases",
     "Audit Reveal lifecycle cancellation and stale callback handling around AI generation",
-    "Preserve tested startup photo/timeline consistency and deterministic output continuity",
+    "Audit history/media cleanup behavior under partial local corruption",
     "Keep cumulative CI green after each reliability change"
   ],
-  "updated": "2026-09-25"
+  "updated": "2026-09-26"
 }
