@@ -83,7 +83,7 @@ object ComfyUiWorkflow {
     private fun styleForScenario(scenarioId: String): String = when (scenarioId) {
         "wealth" -> "luxury editorial realism, restrained wealth, architectural interiors, quiet confidence"
         "japan" -> "contemporary Japan, authentic urban details, natural neon ambience, documentary realism"
-        "2100" -> "credible near-future design, elegant advanced technology, grounded science-fiction realism"
+        "future" -> "credible near-future design, elegant advanced technology, grounded science-fiction realism"
         "disappear" -> "introspective travel cinema, remote landscapes, weathered realism, contemplative atmosphere"
         "famous" -> "celebrity editorial photography, red carpet and backstage realism, controlled flash lighting"
         "mars" -> "hard-science Mars habitat realism, cinematic EVA lighting, physically plausible environment"
