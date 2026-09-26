@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alt.otherlives.core.designsystem.AltCard
+import com.alt.otherlives.core.designsystem.AltBackButton
 import com.alt.otherlives.core.designsystem.AltMuted
 import com.alt.otherlives.core.model.Scenario
 
