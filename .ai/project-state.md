@@ -65,8 +65,19 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - Persisted Reveal scenes are restored off the main thread with explicit restore progress, and generation callbacks can persist completed chapters asynchronously without blocking Compose.
 - Timeline seed reads/writes and generated-scene persistence are dispatched to IO; AI scene removal and exported MP4 gallery copies are also performed asynchronously.
 - Fresh full-regeneration seeds use SecureRandom rather than monotonic clock values, remain positive for ComfyUI, and interrupted/corrupt seed writes recover the last valid backup before a new seed is created.
-- CI validates unit tests, Android lint and debug APK assembly.
-- Latest confirmed green run: #456. Runs #448, #451, #454 and #456 validate deterministic ComfyUI source upload reuse, secure positive seed generation, and interrupted/corrupt seed recovery in addition to unit tests, lint and debug APK assembly.
+- Seed reads are size-bounded and reject invalid/non-positive values before reuse.
+- Partial-generation downloads are released even when private persistence fails, avoiding leaked cache files.
+- Explicit AI seeds are validated before any ComfyUI source upload; invalid requested chapter indexes and invalid workflow templates also fail before network work.
+- ComfyUI history polling surfaces execution errors immediately instead of waiting for a later generic error status.
+- Generated scenes count as accepted only after the persistence callback succeeds.
+- ComfyUI source uploads reject missing or non-image MIME types instead of silently treating them as JPEG.
+- Generated-scene chapter indexes are bounded to the supported 0..4 range across batch validation, filename encoding and restore.
+- Single-scene backup recovery preserves a valid backup when the current scene is corrupt.
+- Atomic batch pre-commit and rollback recovery validate scene images and seed contents semantically before discarding or restoring recovery data.
+- History timeline timestamps are allocated collision-free inside the DataStore transaction, and Reveal uses the actual persisted timeline key.
+- Restored history is decoded lazily, limited to 50 valid entries and deduplicated by timeline key.
+- CI validates unit tests, Android lint, debug APK assembly and APK artifact upload.
+- Latest confirmed green run: #499. Recent green cumulative runs validate ComfyUI preflight hardening, source MIME validation, scene-index bounds, backup recovery, collision-free history keys and bounded restored history.
 
 ## Current priority
 Keep the end-to-end AI generation path reliable, then improve identity continuity, partial-failure recovery and production UX before monetization.
