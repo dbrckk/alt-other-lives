@@ -20,6 +20,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -47,6 +51,13 @@ fun HomeScreen(
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let(onPhotoSelected)
     }
+    val photoActionDescription = stringResource(
+        if (photoUri == null) {
+            R.string.home_photo_action_choose
+        } else {
+            R.string.home_photo_action_change
+        }
+    )
 
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 42.dp),
@@ -63,7 +74,14 @@ fun HomeScreen(
         Box(
             modifier = Modifier.fillMaxWidth().height(360.dp).clip(RoundedCornerShape(32.dp))
                 .background(Brush.verticalGradient(listOf(Color(0xFF29213D), Color(0xFF111116))))
-                .clickable(enabled = !isImportingPhoto) { picker.launch("image/*") },
+                .semantics(mergeDescendants = true) {
+                    contentDescription = photoActionDescription
+                    role = Role.Button
+                }
+                .clickable(
+                    enabled = !isImportingPhoto,
+                    role = Role.Button
+                ) { picker.launch("image/*") },
             contentAlignment = Alignment.Center
         ) {
             if (photoUri != null) {
