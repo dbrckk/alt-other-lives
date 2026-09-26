@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_brand">ALT</string>
+    <string name="home_headline">Découvre les vies\nque tu aurais pu vivre.</string>
+    <string name="home_subtitle">Une photo. Un choix. Une chronologie complètement différente.</string>
+    <string name="home_selected_photo">Photo sélectionnée</string>
+    <string name="home_importing_photo">Importation de la photo…</string>
+    <string name="home_change_photo">Touchez pour changer de photo</string>
+    <string name="home_choose_photo">Choisis ta photo</string>
+    <string name="home_photo_local">L’original reste sur cet appareil.</string>
+    <string name="home_preparing_photo">Préparation de la photo…</string>
+    <string name="home_choose_life">Choisir une autre vie</string>
+    <string name="home_view_history">Voir mes autres vies</string>
+</resources>
