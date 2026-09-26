@@ -65,7 +65,7 @@ class HistoryRepository(private val context: Context) {
                 existingEntries = current
             )
             val entry = HistoryEntry(scenarioId, uniqueCreatedAt, photoFileName)
-            val updated = (listOf(entry) + current).take(MAX_ENTRIES)
+            val updated = (listOf(entry) + current).take(HistoryEntryListPolicy.MAX_ENTRIES)
             recordedEntry = entry
             prefs[historyKey] = encode(updated)
             referencedPhotoFileNames = updated.mapNotNull { it.photoFileName }.toSet()
@@ -111,25 +111,26 @@ class HistoryRepository(private val context: Context) {
         }
 
     private fun decode(value: String): List<HistoryEntry> =
-        value.split(SEPARATOR)
-            .mapNotNull { row ->
-                val parts = row.split(FIELD_SEPARATOR)
-                val time = parts.getOrNull(1)?.toLongOrNull()
-                val id = parts.firstOrNull()?.takeIf { it.isNotBlank() }
-                val photoFileName = parts.getOrNull(2)?.takeIf { it.isNotBlank() }
-                if (
-                    id != null &&
-                    time != null &&
-                    HistoryEntryValidation.isValid(id, time, photoFileName)
-                ) {
-                    HistoryEntry(id, time, photoFileName)
-                } else {
-                    null
+        HistoryEntryListPolicy.sanitize(
+            value.lineSequence()
+                .mapNotNull { row ->
+                    val parts = row.split(FIELD_SEPARATOR, limit = 3)
+                    val time = parts.getOrNull(1)?.toLongOrNull()
+                    val id = parts.firstOrNull()?.takeIf { it.isNotBlank() }
+                    val photoFileName = parts.getOrNull(2)?.takeIf { it.isNotBlank() }
+                    if (
+                        id != null &&
+                        time != null &&
+                        HistoryEntryValidation.isValid(id, time, photoFileName)
+                    ) {
+                        HistoryEntry(id, time, photoFileName)
+                    } else {
+                        null
+                    }
                 }
-            }
+        )
 
     private companion object {
-        const val MAX_ENTRIES = 50
         const val SEPARATOR = "\n"
         const val FIELD_SEPARATOR = "|"
     }
