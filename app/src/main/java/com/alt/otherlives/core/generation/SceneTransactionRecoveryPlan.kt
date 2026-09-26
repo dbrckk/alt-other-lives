@@ -19,6 +19,9 @@ internal object SceneTransactionRecoveryPlan {
             ?.toSet()
             .orEmpty()
 
+    fun isActionable(plan: BatchRecoveryPlan): Boolean =
+        plan.affectedChapterIndexes.isNotEmpty() || plan.deleteCurrentSeed
+
     fun build(
         commitStarted: Boolean,
         commitCompleted: Boolean = false,
