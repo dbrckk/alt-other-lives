@@ -2,7 +2,9 @@ package com.alt.otherlives.core.generation
 
 internal object GeneratedSceneFileName {
     fun forChapter(chapterIndex: Int, extension: String = "png"): String {
-        require(chapterIndex >= 0) { "Chapter index must be non-negative" }
+        require(SceneBatchValidation.isSupportedChapterIndex(chapterIndex)) {
+            "Chapter index is outside the supported timeline range"
+        }
         val normalizedExtension = GeneratedImageExtension.normalize(
             mimeExtension = extension,
             filename = null
@@ -18,5 +20,5 @@ internal object GeneratedSceneFileName {
         ?.substringAfter("scene-")
         ?.substringBefore(".")
         ?.toIntOrNull()
-        ?.takeIf { it >= 0 }
+        ?.takeIf(SceneBatchValidation::isSupportedChapterIndex)
 }
