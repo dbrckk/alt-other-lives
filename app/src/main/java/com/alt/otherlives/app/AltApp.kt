@@ -230,11 +230,7 @@ fun AltApp() {
                             }
                         },
                         onContinue = { screen = Screen.SCENARIOS },
-                        onHistory = { screen = Screen.HISTORY },
-                        onAiSettings = {
-                            settingsReturnScreen = Screen.HOME
-                            screen = Screen.SETTINGS
-                        }
+                        onHistory = { screen = Screen.HISTORY }
                     )
                     Screen.SCENARIOS -> ScenarioScreen(
                         scenarios = ScenarioCatalog.scenarios,
