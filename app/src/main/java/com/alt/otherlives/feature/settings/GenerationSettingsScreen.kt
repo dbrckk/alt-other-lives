@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -28,7 +29,7 @@ import com.alt.otherlives.core.generation.GenerationSettingsValidation
 fun GenerationSettingsScreen(
     settings: GenerationSettings,
     onBack: () -> Unit,
-    onSave: (String, String) -> Unit,
+    onSave: (String, String, Boolean) -> Unit,
     onTestConnection: (String) -> Unit,
     onClear: () -> Unit,
     statusMessage: String? = null,
@@ -38,6 +39,9 @@ fun GenerationSettingsScreen(
 ) {
     var baseUrl by remember(settings.comfyUiBaseUrl) { mutableStateOf(settings.comfyUiBaseUrl) }
     var workflow by remember(settings.workflowJson) { mutableStateOf(settings.workflowJson) }
+    var remotePhotoUploadConsent by remember(settings.remotePhotoUploadConsent) {
+        mutableStateOf(settings.remotePhotoUploadConsent)
+    }
 
     Column(
         modifier = Modifier
@@ -95,8 +99,28 @@ fun GenerationSettingsScreen(
             minLines = 12
         )
         Spacer(Modifier.height(18.dp))
+        androidx.compose.foundation.layout.Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = remotePhotoUploadConsent,
+                onCheckedChange = { remotePhotoUploadConsent = it }
+            )
+            Text(
+                "I understand that AI generation uploads my selected source photo to the configured remote ComfyUI server.",
+                modifier = Modifier.padding(start = 8.dp),
+                color = AltMuted
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "ALT keeps the original photo on-device unless you enable remote AI generation. The remote server is controlled by whoever operates the URL above.",
+            color = AltMuted
+        )
+        Spacer(Modifier.height(18.dp))
         Button(
-            onClick = { onSave(baseUrl, workflow) },
+            onClick = { onSave(baseUrl, workflow, remotePhotoUploadConsent) },
             enabled = baseUrl.isNotBlank() &&
                 workflow.isNotBlank() &&
                 !isTestingConnection &&
