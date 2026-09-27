@@ -87,4 +87,9 @@
     <string name="share_compare_chooser">Partager ta comparaison ALT</string>
     <string name="share_single_text">ALT — %1$s\nUn choix. Une autre vie.</string>
     <string name="share_single_chooser">Partager ta vie ALT</string>
+    <string name="reveal_generation_label">CRÉATION DE TA TIMELINE ALT</string>
+    <string name="reveal_generation_progress">Chapitre %1$d sur %2$d</string>
+    <string name="reveal_generation_identity_hint">ALT conserve la même identité visuelle tout au long de la séquence pendant que le décor, le style et l’histoire évoluent.</string>
+    <string name="reveal_generation_cancel">Annuler la génération IA</string>
+    <string name="reveal_generation_cancelling">Annulation de la génération IA…</string>
 </resources>
