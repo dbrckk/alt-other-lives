@@ -233,7 +233,10 @@ object CinematicVideoExporter {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "video/mp4"
             putExtra(Intent.EXTRA_STREAM, uri)
-            putExtra(Intent.EXTRA_TEXT, scenario.title)
+            putExtra(
+                Intent.EXTRA_TEXT,
+                "ALT — ${scenario.title}\nOne choice. Another life."
+            )
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         context.startActivity(Intent.createChooser(intent, "Share your ALT video"))
