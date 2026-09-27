@@ -77,8 +77,15 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - History timeline timestamps are allocated collision-free inside the DataStore transaction, and Reveal uses the actual persisted timeline key.
 - Restored history is decoded lazily, limited to 50 valid entries and deduplicated by timeline key.
 - CI validates unit tests, Android lint, debug APK assembly and APK artifact upload.
-- Latest confirmed green reliability runs include #594 and #595. Recent changes also isolate Reveal async state per timeline and make source-photo / generated-scene cleanup failures independent.
-- Premium pass in progress: Reveal uses a stronger cinematic hero and editorial chapter cards; social share cards favor instant readability; video intro/outro framing is being aligned to the same visual language; scenario selection is moving toward a story catalog instead of a utility list.
+- Reliability baseline is now validated through cumulative green runs including #632, with source-photo quality signaling, cleanup isolation and timeline-scoped async state intact.
+- Premium pass now covers Home, Scenario, Reveal and History with a consistent editorial/cinematic visual language, subtle screen motion and targeted haptics.
+- Reveal chapter expansion is animated, AI generation uses a cinematic progress card, and successful complete generations emit one completion haptic.
+- Social exports are localized EN/FR and optimized for fast feed readability; the 9:16 comparison card supports two-life sharing with ALT branding.
+- Viral loops now include Create another life, Remix this life and Compare two lives. Remix persists a separate timeline; Compare uses saved timelines without mutating them.
+- History prioritizes generated AI previews over source photos when both exist and includes a two-life comparison selection mode with visual previews.
+- ComfyUI premium continuity checks warn when workflows omit the shared seed or ALT negative prompt without breaking backward compatibility.
+- Identity prompts now explicitly resist beautification/de-aging/pose-expression-angle drift while preserving stable facial landmarks and proportions.
+- Source photos receive a non-blocking premium-quality signal; low-resolution portraits trigger a localized recommendation rather than blocking the user.
 
 ## Current priority
 Keep the end-to-end AI generation path reliable while raising ALT to premium consumer-product quality. The active product direction is cinematic, social-first and highly shareable: Reveal, 9:16 image exports and MP4 exports must feel polished enough to publish directly to Reels, Shorts and Stories. Reliability remains the gate: visual work must not regress generation, persistence, cancellation, cleanup or export safety.
@@ -90,7 +97,8 @@ Keep the end-to-end AI generation path reliable while raising ALT to premium con
 - 9:16 exports should carry recognizable but restrained ALT branding.
 - Hooks, titles and chapter structure should remain readable on a phone screen.
 - Avoid dense text blocks in social exports; prioritize visual identity and story beats.
-- Continue to improve identity continuity and generated-image quality before adding growth mechanics.
+- Continue to improve generated-image quality and perceived cinematic polish before adding broader acquisition mechanics.
+- Keep Remix/Compare/share loops simple, local-first and non-intrusive.
 - Do not add referrals, streak pressure or monetization before the core creation/share loop feels premium.
 
 ## Selected star-list references
