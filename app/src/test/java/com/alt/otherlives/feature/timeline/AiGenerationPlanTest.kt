@@ -33,6 +33,34 @@ class AiGenerationPlanTest {
     }
 
     @Test
+    fun onlyQualityRejectedMissingSceneRequiresFreshVariation() {
+        val plan = planAiGeneration(
+            chapterCount = 3,
+            generatedChapterIndexes = setOf(0, 1),
+            failedChapterIndexes = setOf(2),
+            nonRetryableFailedIndexes = setOf(2)
+        )
+
+        assertEquals(setOf(2), plan.missingIndexes)
+        assertTrue(plan.sameSeedMissingIndexes.isEmpty())
+        assertEquals(setOf(2), plan.nonRetryableFailedIndexes)
+        assertTrue(plan.requiresFreshVariation)
+    }
+
+    @Test
+    fun mixedMissingScenesGenerateRetryableOnesBeforeFreshVariation() {
+        val plan = planAiGeneration(
+            chapterCount = 4,
+            generatedChapterIndexes = setOf(0),
+            failedChapterIndexes = setOf(1, 2),
+            nonRetryableFailedIndexes = setOf(2)
+        )
+
+        assertEquals(setOf(1, 3), plan.sameSeedMissingIndexes)
+        assertFalse(plan.requiresFreshVariation)
+    }
+
+    @Test
     fun completeTimelineRequiresConfirmationBeforeFullRegeneration() {
         val plan = planAiGeneration(
             chapterCount = 3,
