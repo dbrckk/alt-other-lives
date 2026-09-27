@@ -30,6 +30,8 @@ jobs:
         run: gradle :app:lintRelease --stacktrace
       - name: Build debug APK
         run: gradle :app:assembleDebug --stacktrace
+      - name: Compile instrumentation tests
+        run: gradle :app:assembleDebugAndroidTest --stacktrace
       - name: Prepare release keystore
         if: env.ALT_ANDROID_KEYSTORE_BASE64 != ''
         run: |
