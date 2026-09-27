@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,6 +31,7 @@ import com.alt.otherlives.core.designsystem.AltBackButton
 import com.alt.otherlives.core.designsystem.AltDimmed
 import com.alt.otherlives.core.designsystem.AltMuted
 import com.alt.otherlives.core.model.Scenario
+import com.alt.otherlives.R
 
 @Composable
 fun ScenarioScreen(
@@ -47,17 +49,17 @@ fun ScenarioScreen(
                 onClick = onBack,
                 enabled = !isCreatingTimeline
             ) {
-                Text("Back")
+                Text(stringResource(R.string.common_back))
             }
             Column(Modifier.padding(start = 12.dp)) {
-                Text("CHOOSE YOUR PATH", color = AltAccent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                Text("What if…", fontSize = 34.sp, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.scenario_choose_path), color = AltAccent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.scenario_what_if), fontSize = 34.sp, fontWeight = FontWeight.SemiBold)
             }
         }
         if (isCreatingTimeline) {
             Spacer(Modifier.height(10.dp))
             Text(
-                "Creating timeline…",
+                stringResource(R.string.scenario_creating_timeline),
                 color = AltMuted,
                 fontSize = 13.sp,
                 modifier = Modifier.padding(horizontal = 24.dp)
@@ -65,7 +67,7 @@ fun ScenarioScreen(
         }
         Spacer(Modifier.height(10.dp))
         Text(
-            "Pick the life you want to see unfold.",
+            stringResource(R.string.scenario_pick_life),
             color = AltMuted,
             fontSize = 14.sp,
             modifier = Modifier.padding(horizontal = 24.dp)
@@ -102,7 +104,7 @@ fun ScenarioScreen(
                             )
                             Spacer(Modifier.weight(1f))
                             Text(
-                                "${scenario.chapters.size} CHAPTER STORY",
+                                stringResource(R.string.scenario_chapter_story, scenario.chapters.size),
                                 color = AltDimmed,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold
@@ -124,7 +126,7 @@ fun ScenarioScreen(
                         )
                         Spacer(Modifier.height(16.dp))
                         Text(
-                            "Explore this life  →",
+                            stringResource(R.string.scenario_explore_life),
                             color = AltAccent,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
