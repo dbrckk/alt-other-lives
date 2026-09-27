@@ -188,10 +188,14 @@ fun HistoryScreen(
                         val isSelectedForCompare =
                             isCompareMode && timelineKey in compareSelection
                         val mediaStatus = when {
-                            entry.photoFileName == null && hasAiPreview -> "AI preview"
-                            entry.photoFileName == null -> "No original photo"
-                            entry.photoFileName in unavailablePhotoFileNames && hasAiPreview -> "AI preview"
-                            entry.photoFileName in unavailablePhotoFileNames -> "Photo unavailable"
+                            entry.photoFileName == null && hasAiPreview ->
+                                stringResource(R.string.history_media_ai_preview)
+                            entry.photoFileName == null ->
+                                stringResource(R.string.history_media_no_original)
+                            entry.photoFileName in unavailablePhotoFileNames && hasAiPreview ->
+                                stringResource(R.string.history_media_ai_preview)
+                            entry.photoFileName in unavailablePhotoFileNames ->
+                                stringResource(R.string.history_media_photo_unavailable)
                             else -> null
                         }
 
@@ -240,7 +244,10 @@ fun HistoryScreen(
                                     if (previewUri != null) {
                                         AsyncImage(
                                             model = previewUri,
-                                            contentDescription = "Preview for ${scenario.title}",
+                                            contentDescription = stringResource(
+                                                R.string.history_preview_content_description,
+                                                scenario.title
+                                            ),
                                             modifier = Modifier.fillMaxSize(),
                                             contentScale = ContentScale.Crop
                                         )
@@ -418,7 +425,10 @@ fun HistoryScreen(
                                         if (previewUri != null) {
                                             AsyncImage(
                                                 model = previewUri,
-                                                contentDescription = "Comparison preview for ${scenario.title}",
+                                                contentDescription = stringResource(
+                                                    R.string.history_compare_preview_content_description,
+                                                    scenario.title
+                                                ),
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .height(150.dp),
