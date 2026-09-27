@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -65,8 +67,8 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 34.dp),
-        verticalArrangement = Arrangement.SpaceBetween
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp, vertical = 34.dp)
     ) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -99,6 +101,8 @@ fun HomeScreen(
                 lineHeight = 23.sp
             )
         }
+
+        Spacer(Modifier.height(28.dp))
 
         Box(
             modifier = Modifier
@@ -218,6 +222,8 @@ fun HomeScreen(
                 }
             }
         }
+
+        Spacer(Modifier.height(28.dp))
 
         Column {
             Row(
