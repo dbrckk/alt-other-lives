@@ -80,7 +80,12 @@ object TimelineSceneRenderer {
                 textSize = 28f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             }
-            canvas.drawText("ALT • ${index + 1}/${scenario.chapters.take(5).size}", 72f, 900f, eyebrow)
+            canvas.drawText(
+                "ALT • CHAPTER ${index + 1} OF ${scenario.chapters.take(5).size}",
+                72f,
+                900f,
+                eyebrow
+            )
 
             val title = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.WHITE
@@ -176,14 +181,36 @@ object TimelineSceneRenderer {
             textSize = 30f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
-        canvas.drawText("ALT • SEE YOUR OTHER LIFE", 72f, 960f, accent)
+        canvas.drawText("ALT • YOUR OTHER LIFE", 72f, 960f, accent)
 
         val title = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
             textSize = 72f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
-        drawWrappedText(canvas, scenario.title, title, 72f, 1065f, 920f, 86f)
+        var introY = drawWrappedText(canvas, scenario.title, title, 72f, 1065f, 920f, 86f)
+
+        val subtitle = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.rgb(210, 207, 219)
+            textSize = 34f
+        }
+        introY += 24f
+        drawWrappedText(
+            canvas,
+            scenario.subtitle,
+            subtitle,
+            72f,
+            introY,
+            900f,
+            46f
+        )
+
+        val hook = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            textSize = 30f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        }
+        canvas.drawText("One choice. Another life.", 72f, 1715f, hook)
 
         val file = writeJpegAtomically(
             context = context,
@@ -230,13 +257,13 @@ object TimelineSceneRenderer {
             textSize = 48f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
-        drawWrappedText(canvas, "See the lives you could have lived.", body, 72f, 980f, 900f, 60f)
+        drawWrappedText(canvas, "What would your other life look like?", body, 72f, 980f, 900f, 60f)
 
         val subtle = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.rgb(142, 137, 154)
             textSize = 28f
         }
-        canvas.drawText(scenario.title, 72f, 1650f, subtle)
+        canvas.drawText("Made for sharing • 9:16 cinematic story", 72f, 1650f, subtle)
 
         val file = writeJpegAtomically(
             context = context,
