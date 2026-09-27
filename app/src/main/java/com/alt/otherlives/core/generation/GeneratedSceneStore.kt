@@ -183,6 +183,7 @@ class GeneratedSceneStore(private val context: Context) {
             scenes.map { it.chapterIndex }
         )
         val root = timelineRoot(timelineKey).apply { mkdirs() }
+        recoverInterruptedWrites(root)
         val transaction = File(root, ".batch-" + System.nanoTime()).apply { mkdirs() }
         val stagedDir = File(transaction, "staged").apply { mkdirs() }
         val backupDir = File(transaction, "backup").apply { mkdirs() }
