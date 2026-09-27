@@ -348,7 +348,59 @@ fun AltApp() {
                         },
                         onCreateAnotherLife = {
                             navigation = navigation.goTo(AltScreen.SCENARIOS)
-                        }
+                        },
+                        onRemixThisLife = {
+                            if (!isCreatingTimeline) {
+                                isCreatingTimeline = true
+                                val createdAt = System.currentTimeMillis()
+                                scope.launch {
+                                    val recordResult = runCatching {
+                                        historyRepository.record(
+                                            scenarioId = selectedScenario.id,
+                                            photoFileName = photoFileName,
+                                            createdAt = createdAt
+                                        )
+                                    }
+                                    recordResult.onSuccess { keep ->
+                                        val recordedEntry = requireNotNull(keep.recordedEntry) {
+                                            "Remix timeline record did not return its persisted entry"
+                                        }
+                                        activeTimelineKey = recordedEntry.timelineKey
+
+                                        val cleanupFailures = withContext(Dispatchers.IO) {
+                                            listOfNotNull(
+                                                runCatching {
+                                                    sourcePhotoStore.deleteUnreferenced(
+                                                        keep.photoFileNames
+                                                    )
+                                                }.exceptionOrNull(),
+                                                runCatching {
+                                                    generatedSceneStore.deleteUnreferenced(
+                                                        keep.timelineKeys
+                                                    )
+                                                }.exceptionOrNull()
+                                            )
+                                        }
+                                        if (cleanupFailures.isNotEmpty()) {
+                                            Toast.makeText(
+                                                context,
+                                                "Remix created, but some old local media could not be cleaned up",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }.onFailure {
+                                        Toast.makeText(
+                                            context,
+                                            "Could not remix this life: " +
+                                                (it.message ?: "unknown error"),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                    isCreatingTimeline = false
+                                }
+                            }
+                        },
+                        isRemixingLife = isCreatingTimeline
                     )
                     AltScreen.SETTINGS -> GenerationSettingsScreen(
                         settings = generationSettings,
