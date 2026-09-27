@@ -17,6 +17,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -57,6 +59,7 @@ fun HistoryScreen(
     generatedPreviewUrisByTimelineKey: Map<String, Uri> = emptyMap()
 ) {
     val context = LocalContext.current
+    val haptics = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     var showClearConfirmation by remember { mutableStateOf(false) }
     var pendingDeleteEntry by remember { mutableStateOf<HistoryEntry?>(null) }
@@ -197,6 +200,7 @@ fun HistoryScreen(
                                     role = Role.Button,
                                     onClick = {
                                         if (isCompareMode) {
+                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                             val key = entry.timelineKey
                                             val updated = if (key in compareSelection) {
                                                 compareSelection.filterNot { it == key }
@@ -469,6 +473,7 @@ fun HistoryScreen(
                                 firstScenario != null &&
                                 secondScenario != null
                             ) {
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                 isSharingComparison = true
                                 scope.launch {
                                     val firstVisual =
