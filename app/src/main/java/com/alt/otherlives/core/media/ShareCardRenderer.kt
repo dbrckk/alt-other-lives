@@ -139,7 +139,7 @@ object ShareCardRenderer {
                     numberPaint
                 )
                 canvas.drawText(
-                    chapter.label,
+                    fitToWidth(chapter.label, chapterPaint, 830f),
                     148f,
                     y,
                     chapterPaint
