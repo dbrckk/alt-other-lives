@@ -27,6 +27,7 @@ import com.alt.otherlives.core.designsystem.AltBackButton
 import com.alt.otherlives.core.generation.ComfyUiWorkflowTemplate
 import com.alt.otherlives.core.generation.GenerationSettings
 import com.alt.otherlives.core.generation.GenerationSettingsValidation
+import com.alt.otherlives.core.generation.messageRes
 import com.alt.otherlives.R
 
 @Composable
@@ -76,7 +77,9 @@ fun GenerationSettingsScreen(
             Text(
                 stringResource(
                     R.string.settings_attention,
-                    settings.validationError?.let { ": $it" } ?: ""
+                    settings.validationIssue?.let {
+                        ": " + stringResource(it.messageRes())
+                    } ?: ""
                 ),
                 color = AltMuted
             )
