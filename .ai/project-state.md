@@ -77,10 +77,21 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - History timeline timestamps are allocated collision-free inside the DataStore transaction, and Reveal uses the actual persisted timeline key.
 - Restored history is decoded lazily, limited to 50 valid entries and deduplicated by timeline key.
 - CI validates unit tests, Android lint, debug APK assembly and APK artifact upload.
-- Latest confirmed green run: #499. Recent green cumulative runs validate ComfyUI preflight hardening, source MIME validation, scene-index bounds, backup recovery, collision-free history keys and bounded restored history.
+- Latest confirmed green reliability runs include #594 and #595. Recent changes also isolate Reveal async state per timeline and make source-photo / generated-scene cleanup failures independent.
+- Premium pass in progress: Reveal uses a stronger cinematic hero and editorial chapter cards; social share cards favor instant readability; video intro/outro framing is being aligned to the same visual language; scenario selection is moving toward a story catalog instead of a utility list.
 
 ## Current priority
-Keep the end-to-end AI generation path reliable, then improve identity continuity, partial-failure recovery and production UX before monetization.
+Keep the end-to-end AI generation path reliable while raising ALT to premium consumer-product quality. The active product direction is cinematic, social-first and highly shareable: Reveal, 9:16 image exports and MP4 exports must feel polished enough to publish directly to Reels, Shorts and Stories. Reliability remains the gate: visual work must not regress generation, persistence, cancellation, cleanup or export safety.
+
+## Premium / viral quality bar
+- First impression must feel intentional and cinematic from Home through Reveal.
+- Reveal should read like an editorial story, not a debug timeline.
+- Shared media must be understandable within one second in a social feed.
+- 9:16 exports should carry recognizable but restrained ALT branding.
+- Hooks, titles and chapter structure should remain readable on a phone screen.
+- Avoid dense text blocks in social exports; prioritize visual identity and story beats.
+- Continue to improve identity continuity and generated-image quality before adding growth mechanics.
+- Do not add referrals, streak pressure or monetization before the core creation/share loop feels premium.
 
 ## Selected star-list references
 - android/nowinandroid
