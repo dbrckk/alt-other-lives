@@ -195,6 +195,186 @@ object ShareCardRenderer {
         }
     }
 
+    fun renderComparison(
+        context: Context,
+        firstVisualUri: Uri?,
+        firstScenario: Scenario,
+        secondVisualUri: Uri?,
+        secondScenario: Scenario
+    ): Uri {
+        val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
+        try {
+            val canvas = Canvas(bitmap)
+            canvas.drawColor(Color.rgb(8, 8, 10))
+
+            val accent = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.rgb(183, 167, 255)
+                textSize = 30f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                letterSpacing = 0.08f
+            }
+            canvas.drawText("ALT  •  TWO LIVES", 72f, 92f, accent)
+
+            drawComparisonHalf(
+                context = context,
+                canvas = canvas,
+                visualUri = firstVisualUri,
+                scenario = firstScenario,
+                top = 140,
+                bottom = 865,
+                label = "LIFE 01"
+            )
+            drawComparisonHalf(
+                context = context,
+                canvas = canvas,
+                visualUri = secondVisualUri,
+                scenario = secondScenario,
+                top = 955,
+                bottom = 1680,
+                label = "LIFE 02"
+            )
+
+            val vsPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.rgb(183, 167, 255)
+                textSize = 34f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                textAlign = Paint.Align.CENTER
+            }
+            canvas.drawText("VS", WIDTH / 2f, 925f, vsPaint)
+
+            val footer = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.rgb(150, 146, 162)
+                textSize = 27f
+            }
+            canvas.drawText("Which life would you choose?", 72f, 1812f, footer)
+
+            val brand = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.rgb(183, 167, 255)
+                textSize = 34f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            canvas.drawText("ALT", 930f, 1812f, brand)
+
+            val dir = File(context.cacheDir, "shares").apply { mkdirs() }
+            cleanupOldShareImages(dir)
+            val file = File(dir, "alt-compare-" + UUID.randomUUID() + ".jpg")
+            val temporary = File(dir, "." + file.name + ".tmp")
+            try {
+                FileOutputStream(temporary).use { output ->
+                    check(bitmap.compress(Bitmap.CompressFormat.JPEG, 94, output)) {
+                        "Unable to encode ALT comparison image"
+                    }
+                }
+                require(temporary.length() > 0L) { "ALT comparison image is empty" }
+                if (!temporary.renameTo(file)) {
+                    error("Unable to finalize ALT comparison image")
+                }
+                return FileProvider.getUriForFile(
+                    context,
+                    context.packageName + ".fileprovider",
+                    file
+                )
+            } catch (error: Throwable) {
+                temporary.delete()
+                file.delete()
+                throw error
+            }
+        } finally {
+            if (!bitmap.isRecycled) {
+                bitmap.recycle()
+            }
+        }
+    }
+
+    private fun drawComparisonHalf(
+        context: Context,
+        canvas: Canvas,
+        visualUri: Uri?,
+        scenario: Scenario,
+        top: Int,
+        bottom: Int,
+        label: String
+    ) {
+        canvas.drawRect(
+            48f,
+            top.toFloat(),
+            (WIDTH - 48).toFloat(),
+            bottom.toFloat(),
+            Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(20, 18, 26) }
+        )
+
+        visualUri?.let { uri ->
+            val source = BitmapLoader.decodeSampled(context, uri, WIDTH, bottom - top)
+            if (source != null) {
+                try {
+                    drawCover(
+                        canvas,
+                        source,
+                        Rect(48, top, WIDTH - 48, bottom)
+                    )
+                } finally {
+                    source.recycle()
+                }
+            }
+        }
+
+        val overlay = Paint().apply {
+            shader = LinearGradient(
+                0f,
+                (top + 180).toFloat(),
+                0f,
+                bottom.toFloat(),
+                intArrayOf(
+                    Color.argb(10, 8, 8, 10),
+                    Color.argb(195, 8, 8, 10)
+                ),
+                null,
+                Shader.TileMode.CLAMP
+            )
+        }
+        canvas.drawRect(48f, top.toFloat(), (WIDTH - 48).toFloat(), bottom.toFloat(), overlay)
+
+        val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.rgb(183, 167, 255)
+            textSize = 27f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        }
+        canvas.drawText(label, 82f, (bottom - 156).toFloat(), labelPaint)
+
+        val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            textSize = 48f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        }
+        drawWrappedText(
+            canvas,
+            scenario.title,
+            titlePaint,
+            82f,
+            (bottom - 92).toFloat(),
+            870f,
+            56f
+        )
+    }
+
+    fun shareComparison(context: Context, uri: Uri) {
+        val length = context.contentResolver.openAssetFileDescriptor(uri, "r")
+            ?.use { it.length }
+            ?: error("Rendered comparison image is no longer available")
+        require(length != 0L) { "Rendered comparison image is empty" }
+
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "image/jpeg"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(
+                Intent.EXTRA_TEXT,
+                "ALT — Two lives. One choice. Which would you choose?"
+            )
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.startActivity(Intent.createChooser(intent, "Share your ALT comparison"))
+    }
+
     private fun cleanupOldShareImages(dir: File) {
         val cutoff = System.currentTimeMillis() - CACHE_MAX_AGE_MS
         dir.listFiles()?.forEach { file ->
