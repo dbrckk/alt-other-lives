@@ -94,14 +94,10 @@ fun RevealScreen(
     var isSavingVideoToGallery by remember { mutableStateOf(false) }
     var generatedScenes by remember(timelineKey) { mutableStateOf<List<GeneratedScene>>(emptyList()) }
     var isLoadingStoredScenes by remember(timelineKey) { mutableStateOf(true) }
-    var isGeneratingAi by remember { mutableStateOf(false) }
-    var isCancellingAi by remember { mutableStateOf(false) }
-    var aiGenerationJob by remember { mutableStateOf<Job?>(null) }
-    var aiCompleted by remember { mutableStateOf(0) }
-    var aiTotal by remember { mutableStateOf(0) }
-    var aiChapterFailures by remember(timelineKey) {
-        mutableStateOf<Map<Int, String>>(emptyMap())
+    var aiUiState by remember(timelineKey) {
+        mutableStateOf(RevealAiUiState())
     }
+    var aiGenerationJob by remember { mutableStateOf<Job?>(null) }
     var showRegenerateAllDialog by remember { mutableStateOf(false) }
     var showClearAiDialog by remember { mutableStateOf(false) }
     var isClearingAi by remember { mutableStateOf(false) }
@@ -222,7 +218,7 @@ fun RevealScreen(
                 Text(chapter.label, color = AltAccent, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
                 Text(chapter.narrative, fontSize = 23.sp, lineHeight = 30.sp, fontWeight = FontWeight.Medium)
-                if (index in aiChapterFailures) {
+                if (index in aiUiState.chapterFailures) {
                     Spacer(Modifier.height(8.dp))
                     Text(
                         if (generatedScenes.any { it.chapterIndex == index }) {
@@ -249,7 +245,7 @@ fun RevealScreen(
                             showAiReportDialog = true
                         },
                         enabled = !isSavingAiReport &&
-                            !isGeneratingAi &&
+                            !aiUiState.isGenerating &&
                             !isExporting &&
                             !isRenderingShareImage,
                         modifier = Modifier.fillMaxWidth()
@@ -354,13 +350,9 @@ fun RevealScreen(
             Column(Modifier.padding(24.dp)) {
                 if (generationSettings.isReadyForRemoteGeneration && photoUri != null) {
                     val startGeneration: (Set<Int>, Boolean) -> Unit = { targetIndexes, resetSeed ->
-                        if (!isGeneratingAi) {
+                        if (!aiUiState.isGenerating) {
                             completedVideoUri = null
-                            isGeneratingAi = true
-                            isCancellingAi = false
-                            aiCompleted = 0
-                            aiTotal = targetIndexes.size
-                            aiChapterFailures = emptyMap()
+                            aiUiState = aiUiState.start(targetIndexes.size)
                             aiGenerationJob = scope.launch {
                                 try {
                                     val provider = ComfyUiGenerationProvider(
@@ -376,19 +368,18 @@ fun RevealScreen(
                                         targetIndexes = targetIndexes,
                                         resetSeed = resetSeed,
                                         onProgress = { completed, total ->
-                                            aiCompleted = completed
-                                            aiTotal = total
+                                            aiUiState = aiUiState.progress(completed, total)
                                         },
                                         onScenesChanged = { scenes ->
                                             generatedScenes = scenes
                                         },
                                         onChapterFailure = { chapterIndex, message ->
-                                            aiChapterFailures =
-                                                aiChapterFailures + (chapterIndex to message)
+                                            aiUiState = aiUiState.failure(chapterIndex, message)
                                         }
                                     )
-                                    aiChapterFailures = aiChapterFailures
-                                        .filterKeys { it in outcome.failedChapterIndexes }
+                                    aiUiState = aiUiState.retainFailures(
+                                        outcome.failedChapterIndexes
+                                    )
 
                                     val expected = scenario.chapters.take(5).size
                                     val message = aiGenerationCompletionMessage(
@@ -411,8 +402,7 @@ fun RevealScreen(
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 } finally {
-                                    isGeneratingAi = false
-                                    isCancellingAi = false
+                                    aiUiState = aiUiState.finish()
                                     aiGenerationJob = null
                                 }
                             }
@@ -423,12 +413,12 @@ fun RevealScreen(
                         chapterCount = scenario.chapters.take(5).size,
                         generatedChapterIndexes =
                             generatedScenes.map { it.chapterIndex }.toSet(),
-                        failedChapterIndexes = aiChapterFailures.keys
+                        failedChapterIndexes = aiUiState.chapterFailures.keys
                     )
 
                     Button(
                         onClick = {
-                            if (!isGeneratingAi) {
+                            if (!aiUiState.isGenerating) {
                                 if (generationPlan.requiresFullRegenerationConfirmation) {
                                     showRegenerateAllDialog = true
                                 } else {
@@ -443,15 +433,15 @@ fun RevealScreen(
                                 }
                             }
                         },
-                        enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isGeneratingAi && !isExporting && !isRenderingShareImage,
+                        enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !aiUiState.isGenerating && !isExporting && !isRenderingShareImage,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) {
                         Text(
                             aiGenerationButtonLabel(
-                                isGenerating = isGeneratingAi,
-                                completed = aiCompleted,
-                                total = aiTotal,
+                                isGenerating = aiUiState.isGenerating,
+                                completed = aiUiState.completed,
+                                total = aiUiState.total,
                                 generatedSceneCount = generatedScenes.size,
                                 expectedSceneCount = scenario.chapters.take(5).size
                             ),
@@ -469,7 +459,7 @@ fun RevealScreen(
                             enabled = !isLoadingStoredScenes &&
                                 !isClearingAi &&
                                 !isSavingVideoToGallery &&
-                                !isGeneratingAi &&
+                                !aiUiState.isGenerating &&
                                 !isExporting &&
                                 !isRenderingShareImage,
                             modifier = Modifier.fillMaxWidth()
@@ -486,7 +476,7 @@ fun RevealScreen(
                     if (generatedScenes.isNotEmpty()) {
                         TextButton(
                             onClick = { showClearAiDialog = true },
-                            enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isGeneratingAi && !isExporting && !isRenderingShareImage,
+                            enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !aiUiState.isGenerating && !isExporting && !isRenderingShareImage,
                             modifier = Modifier.fillMaxWidth()
                         ) { Text("Remove generated AI scenes") }
                     }
@@ -561,20 +551,20 @@ fun RevealScreen(
                             }
                         )
                     }
-                    if (isGeneratingAi) {
+                    if (aiUiState.isGenerating) {
                         Spacer(Modifier.height(8.dp))
                         TextButton(
                             onClick = {
-                                if (!isCancellingAi) {
-                                    isCancellingAi = true
+                                if (!aiUiState.isCancelling) {
+                                    aiUiState = aiUiState.requestCancellation()
                                     aiGenerationJob?.cancel()
                                 }
                             },
-                            enabled = !isCancellingAi,
+                            enabled = !aiUiState.isCancelling,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                if (isCancellingAi) {
+                                if (aiUiState.isCancelling) {
                                     "Cancelling AI generation…"
                                 } else {
                                     "Cancel AI generation"
@@ -583,7 +573,7 @@ fun RevealScreen(
                         }
                         LinearProgressIndicator(
                             progress = {
-                                if (aiTotal == 0) 0f else aiCompleted.toFloat() / aiTotal.toFloat()
+                                if (aiUiState.total == 0) 0f else aiUiState.completed.toFloat() / aiUiState.total.toFloat()
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -602,7 +592,7 @@ fun RevealScreen(
                     Spacer(Modifier.height(6.dp))
                     TextButton(
                         onClick = onAiSettings,
-                        enabled = !isGeneratingAi && !isExporting && !isRenderingShareImage,
+                        enabled = !aiUiState.isGenerating && !isExporting && !isRenderingShareImage,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Set up AI generation")
@@ -647,7 +637,7 @@ fun RevealScreen(
                             }
                         }
                     },
-                    enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isRenderingShareImage && !isGeneratingAi && !isExporting && hasVisualAsset,
+                    enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isRenderingShareImage && !aiUiState.isGenerating && !isExporting && hasVisualAsset,
                     modifier = Modifier.fillMaxWidth().height(58.dp),
                     shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AltPrimary, contentColor = Color(0xFF16111F))
@@ -687,7 +677,7 @@ fun RevealScreen(
                                 }
                             }
                         },
-                        enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isRenderingShareImage && !isGeneratingAi && !isExporting && hasVisualAsset,
+                        enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isRenderingShareImage && !aiUiState.isGenerating && !isExporting && hasVisualAsset,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) { Text("Save 9:16 image", fontWeight = FontWeight.Bold) }
@@ -786,7 +776,7 @@ fun RevealScreen(
                             }
                         }
                     },
-                    enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isExporting && !isGeneratingAi && !isRenderingShareImage && hasVisualAsset,
+                    enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isExporting && !aiUiState.isGenerating && !isRenderingShareImage && hasVisualAsset,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(20.dp)
                 ) {
@@ -838,7 +828,7 @@ fun RevealScreen(
                                 ).show()
                             }
                         },
-                        enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isGeneratingAi && !isExporting,
+                        enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !aiUiState.isGenerating && !isExporting,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) { Text("Share MP4", fontWeight = FontWeight.Bold) }
@@ -849,7 +839,7 @@ fun RevealScreen(
                             enabled = !isLoadingStoredScenes &&
                                 !isClearingAi &&
                                 !isSavingVideoToGallery &&
-                                !isGeneratingAi &&
+                                !aiUiState.isGenerating &&
                                 !isExporting,
                             onClick = {
                                 if (!isSavingVideoToGallery) {
