@@ -183,4 +183,18 @@
     <string name="reveal_create_share_failed">Impossible de créer l’image de partage : %1$s</string>
     <string name="reveal_image_saved">Enregistrée dans Pictures/ALT</string>
     <string name="reveal_image_save_failed">Impossible d’enregistrer l’image : %1$s</string>
+    <string name="reveal_completion_fresh_incomplete">Nouvelle variation incomplète • timeline précédente conservée</string>
+    <string name="reveal_completion_fresh_incomplete_failed">Nouvelle variation incomplète • timeline précédente conservée • chapitres en échec %1$s</string>
+    <string name="reveal_completion_ready">Scènes IA prêtes</string>
+    <string name="reveal_completion_partial">Résultat partiel : %1$d/%2$d scènes prêtes</string>
+    <string name="reveal_completion_partial_retry">Résultat partiel : %1$d/%2$d scènes prêtes • réessayer les chapitres %3$s</string>
+    <string name="reveal_unavailable_missing_source">La génération IA nécessite la photo source originale. Les scènes générées enregistrées peuvent toujours être consultées et exportées.</string>
+    <string name="reveal_unavailable_invalid_settings">Les paramètres IA enregistrés nécessitent une vérification : %1$s</string>
+    <string name="reveal_unavailable_invalid_settings_generic">Les paramètres IA enregistrés nécessitent une vérification.</string>
+    <string name="reveal_unavailable_missing_consent">La génération IA distante est configurée, mais le consentement d’envoi de photo n’est pas activé.</string>
+    <string name="reveal_unavailable_not_configured">La génération IA n’est pas encore configurée.</string>
+    <string name="reveal_button_generating">Génération des scènes IA • %1$d/%2$d</string>
+    <string name="reveal_button_generate_all">Générer les scènes IA</string>
+    <string name="reveal_button_generate_missing">Générer les scènes IA manquantes</string>
+    <string name="reveal_button_regenerate_all">Régénérer toutes les scènes IA</string>
 </resources>
