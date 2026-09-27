@@ -265,12 +265,7 @@ fun RevealScreen(
             ) {
                 Column {
                     if (generated != null) {
-                        AsyncImage(
-                            model = generated.imageUri,
-                            contentDescription = stringResource(
-                                R.string.reveal_generated_scene_content_description,
-                                chapter.label
-                            ),
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(340.dp)
@@ -279,9 +274,36 @@ fun RevealScreen(
                                         topStart = 30.dp,
                                         topEnd = 30.dp
                                     )
+                                )
+                        ) {
+                            AsyncImage(
+                                model = generated.imageUri,
+                                contentDescription = stringResource(
+                                    R.string.reveal_generated_scene_content_description,
+                                    chapter.label
                                 ),
-                            contentScale = ContentScale.Crop
-                        )
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                            Surface(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(14.dp),
+                                shape = RoundedCornerShape(999.dp),
+                                color = Color.Black.copy(alpha = 0.48f)
+                            ) {
+                                Text(
+                                    stringResource(R.string.reveal_ai_scene_badge),
+                                    modifier = Modifier.padding(
+                                        horizontal = 10.dp,
+                                        vertical = 6.dp
+                                    ),
+                                    color = AltAccent,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                     }
                     Column(Modifier.padding(22.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
