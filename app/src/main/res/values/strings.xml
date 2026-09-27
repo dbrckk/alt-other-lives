@@ -203,4 +203,17 @@
     <string name="app_timeline_delete_failed">Could not delete timeline: %1$s</string>
     <string name="app_history_clear_cleanup_warning">History cleared, but some local media could not be removed.</string>
     <string name="app_history_clear_failed">Could not clear history: %1$s</string>
+    <string name="settings_validation_base_url_too_long">ComfyUI base URL is too long.</string>
+    <string name="settings_validation_base_url_invalid">ComfyUI base URL is invalid.</string>
+    <string name="settings_validation_https_required">ComfyUI base URL must use HTTPS. For a local server, use a secure HTTPS tunnel.</string>
+    <string name="settings_validation_missing_host">ComfyUI base URL must include a valid host.</string>
+    <string name="settings_validation_credentials">ComfyUI base URL must not include embedded credentials.</string>
+    <string name="settings_validation_query">ComfyUI base URL must not include a query string.</string>
+    <string name="settings_validation_fragment">ComfyUI base URL must not include a fragment.</string>
+    <string name="settings_validation_workflow_required">Workflow JSON is required.</string>
+    <string name="settings_validation_workflow_too_large">Workflow JSON is too large.</string>
+    <string name="settings_validation_workflow_malformed">Workflow JSON is malformed.</string>
+    <string name="settings_validation_missing_source">Workflow must contain __ALT_SOURCE_IMAGE__ as an exact JSON value.</string>
+    <string name="settings_validation_missing_prompt">Workflow must contain __ALT_PROMPT__ as an exact JSON value.</string>
+    <string name="settings_validation_unknown">AI configuration is invalid.</string>
 </resources>
