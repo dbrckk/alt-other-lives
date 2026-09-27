@@ -1,8 +1,9 @@
 package com.alt.otherlives.feature.home
 
-import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import com.alt.otherlives.core.designsystem.AltTheme
 import org.junit.Rule
@@ -30,7 +31,7 @@ class HomeScreenTest {
             .assertIsDisplayed()
         composeRule.onNodeWithText("View my other lives")
             .assertIsDisplayed()
-        composeRule.onNodeWithText("AI generation settings")
-            .assertDoesNotExist()
+        composeRule.onAllNodesWithText("AI generation settings")
+            .assertCountEquals(0)
     }
 }
