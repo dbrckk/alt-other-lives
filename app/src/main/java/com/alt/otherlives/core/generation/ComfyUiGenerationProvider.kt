@@ -22,7 +22,11 @@ class ComfyUiGenerationProvider(
         request: GenerationRequest,
         onProgress: (completed: Int, total: Int) -> Unit,
         onSceneGenerated: suspend (GeneratedScene) -> Unit,
-        onChapterFailure: (chapterIndex: Int, message: String) -> Unit
+        onChapterFailure: (
+            chapterIndex: Int,
+            message: String,
+            kind: GenerationChapterFailureKind
+        ) -> Unit
     ): List<GeneratedScene> {
         require(request.scenario.chapters.size <= TimelineConstraints.MAX_CHAPTER_COUNT) {
             "Scenario exceeds the supported timeline chapter limit"
@@ -71,7 +75,12 @@ class ComfyUiGenerationProvider(
             } catch (error: Throwable) {
                 val message = error.message ?: "unknown error"
                 failures += "Chapter " + (index + 1) + ": " + message
-                onChapterFailure(index, message)
+                val kind = if (error is GeneratedSceneQualityException) {
+                    GenerationChapterFailureKind.QUALITY_REJECTED
+                } else {
+                    GenerationChapterFailureKind.OTHER
+                }
+                onChapterFailure(index, message, kind)
             }
             processed += 1
             onProgress(processed, requestedIndexes.size)
