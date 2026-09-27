@@ -75,4 +75,7 @@
     <string name="history_compare_life_number">LIFE %1$d</string>
     <string name="history_compare_vs">VS</string>
     <string name="history_compare_done">Done</string>
+    <string name="history_compare_share">Share comparison</string>
+    <string name="history_compare_preparing_share">Preparing comparison…</string>
+    <string name="history_compare_share_failed">Could not share comparison.</string>
 </resources>
