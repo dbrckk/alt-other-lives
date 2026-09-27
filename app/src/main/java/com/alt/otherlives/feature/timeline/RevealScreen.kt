@@ -142,7 +142,10 @@ fun RevealScreen(
             generatedScenes = emptyList()
             Toast.makeText(
                 context,
-                "Could not restore saved AI scenes: " + (it.message ?: "unknown error"),
+                context.getString(
+                    R.string.reveal_restore_failed,
+                    it.message ?: context.getString(R.string.common_unknown_error)
+                ),
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -173,7 +176,10 @@ fun RevealScreen(
             Box(modifier = Modifier.fillMaxWidth().height(620.dp)) {
                 AsyncImage(
                     model = revealHeroUri,
-                    contentDescription = "Hero image for ${scenario.title}",
+                    contentDescription = stringResource(
+                        R.string.reveal_hero_content_description,
+                        scenario.title
+                    ),
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
@@ -239,7 +245,7 @@ fun RevealScreen(
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Restoring saved ALT scenes…",
+                        stringResource(R.string.reveal_restoring_scenes),
                         color = AltDimmed,
                         fontSize = 12.sp
                     )
@@ -260,7 +266,10 @@ fun RevealScreen(
                     if (generated != null) {
                         AsyncImage(
                             model = generated.imageUri,
-                            contentDescription = "Generated scene for ${chapter.label}",
+                            contentDescription = stringResource(
+                                R.string.reveal_generated_scene_content_description,
+                                chapter.label
+                            ),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(340.dp)
@@ -316,9 +325,11 @@ fun RevealScreen(
                             Spacer(Modifier.height(10.dp))
                             Text(
                                 if (generated != null) {
-                                    "New AI variation failed • existing scene kept"
+                                    stringResource(
+                                        R.string.reveal_variation_failed_existing
+                                    )
                                 } else {
-                                    "AI scene failed • retry available"
+                                    stringResource(R.string.reveal_scene_failed_retry)
                                 },
                                 color = AltDimmed,
                                 fontSize = 12.sp
@@ -346,10 +357,10 @@ fun RevealScreen(
                             !isRenderingShareImage,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Flag unsafe AI generation")
+                        Text(stringResource(R.string.reveal_flag_action))
                     }
                     Text(
-                        "Flags are stored locally for now and do not include your photo or generated images.",
+                        stringResource(R.string.reveal_flag_note),
                         color = AltDimmed,
                         fontSize = 11.sp,
                         textAlign = TextAlign.Center,
@@ -364,11 +375,11 @@ fun RevealScreen(
                                 showAiReportDialog = false
                             }
                         },
-                        title = { Text("Flag this AI generation") },
+                        title = { Text(stringResource(R.string.reveal_flag_title)) },
                         text = {
                             Column {
                                 Text(
-                                    "Choose the reason. ALT stores only the timeline ID, scenario, reason and time."
+                                    stringResource(R.string.reveal_flag_body)
                                 )
                                 Spacer(Modifier.height(10.dp))
                                 AiGenerationReportReason.entries.forEach { reason ->
@@ -379,9 +390,27 @@ fun RevealScreen(
                                     ) {
                                         Text(
                                             if (selectedAiReportReason == reason) {
-                                                "✓ " + reason.label
+                                                "✓ " + when (reason) {
+                                                    AiGenerationReportReason.SEXUAL_CONTENT ->
+                                                        stringResource(R.string.reveal_flag_reason_sexual)
+                                                    AiGenerationReportReason.VIOLENCE ->
+                                                        stringResource(R.string.reveal_flag_reason_violence)
+                                                    AiGenerationReportReason.HATE_OR_HARASSMENT ->
+                                                        stringResource(R.string.reveal_flag_reason_hate)
+                                                    AiGenerationReportReason.OTHER_UNSAFE ->
+                                                        stringResource(R.string.reveal_flag_reason_other)
+                                                }
                                             } else {
-                                                reason.label
+                                                when (reason) {
+                                                    AiGenerationReportReason.SEXUAL_CONTENT ->
+                                                        stringResource(R.string.reveal_flag_reason_sexual)
+                                                    AiGenerationReportReason.VIOLENCE ->
+                                                        stringResource(R.string.reveal_flag_reason_violence)
+                                                    AiGenerationReportReason.HATE_OR_HARASSMENT ->
+                                                        stringResource(R.string.reveal_flag_reason_hate)
+                                                    AiGenerationReportReason.OTHER_UNSAFE ->
+                                                        stringResource(R.string.reveal_flag_reason_other)
+                                                }
                                             }
                                         )
                                     }
@@ -413,21 +442,32 @@ fun RevealScreen(
                                             selectedAiReportReason = null
                                             Toast.makeText(
                                                 context,
-                                                "Flag saved locally",
+                                                context.getString(R.string.reveal_flag_saved),
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }.onFailure {
                                             Toast.makeText(
                                                 context,
-                                                "Could not save flag: " +
-                                                    (it.message ?: "unknown error"),
+                                                context.getString(
+                                                    R.string.reveal_flag_save_failed,
+                                                    it.message
+                                                        ?: context.getString(
+                                                            R.string.common_unknown_error
+                                                        )
+                                                ),
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
                                     }
                                 }
                             ) {
-                                Text(if (isSavingAiReport) "Saving…" else "Save flag")
+                                Text(
+                                    if (isSavingAiReport) {
+                                        stringResource(R.string.reveal_flag_saving)
+                                    } else {
+                                        stringResource(R.string.reveal_flag_save)
+                                    }
+                                )
                             }
                         },
                         dismissButton = {
@@ -435,7 +475,7 @@ fun RevealScreen(
                                 onClick = { showAiReportDialog = false },
                                 enabled = !isSavingAiReport
                             ) {
-                                Text("Cancel")
+                                Text(stringResource(R.string.common_cancel))
                             }
                         }
                     )
@@ -501,8 +541,13 @@ fun RevealScreen(
                                 } catch (error: Throwable) {
                                     Toast.makeText(
                                         context,
-                                        "AI generation failed: " +
-                                            (error.message ?: "unknown error"),
+                                        context.getString(
+                                            R.string.reveal_ai_generation_failed,
+                                            error.message
+                                                ?: context.getString(
+                                                    R.string.common_unknown_error
+                                                )
+                                        ),
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 } finally {
@@ -780,15 +825,26 @@ fun RevealScreen(
                                     }.onFailure {
                                         Toast.makeText(
                                             context,
-                                            "Could not share image: " +
-                                                (it.message ?: "unknown error"),
+                                            context.getString(
+                                                R.string.reveal_share_image_failed,
+                                                it.message
+                                                    ?: context.getString(
+                                                        R.string.common_unknown_error
+                                                    )
+                                            ),
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     }
                                 }.onFailure {
                                     Toast.makeText(
                                         context,
-                                        "Could not create share image: " + (it.message ?: "unknown error"),
+                                        context.getString(
+                                            R.string.reveal_create_share_failed,
+                                            it.message
+                                                ?: context.getString(
+                                                    R.string.common_unknown_error
+                                                )
+                                        ),
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
@@ -824,11 +880,21 @@ fun RevealScreen(
                                     }
                                     isRenderingShareImage = false
                                     saved.onSuccess {
-                                        Toast.makeText(context, "Saved to Pictures/ALT", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.reveal_image_saved),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }.onFailure {
                                         Toast.makeText(
                                             context,
-                                            "Could not save image: " + (it.message ?: "unknown error"),
+                                            context.getString(
+                                                R.string.reveal_image_save_failed,
+                                                it.message
+                                                    ?: context.getString(
+                                                        R.string.common_unknown_error
+                                                    )
+                                            ),
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     }
