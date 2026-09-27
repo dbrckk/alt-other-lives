@@ -199,4 +199,8 @@
     <string name="reveal_button_regenerate_all">Régénérer toutes les scènes IA</string>
     <string name="video_share_text">ALT — %1$s\nUn choix. Une autre vie.</string>
     <string name="video_share_chooser">Partager ta vidéo ALT</string>
+    <string name="app_timeline_delete_cleanup_warning">Timeline supprimée, mais certains médias locaux n’ont pas pu être nettoyés.</string>
+    <string name="app_timeline_delete_failed">Impossible de supprimer la timeline : %1$s</string>
+    <string name="app_history_clear_cleanup_warning">Historique effacé, mais certains médias locaux n’ont pas pu être supprimés.</string>
+    <string name="app_history_clear_failed">Impossible d’effacer l’historique : %1$s</string>
 </resources>
