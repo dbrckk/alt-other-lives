@@ -268,15 +268,20 @@ fun AltApp() {
                                             }.onFailure {
                                                 Toast.makeText(
                                                     context,
-                                                    "Photo imported, but some old local photos could not be cleaned up",
+                                                    context.getString(R.string.app_photo_cleanup_warning),
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                             }
                                         }.onFailure {
                                             Toast.makeText(
                                                 context,
-                                                "Could not import photo: " +
-                                                    (it.message ?: "unknown error"),
+                                                context.getString(
+                                                    R.string.app_photo_import_failed,
+                                                    it.message
+                                                        ?: context.getString(
+                                                            R.string.common_unknown_error
+                                                        )
+                                                ),
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
@@ -335,15 +340,20 @@ fun AltApp() {
                                         if (cleanupFailures.isNotEmpty()) {
                                             Toast.makeText(
                                                 context,
-                                                "Timeline created, but some old local media could not be cleaned up",
+                                                context.getString(R.string.app_timeline_cleanup_warning),
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
                                     }.onFailure {
                                         Toast.makeText(
                                             context,
-                                            "Could not create timeline: " +
-                                                (it.message ?: "unknown error"),
+                                            context.getString(
+                                                R.string.app_timeline_create_failed,
+                                                it.message
+                                                    ?: context.getString(
+                                                        R.string.common_unknown_error
+                                                    )
+                                            ),
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     }
@@ -399,15 +409,20 @@ fun AltApp() {
                                         if (cleanupFailures.isNotEmpty()) {
                                             Toast.makeText(
                                                 context,
-                                                "Remix created, but some old local media could not be cleaned up",
+                                                context.getString(R.string.app_remix_cleanup_warning),
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
                                     }.onFailure {
                                         Toast.makeText(
                                             context,
-                                            "Could not remix this life: " +
-                                                (it.message ?: "unknown error"),
+                                            context.getString(
+                                                R.string.app_remix_failed,
+                                                it.message
+                                                    ?: context.getString(
+                                                        R.string.common_unknown_error
+                                                    )
+                                            ),
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     }
@@ -443,10 +458,14 @@ fun AltApp() {
                                     }
                                     if (navigation.screen == AltScreen.SETTINGS) {
                                         result.onSuccess {
-                                            generationSettingsMessage = "ComfyUI settings saved"
+                                            generationSettingsMessage =
+                                                context.getString(R.string.app_settings_saved)
                                         }.onFailure {
                                             generationSettingsMessage =
-                                                it.message ?: "Could not save ComfyUI settings"
+                                                it.message
+                                                    ?: context.getString(
+                                                        R.string.app_settings_save_failed
+                                                    )
                                         }
                                     }
                                     isSavingGenerationSettings = false
@@ -461,16 +480,19 @@ fun AltApp() {
                             ) {
                                 isTestingConnection = true
                                 connectionTestJob = scope.launch {
-                                    generationSettingsMessage = "Testing ComfyUI connection…"
+                                    generationSettingsMessage =
+                                        context.getString(R.string.app_connection_testing)
                                     runCatching {
                                         ComfyUiClient(
                                             context = context.applicationContext,
                                             config = ComfyUiConfig(baseUrl)
                                         ).testConnection()
                                     }.onSuccess {
-                                        generationSettingsMessage = "ComfyUI connection successful"
+                                        generationSettingsMessage =
+                                            context.getString(R.string.app_connection_success)
                                     }.onFailure {
-                                        generationSettingsMessage = it.message ?: "Could not connect to ComfyUI"
+                                        generationSettingsMessage = it.message
+                                            ?: context.getString(R.string.app_connection_failed)
                                     }
                                     isTestingConnection = false
                                     connectionTestJob = null
@@ -490,10 +512,14 @@ fun AltApp() {
                                     }
                                     if (navigation.screen == AltScreen.SETTINGS) {
                                         result.onSuccess {
-                                            generationSettingsMessage = "AI settings cleared"
+                                            generationSettingsMessage =
+                                            context.getString(R.string.app_settings_cleared)
                                         }.onFailure {
                                             generationSettingsMessage =
-                                                it.message ?: "Could not clear AI settings"
+                                                it.message
+                                                    ?: context.getString(
+                                                        R.string.app_settings_clear_failed
+                                                    )
                                         }
                                     }
                                     isClearingGenerationSettings = false
@@ -529,9 +555,9 @@ fun AltApp() {
                                 Toast.makeText(
                                     context,
                                     if (hasAiPreview) {
-                                        "Original photo unavailable • opening saved AI timeline"
+                                        context.getString(R.string.app_original_photo_missing_ai)
                                     } else {
-                                        "This timeline's source photo is no longer available"
+                                        context.getString(R.string.app_original_photo_missing)
                                     },
                                     Toast.LENGTH_SHORT
                                 ).show()
