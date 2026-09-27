@@ -1,6 +1,7 @@
 package com.alt.otherlives.feature.timeline
 
 import com.alt.otherlives.core.generation.GenerationSettings
+import com.alt.otherlives.core.generation.GenerationSettingsValidationIssue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -39,6 +40,27 @@ class AiGenerationPresentationTest {
                 readySceneCount = 3,
                 expectedSceneCount = 5,
                 retryChapterNumbers = listOf(2, 5)
+            ),
+            state
+        )
+    }
+
+    @Test
+    fun invalidSettingsExposeTypedValidationIssue() {
+        val state = aiGenerationUnavailableState(
+            hasSourcePhoto = true,
+            settings = GenerationSettings(
+                comfyUiBaseUrl = "http://invalid",
+                workflowJson = "{invalid}",
+                isConfigured = false,
+                validationError = "Workflow JSON is malformed",
+                validationIssue = GenerationSettingsValidationIssue.WORKFLOW_MALFORMED
+            )
+        )
+
+        assertEquals(
+            AiGenerationUnavailableState.InvalidSettings(
+                GenerationSettingsValidationIssue.WORKFLOW_MALFORMED
             ),
             state
         )
