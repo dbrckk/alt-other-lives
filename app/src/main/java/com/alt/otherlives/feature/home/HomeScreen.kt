@@ -45,6 +45,7 @@ import com.alt.otherlives.R
 @Composable
 fun HomeScreen(
     photoUri: Uri?,
+    photoIsLikelyPremiumSource: Boolean?,
     isImportingPhoto: Boolean,
     onPhotoSelected: (Uri) -> Unit,
     onContinue: () -> Unit,
@@ -144,12 +145,29 @@ fun HomeScreen(
                         .align(Alignment.BottomStart)
                         .padding(22.dp)
                 ) {
-                    Text(
-                        stringResource(R.string.home_photo_ready),
-                        color = AltAccent,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            stringResource(R.string.home_photo_ready),
+                            color = AltAccent,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        photoIsLikelyPremiumSource?.let { premium ->
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                stringResource(
+                                    if (premium) {
+                                        R.string.home_source_premium
+                                    } else {
+                                        R.string.home_source_low_quality
+                                    }
+                                ),
+                                color = if (premium) AltAccent else AltMuted,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                     Spacer(Modifier.height(6.dp))
                     Text(
                         if (isImportingPhoto) {
