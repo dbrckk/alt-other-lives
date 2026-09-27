@@ -74,6 +74,19 @@ object ComfyUiWorkflowTemplate {
         return root
     }
 
+    fun premiumContinuityWarnings(templateJson: String): List<String> {
+        validateTemplate(templateJson)
+        val root = JSONObject(templateJson)
+        return buildList {
+            if (!containsExactPlaceholderValue(root, ComfyUiWorkflow.PLACEHOLDER_SEED)) {
+                add("Workflow does not use ALT's shared seed; chapter-to-chapter visual continuity may drift.")
+            }
+            if (!containsExactPlaceholderValue(root, ComfyUiWorkflow.PLACEHOLDER_NEGATIVE_PROMPT)) {
+                add("Workflow does not use ALT's negative prompt; identity drift suppression is reduced.")
+            }
+        }
+    }
+
     fun preferredOutputNodeId(workflow: JSONObject): String? =
         workflow.keys()
             .asSequence()
