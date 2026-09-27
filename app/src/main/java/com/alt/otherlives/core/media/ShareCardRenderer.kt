@@ -241,13 +241,25 @@ object ShareCardRenderer {
                 label = context.getString(R.string.share_compare_life, 2)
             )
 
+            val dividerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.argb(90, 183, 167, 255)
+                strokeWidth = 2f
+            }
+            canvas.drawLine(72f, 917f, 420f, 917f, dividerPaint)
+            canvas.drawLine(660f, 917f, 1008f, 917f, dividerPaint)
+
             val vsPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.rgb(183, 167, 255)
                 textSize = 34f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 textAlign = Paint.Align.CENTER
             }
-            canvas.drawText("VS", WIDTH / 2f, 925f, vsPaint)
+            canvas.drawText(
+                context.getString(R.string.history_compare_vs),
+                WIDTH / 2f,
+                925f,
+                vsPaint
+            )
 
             val footer = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.rgb(150, 146, 162)
@@ -346,11 +358,11 @@ object ShareCardRenderer {
             textSize = 27f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
-        canvas.drawText(label, 82f, (bottom - 156).toFloat(), labelPaint)
+        canvas.drawText(label, 82f, (bottom - 190).toFloat(), labelPaint)
 
         val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
-            textSize = 48f
+            textSize = 44f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
         drawWrappedText(
@@ -358,10 +370,25 @@ object ShareCardRenderer {
             text = scenario.title,
             paint = titlePaint,
             x = 82f,
-            startY = (bottom - 92).toFloat(),
+            startY = (bottom - 132).toFloat(),
             maxWidth = 870f,
-            lineHeight = 56f,
+            lineHeight = 50f,
             maxLines = 2
+        )
+
+        val subtitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.rgb(210, 207, 219)
+            textSize = 25f
+        }
+        canvas.drawText(
+            TextLineLayout.ellipsize(
+                scenario.subtitle,
+                870f,
+                subtitlePaint::measureText
+            ),
+            82f,
+            (bottom - 28).toFloat(),
+            subtitlePaint
         )
     }
 
