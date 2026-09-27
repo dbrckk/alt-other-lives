@@ -8,6 +8,7 @@ import android.provider.MediaStore
 import android.os.Build
 import androidx.core.content.FileProvider
 import com.alt.otherlives.core.model.Scenario
+import com.alt.otherlives.R
 import java.io.File
 import java.io.FileOutputStream
 import java.util.UUID
@@ -76,7 +77,7 @@ object ShareCardRenderer {
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 letterSpacing = 0.08f
             }
-            canvas.drawText("ALT  •  YOUR OTHER LIFE", 72f, 850f, accent)
+            canvas.drawText(context.getString(R.string.share_card_header), 72f, 850f, accent)
 
             val title = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.WHITE
@@ -114,7 +115,7 @@ object ShareCardRenderer {
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             }
             y += 44f
-            canvas.drawText("YOUR TIMELINE", 72f, y, timelineLabel)
+            canvas.drawText(context.getString(R.string.share_card_timeline), 72f, y, timelineLabel)
             y += 46f
 
             val numberPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -148,7 +149,7 @@ object ShareCardRenderer {
                 color = Color.rgb(150, 146, 162)
                 textSize = 27f
             }
-            canvas.drawText("One choice. Another life.", 72f, 1812f, footer)
+            canvas.drawText(context.getString(R.string.reveal_one_choice), 72f, 1812f, footer)
 
             val brand = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.rgb(183, 167, 255)
@@ -213,7 +214,7 @@ object ShareCardRenderer {
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 letterSpacing = 0.08f
             }
-            canvas.drawText("ALT  •  TWO LIVES", 72f, 92f, accent)
+            canvas.drawText(context.getString(R.string.share_compare_header), 72f, 92f, accent)
 
             drawComparisonHalf(
                 context = context,
@@ -222,7 +223,7 @@ object ShareCardRenderer {
                 scenario = firstScenario,
                 top = 140,
                 bottom = 865,
-                label = "LIFE 01"
+                label = context.getString(R.string.share_compare_life, 1)
             )
             drawComparisonHalf(
                 context = context,
@@ -231,7 +232,7 @@ object ShareCardRenderer {
                 scenario = secondScenario,
                 top = 955,
                 bottom = 1680,
-                label = "LIFE 02"
+                label = context.getString(R.string.share_compare_life, 2)
             )
 
             val vsPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -246,7 +247,7 @@ object ShareCardRenderer {
                 color = Color.rgb(150, 146, 162)
                 textSize = 27f
             }
-            canvas.drawText("Which life would you choose?", 72f, 1812f, footer)
+            canvas.drawText(context.getString(R.string.share_compare_footer), 72f, 1812f, footer)
 
             val brand = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.rgb(183, 167, 255)
@@ -368,11 +369,16 @@ object ShareCardRenderer {
             putExtra(Intent.EXTRA_STREAM, uri)
             putExtra(
                 Intent.EXTRA_TEXT,
-                "ALT — Two lives. One choice. Which would you choose?"
+                context.getString(R.string.share_compare_text)
             )
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        context.startActivity(Intent.createChooser(intent, "Share your ALT comparison"))
+        context.startActivity(
+            Intent.createChooser(
+                intent,
+                context.getString(R.string.share_compare_chooser)
+            )
+        )
     }
 
     private fun cleanupOldShareImages(dir: File) {
@@ -454,11 +460,19 @@ object ShareCardRenderer {
             putExtra(Intent.EXTRA_STREAM, uri)
             putExtra(
                 Intent.EXTRA_TEXT,
-                "ALT — ${scenario.title}\nOne choice. Another life."
+                context.getString(
+                    R.string.share_single_text,
+                    scenario.title
+                )
             )
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        context.startActivity(Intent.createChooser(intent,"Share your ALT life"))
+        context.startActivity(
+            Intent.createChooser(
+                intent,
+                context.getString(R.string.share_single_chooser)
+            )
+        )
     }
     private fun drawCover(canvas: Canvas, source: Bitmap, target: Rect) {
         val sr=source.width.toFloat()/source.height; val tr=target.width().toFloat()/target.height()
