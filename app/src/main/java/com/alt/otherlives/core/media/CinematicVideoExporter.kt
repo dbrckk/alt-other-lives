@@ -21,6 +21,7 @@ import androidx.media3.transformer.Transformer
 import androidx.media3.transformer.ProgressHolder
 import androidx.media3.effect.MatrixTransformation
 import com.alt.otherlives.core.model.Scenario
+import com.alt.otherlives.R
 import java.io.File
 import java.util.UUID
 import java.util.WeakHashMap
@@ -235,10 +236,15 @@ object CinematicVideoExporter {
             putExtra(Intent.EXTRA_STREAM, uri)
             putExtra(
                 Intent.EXTRA_TEXT,
-                "ALT — ${scenario.title}\nOne choice. Another life."
+                context.getString(R.string.video_share_text, scenario.title)
             )
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        context.startActivity(Intent.createChooser(intent, "Share your ALT video"))
+        context.startActivity(
+            Intent.createChooser(
+                intent,
+                context.getString(R.string.video_share_chooser)
+            )
+        )
     }
 }
