@@ -270,7 +270,12 @@ object ShareCardRenderer {
         require(length != 0L) { "Rendered share image is empty" }
 
         val intent=Intent(Intent.ACTION_SEND).apply {
-            type="image/jpeg"; putExtra(Intent.EXTRA_STREAM,uri); putExtra(Intent.EXTRA_TEXT,scenario.title)
+            type = "image/jpeg"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(
+                Intent.EXTRA_TEXT,
+                "ALT — ${scenario.title}\nOne choice. Another life."
+            )
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         context.startActivity(Intent.createChooser(intent,"Share your ALT life"))
