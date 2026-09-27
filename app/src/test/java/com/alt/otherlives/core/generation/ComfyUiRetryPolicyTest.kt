@@ -34,6 +34,15 @@ class ComfyUiRetryPolicyTest {
     }
 
     @Test
+    fun typedGeneratedSceneQualityExceptionIsNeverRetryable() {
+        assertFalse(
+            ComfyUiRetryPolicy.shouldRetry(
+                GeneratedSceneQualityException("quality rejected")
+            )
+        )
+    }
+
+    @Test
     fun doesNotRetryGeneratedSceneQualityFailures() {
         assertFalse(
             ComfyUiRetryPolicy.shouldRetry(
