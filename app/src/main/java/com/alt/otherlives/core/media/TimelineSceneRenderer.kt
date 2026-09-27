@@ -86,6 +86,11 @@ object TimelineSceneRenderer {
                 900f,
                 eyebrow
             )
+            drawChapterProgress(
+                canvas = canvas,
+                currentIndex = index,
+                total = scenario.chapters.take(5).size
+            )
 
             val title = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.WHITE
@@ -322,6 +327,41 @@ object TimelineSceneRenderer {
             if (file.isFile && file.lastModified() < cutoff) {
                 file.delete()
             }
+        }
+    }
+
+    private fun drawChapterProgress(
+        canvas: Canvas,
+        currentIndex: Int,
+        total: Int
+    ) {
+        if (total <= 0) return
+
+        val left = 72f
+        val right = 1008f
+        val top = 842f
+        val gap = 12f
+        val segmentWidth = (right - left - gap * (total - 1)) / total
+        val inactive = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(90, 255, 255, 255)
+            strokeWidth = 8f
+            strokeCap = Paint.Cap.ROUND
+        }
+        val active = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.rgb(183, 167, 255)
+            strokeWidth = 8f
+            strokeCap = Paint.Cap.ROUND
+        }
+
+        repeat(total) { index ->
+            val startX = left + index * (segmentWidth + gap)
+            canvas.drawLine(
+                startX,
+                top,
+                startX + segmentWidth,
+                top,
+                if (index <= currentIndex) active else inactive
+            )
         }
     }
 
