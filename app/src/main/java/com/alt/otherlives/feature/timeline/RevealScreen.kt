@@ -84,23 +84,23 @@ fun RevealScreen(
     }
     val reportStore = remember(context) { AiGenerationReportStore(context.applicationContext) }
     val scope = rememberCoroutineScope()
-    var isExporting by remember { mutableStateOf(false) }
-    var exportProgress by remember { mutableStateOf<Int?>(null) }
-    var activeTransformer by remember { mutableStateOf<Transformer?>(null) }
-    var activeRenderedScenes by remember { mutableStateOf<RenderedTimelineScenes?>(null) }
-    var exportJob by remember { mutableStateOf<Job?>(null) }
+    var isExporting by remember(timelineKey) { mutableStateOf(false) }
+    var exportProgress by remember(timelineKey) { mutableStateOf<Int?>(null) }
+    var activeTransformer by remember(timelineKey) { mutableStateOf<Transformer?>(null) }
+    var activeRenderedScenes by remember(timelineKey) { mutableStateOf<RenderedTimelineScenes?>(null) }
+    var exportJob by remember(timelineKey) { mutableStateOf<Job?>(null) }
     var completedVideoUri by remember(timelineKey) { mutableStateOf<Uri?>(null) }
-    var isRenderingShareImage by remember { mutableStateOf(false) }
-    var isSavingVideoToGallery by remember { mutableStateOf(false) }
+    var isRenderingShareImage by remember(timelineKey) { mutableStateOf(false) }
+    var isSavingVideoToGallery by remember(timelineKey) { mutableStateOf(false) }
     var generatedScenes by remember(timelineKey) { mutableStateOf<List<GeneratedScene>>(emptyList()) }
     var isLoadingStoredScenes by remember(timelineKey) { mutableStateOf(true) }
     var aiUiState by remember(timelineKey) {
         mutableStateOf(RevealAiUiState())
     }
-    var aiGenerationJob by remember { mutableStateOf<Job?>(null) }
-    var showRegenerateAllDialog by remember { mutableStateOf(false) }
-    var showClearAiDialog by remember { mutableStateOf(false) }
-    var isClearingAi by remember { mutableStateOf(false) }
+    var aiGenerationJob by remember(timelineKey) { mutableStateOf<Job?>(null) }
+    var showRegenerateAllDialog by remember(timelineKey) { mutableStateOf(false) }
+    var showClearAiDialog by remember(timelineKey) { mutableStateOf(false) }
+    var isClearingAi by remember(timelineKey) { mutableStateOf(false) }
     var showAiReportDialog by remember(timelineKey) { mutableStateOf(false) }
     var selectedAiReportReason by remember(timelineKey) {
         mutableStateOf<AiGenerationReportReason?>(null)
