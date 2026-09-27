@@ -87,4 +87,9 @@
     <string name="share_compare_chooser">Share your ALT comparison</string>
     <string name="share_single_text">ALT — %1$s\nOne choice. Another life.</string>
     <string name="share_single_chooser">Share your ALT life</string>
+    <string name="reveal_generation_label">BUILDING YOUR ALT TIMELINE</string>
+    <string name="reveal_generation_progress">Chapter %1$d of %2$d</string>
+    <string name="reveal_generation_identity_hint">ALT keeps the same identity anchor across the sequence while the world, styling and story evolve.</string>
+    <string name="reveal_generation_cancel">Cancel AI generation</string>
+    <string name="reveal_generation_cancelling">Cancelling AI generation…</string>
 </resources>
