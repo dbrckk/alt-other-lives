@@ -1,6 +1,7 @@
 package com.alt.otherlives.feature.history
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,11 +14,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -31,7 +34,11 @@ import com.alt.otherlives.core.designsystem.AltDimmed
 import com.alt.otherlives.core.designsystem.AltMuted
 import com.alt.otherlives.core.designsystem.AltSurface
 import com.alt.otherlives.core.model.Scenario
+import com.alt.otherlives.core.media.ShareCardRenderer
 import com.alt.otherlives.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Date
 
@@ -49,11 +56,14 @@ fun HistoryScreen(
     photoUrisByFileName: Map<String, Uri> = emptyMap(),
     generatedPreviewUrisByTimelineKey: Map<String, Uri> = emptyMap()
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var showClearConfirmation by remember { mutableStateOf(false) }
     var pendingDeleteEntry by remember { mutableStateOf<HistoryEntry?>(null) }
     var isCompareMode by remember { mutableStateOf(false) }
     var compareSelection by remember { mutableStateOf<List<String>>(emptyList()) }
     var showCompareDialog by remember { mutableStateOf(false) }
+    var isSharingComparison by remember { mutableStateOf(false) }
 
     Column(Modifier.fillMaxSize().padding(top = 42.dp)) {
         Row(
@@ -167,9 +177,8 @@ fun HistoryScreen(
                     if (scenario != null) {
                         val timelineKey = entry.timelineKey
                         val hasAiPreview = timelineKey in generatedPreviewUrisByTimelineKey
-                        val previewUri = entry.photoFileName
-                            ?.let { photoUrisByFileName[it] }
-                            ?: generatedPreviewUrisByTimelineKey[timelineKey]
+                        val previewUri = generatedPreviewUrisByTimelineKey[timelineKey]
+                            ?: entry.photoFileName?.let { photoUrisByFileName[it] }
                         val entryKey = entry.scenarioId + ":" + entry.createdAt
                         val isDeleting = deletingEntryKey == entryKey
                         val mediaStatus = when {
@@ -430,7 +439,79 @@ fun HistoryScreen(
                     }
                 },
                 confirmButton = {
+                    val firstEntry = comparedEntries[0]
+                    val secondEntry = comparedEntries[1]
+                    val firstScenario = scenarios.firstOrNull { it.id == firstEntry.scenarioId }
+                    val secondScenario = scenarios.firstOrNull { it.id == secondEntry.scenarioId }
                     TextButton(
+                        enabled = !isSharingComparison &&
+                            firstScenario != null &&
+                            secondScenario != null,
+                        onClick = {
+                            if (
+                                !isSharingComparison &&
+                                firstScenario != null &&
+                                secondScenario != null
+                            ) {
+                                isSharingComparison = true
+                                scope.launch {
+                                    val firstVisual =
+                                        generatedPreviewUrisByTimelineKey[firstEntry.timelineKey]
+                                            ?: firstEntry.photoFileName
+                                                ?.let { photoUrisByFileName[it] }
+                                    val secondVisual =
+                                        generatedPreviewUrisByTimelineKey[secondEntry.timelineKey]
+                                            ?: secondEntry.photoFileName
+                                                ?.let { photoUrisByFileName[it] }
+                                    val rendered = runCatching {
+                                        withContext(Dispatchers.Default) {
+                                            ShareCardRenderer.renderComparison(
+                                                context = context,
+                                                firstVisualUri = firstVisual,
+                                                firstScenario = firstScenario,
+                                                secondVisualUri = secondVisual,
+                                                secondScenario = secondScenario
+                                            )
+                                        }
+                                    }
+                                    rendered.onSuccess { uri ->
+                                        runCatching {
+                                            ShareCardRenderer.shareComparison(context, uri)
+                                        }.onFailure {
+                                            Toast.makeText(
+                                                context,
+                                                context.getString(
+                                                    R.string.history_compare_share_failed
+                                                ),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }.onFailure {
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(
+                                                R.string.history_compare_share_failed
+                                            ),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                    isSharingComparison = false
+                                }
+                            }
+                        }
+                    ) {
+                        Text(
+                            if (isSharingComparison) {
+                                stringResource(R.string.history_compare_preparing_share)
+                            } else {
+                                stringResource(R.string.history_compare_share)
+                            }
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        enabled = !isSharingComparison,
                         onClick = {
                             showCompareDialog = false
                             compareSelection = emptyList()
