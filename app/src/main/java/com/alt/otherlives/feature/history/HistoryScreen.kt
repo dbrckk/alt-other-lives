@@ -2,6 +2,7 @@ package com.alt.otherlives.feature.history
 
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -184,6 +185,8 @@ fun HistoryScreen(
                             ?: entry.photoFileName?.let { photoUrisByFileName[it] }
                         val entryKey = entry.scenarioId + ":" + entry.createdAt
                         val isDeleting = deletingEntryKey == entryKey
+                        val isSelectedForCompare =
+                            isSelectedForCompare
                         val mediaStatus = when {
                             entry.photoFileName == null && hasAiPreview -> "AI preview"
                             entry.photoFileName == null -> "No original photo"
@@ -219,7 +222,12 @@ fun HistoryScreen(
                                     }
                                 ),
                             shape = RoundedCornerShape(28.dp),
-                            colors = CardDefaults.cardColors(containerColor = AltCard)
+                            colors = CardDefaults.cardColors(containerColor = AltCard),
+                            border = if (isSelectedForCompare) {
+                                BorderStroke(1.dp, AltAccent)
+                            } else {
+                                null
+                            }
                         ) {
                             Column {
                                 Box(
@@ -257,7 +265,7 @@ fun HistoryScreen(
                                         )
                                     }
 
-                                    if (isCompareMode && timelineKey in compareSelection) {
+                                    if (isSelectedForCompare) {
                                         Surface(
                                             modifier = Modifier
                                                 .align(Alignment.TopEnd)
@@ -326,7 +334,7 @@ fun HistoryScreen(
                                         Text(
                                             when {
                                                 isDeleting -> stringResource(R.string.history_deleting)
-                                                isCompareMode && timelineKey in compareSelection ->
+                                                isSelectedForCompare ->
                                                     stringResource(R.string.history_compare_selected_short)
                                                 isCompareMode -> stringResource(R.string.history_compare_select)
                                                 else -> stringResource(R.string.history_open)
