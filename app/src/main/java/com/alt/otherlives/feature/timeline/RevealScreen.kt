@@ -6,15 +6,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import android.widget.Toast
@@ -51,7 +56,9 @@ import coil3.compose.AsyncImage
 import com.alt.otherlives.core.designsystem.AltAccent
 import com.alt.otherlives.core.designsystem.AltBackButton
 import com.alt.otherlives.core.designsystem.AltBackground
+import com.alt.otherlives.core.designsystem.AltCard
 import com.alt.otherlives.core.designsystem.AltDimmed
+import com.alt.otherlives.core.designsystem.AltMuted
 import com.alt.otherlives.core.designsystem.AltPrimary
 import com.alt.otherlives.core.model.Scenario
 import com.alt.otherlives.core.media.ShareCardRenderer
@@ -153,7 +160,7 @@ fun RevealScreen(
     }
     LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 40.dp)) {
         item {
-            Box(modifier = Modifier.fillMaxWidth().height(500.dp)) {
+            Box(modifier = Modifier.fillMaxWidth().height(620.dp)) {
                 AsyncImage(
                     model = revealHeroUri,
                     contentDescription = "Hero image for ${scenario.title}",
@@ -162,28 +169,53 @@ fun RevealScreen(
                 )
                 Box(
                     modifier = Modifier.fillMaxSize().background(
-                        Brush.verticalGradient(listOf(Color.Transparent, AltBackground), startY = 120f)
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.18f),
+                                Color.Transparent,
+                                AltBackground.copy(alpha = 0.38f),
+                                AltBackground
+                            ),
+                            startY = 0f
+                        )
                     )
                 )
                 TextButton(
                     onClick = onBack,
                     modifier = Modifier.padding(start = 16.dp, top = 36.dp)
                 ) {
-                    Text("Back")
+                    Text("‹ Back")
                 }
                 Column(modifier = Modifier.align(Alignment.BottomStart).padding(24.dp)) {
-                    if (primaryGeneratedSceneUri != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            "AI GENERATED",
+                            if (primaryGeneratedSceneUri != null) "ALT ORIGINAL • AI GENERATED" else "ALT ORIGINAL",
                             color = AltAccent,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
-                        Spacer(Modifier.height(6.dp))
                     }
-                    Text("YOUR ALT LIFE", color = AltAccent, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(8.dp))
-                    Text(scenario.title, fontSize = 34.sp, lineHeight = 36.sp, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        scenario.title,
+                        fontSize = 42.sp,
+                        lineHeight = 44.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        scenario.subtitle,
+                        color = AltMuted,
+                        fontSize = 16.sp,
+                        lineHeight = 22.sp
+                    )
+                    Spacer(Modifier.height(14.dp))
+                    Text(
+                        "One choice. Another life.",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             }
         }
@@ -205,30 +237,83 @@ fun RevealScreen(
             }
         }
         itemsIndexed(scenario.chapters) { index, chapter ->
-            Column(Modifier.padding(horizontal = 24.dp, vertical = 18.dp)) {
-                generatedScenes.firstOrNull { it.chapterIndex == index }?.let { generated ->
-                    AsyncImage(
-                        model = generated.imageUri,
-                        contentDescription = "Generated scene for ${chapter.label}",
-                        modifier = Modifier.fillMaxWidth().height(240.dp),
-                        contentScale = ContentScale.Crop
-                    )
-                    Spacer(Modifier.height(12.dp))
-                }
-                Text(chapter.label, color = AltAccent, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(8.dp))
-                Text(chapter.narrative, fontSize = 23.sp, lineHeight = 30.sp, fontWeight = FontWeight.Medium)
-                if (index in aiUiState.chapterFailures) {
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        if (generatedScenes.any { it.chapterIndex == index }) {
-                            "New AI variation failed • existing scene kept"
-                        } else {
-                            "AI scene failed • retry available"
-                        },
-                        color = AltDimmed,
-                        fontSize = 12.sp
-                    )
+            val generated = generatedScenes.firstOrNull { it.chapterIndex == index }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 18.dp, vertical = 10.dp),
+                shape = RoundedCornerShape(30.dp),
+                colors = CardDefaults.cardColors(containerColor = AltCard)
+            ) {
+                Column {
+                    if (generated != null) {
+                        AsyncImage(
+                            model = generated.imageUri,
+                            contentDescription = "Generated scene for ${chapter.label}",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(340.dp)
+                                .clip(
+                                    RoundedCornerShape(
+                                        topStart = 30.dp,
+                                        topEnd = 30.dp
+                                    )
+                                ),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                    Column(Modifier.padding(22.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                (index + 1).toString().padStart(2, '0'),
+                                color = AltAccent,
+                                fontSize = 30.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(Modifier.width(14.dp))
+                            Column {
+                                Text(
+                                    "CHAPTER ${index + 1}",
+                                    color = AltDimmed,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    chapter.label,
+                                    color = AltAccent,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(16.dp))
+                        Text(
+                            chapter.narrative,
+                            fontSize = 22.sp,
+                            lineHeight = 30.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        if (generated == null) {
+                            Spacer(Modifier.height(14.dp))
+                            Text(
+                                "Generate this chapter to unlock its cinematic scene.",
+                                color = AltDimmed,
+                                fontSize = 12.sp
+                            )
+                        }
+                        if (index in aiUiState.chapterFailures) {
+                            Spacer(Modifier.height(10.dp))
+                            Text(
+                                if (generated != null) {
+                                    "New AI variation failed • existing scene kept"
+                                } else {
+                                    "AI scene failed • retry available"
+                                },
+                                color = AltDimmed,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -643,7 +728,7 @@ fun RevealScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = AltPrimary, contentColor = Color(0xFF16111F))
                 ) {
                     Text(
-                        if (isRenderingShareImage) "Preparing share image…" else "Share this ALT life",
+                        if (isRenderingShareImage) "Preparing share image…" else "Share your ALT life",
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -891,7 +976,7 @@ fun RevealScreen(
                 }
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "Multi-scene 9:16 MP4 • animated chapter sequence",
+                    "Made for Reels • Shorts • Stories • 9:16 cinematic export",
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                     color = AltDimmed,
