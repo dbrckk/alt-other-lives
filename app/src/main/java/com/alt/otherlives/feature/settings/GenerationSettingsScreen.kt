@@ -131,6 +131,8 @@ fun GenerationSettingsScreen(
                         stringResource(R.string.settings_warning_seed)
                     ComfyUiWorkflowTemplate.PremiumContinuityIssue.MISSING_NEGATIVE_PROMPT ->
                         stringResource(R.string.settings_warning_negative)
+                    ComfyUiWorkflowTemplate.PremiumContinuityIssue.AMBIGUOUS_IMAGE_OUTPUTS ->
+                        stringResource(R.string.settings_warning_ambiguous_output)
                 }
                 Text(
                     "• $message",
