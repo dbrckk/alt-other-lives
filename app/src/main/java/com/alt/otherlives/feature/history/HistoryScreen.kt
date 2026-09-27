@@ -26,6 +26,7 @@ import com.alt.otherlives.core.data.HistoryEntry
 import com.alt.otherlives.core.designsystem.AltAccent
 import com.alt.otherlives.core.designsystem.AltBackButton
 import com.alt.otherlives.core.designsystem.AltCard
+import com.alt.otherlives.core.designsystem.AltDimmed
 import com.alt.otherlives.core.designsystem.AltMuted
 import com.alt.otherlives.core.designsystem.AltSurface
 import com.alt.otherlives.core.model.Scenario
@@ -61,7 +62,13 @@ fun HistoryScreen(
                 Text("Back")
             }
             Column(Modifier.padding(start = 12.dp).weight(1f)) {
-                Text("Your other lives", fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
+                Text(
+                    "YOUR ALT LIBRARY",
+                    color = AltAccent,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text("Your other lives", fontSize = 31.sp, fontWeight = FontWeight.SemiBold)
                 Text(
                     if (entries.isEmpty()) {
                         "Stored privately on this device"
@@ -126,18 +133,14 @@ fun HistoryScreen(
                                     role = Role.Button,
                                     onClick = { onOpen(scenario, entry) }
                                 ),
-                            shape = RoundedCornerShape(24.dp),
+                            shape = RoundedCornerShape(28.dp),
                             colors = CardDefaults.cardColors(containerColor = AltCard)
                         ) {
-                            Row(
-                                modifier = Modifier.padding(14.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
+                            Column {
                                 Box(
                                     modifier = Modifier
-                                        .size(92.dp)
-                                        .clip(RoundedCornerShape(20.dp))
+                                        .fillMaxWidth()
+                                        .height(210.dp)
                                         .background(AltSurface),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -148,37 +151,81 @@ fun HistoryScreen(
                                             modifier = Modifier.fillMaxSize(),
                                             contentScale = ContentScale.Crop
                                         )
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .background(
+                                                    androidx.compose.ui.graphics.Brush.verticalGradient(
+                                                        listOf(
+                                                            androidx.compose.ui.graphics.Color.Transparent,
+                                                            androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f)
+                                                        )
+                                                    )
+                                                )
+                                        )
                                     } else {
                                         Text(
                                             scenario.title.take(1).uppercase(),
                                             color = AltAccent,
-                                            fontSize = 28.sp,
+                                            fontSize = 42.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+
+                                    Surface(
+                                        modifier = Modifier
+                                            .align(Alignment.TopStart)
+                                            .padding(14.dp),
+                                        shape = RoundedCornerShape(999.dp),
+                                        color = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.42f)
+                                    ) {
+                                        Text(
+                                            if (hasAiPreview) "AI LIFE" else "ALT LIFE",
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                            color = AltAccent,
+                                            fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold
                                         )
                                     }
                                 }
 
-                                Column(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .padding(vertical = 4.dp)
-                                ) {
+                                Column(Modifier.padding(18.dp)) {
                                     Text(
                                         scenario.title,
-                                        fontSize = 19.sp,
+                                        fontSize = 21.sp,
+                                        lineHeight = 26.sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                     Spacer(Modifier.height(6.dp))
                                     Text(
-                                        DateFormat.getDateTimeInstance(
-                                            DateFormat.MEDIUM,
-                                            DateFormat.SHORT
-                                        ).format(Date(entry.createdAt)),
+                                        scenario.subtitle,
                                         color = AltMuted,
-                                        fontSize = 13.sp
+                                        fontSize = 13.sp,
+                                        lineHeight = 19.sp
                                     )
+                                    Spacer(Modifier.height(14.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            DateFormat.getDateTimeInstance(
+                                                DateFormat.MEDIUM,
+                                                DateFormat.SHORT
+                                            ).format(Date(entry.createdAt)),
+                                            color = AltDimmed,
+                                            fontSize = 12.sp
+                                        )
+                                        Spacer(Modifier.weight(1f))
+                                        Text(
+                                            if (isDeleting) "Deleting…" else "Open  →",
+                                            color = AltAccent,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
                                     if (mediaStatus != null) {
-                                        Spacer(Modifier.height(9.dp))
+                                        Spacer(Modifier.height(10.dp))
                                         Surface(
                                             shape = RoundedCornerShape(999.dp),
                                             color = AltSurface
@@ -192,21 +239,15 @@ fun HistoryScreen(
                                             )
                                         }
                                     }
-                                }
-
-                                Column(
-                                    horizontalAlignment = Alignment.End,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Text("Open", color = AltMuted, fontSize = 11.sp)
+                                    Spacer(Modifier.height(2.dp))
                                     TextButton(
                                         onClick = { pendingDeleteEntry = entry },
                                         enabled = !isDeleting && !isClearingHistory,
-                                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
+                                        contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)
                                     ) {
                                         Text(
-                                            if (isDeleting) "Deleting…" else "Delete",
-                                            color = AltMuted,
+                                            if (isDeleting) "Deleting…" else "Delete this life",
+                                            color = AltDimmed,
                                             fontSize = 11.sp
                                         )
                                     }
