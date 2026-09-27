@@ -36,6 +36,14 @@ class ImageBoundsValidationTest {
     }
 
     @Test
+    fun generatedScenesRejectExtremeLandscapeOrPanoramaOutputs() {
+        assertFalse(ImageBoundsValidation.isUsableGeneratedScene(1344, 768))
+        assertFalse(ImageBoundsValidation.isUsableGeneratedScene(1600, 600))
+        assertTrue(ImageBoundsValidation.isUsableGeneratedScene(1024, 1024))
+        assertTrue(ImageBoundsValidation.isUsableGeneratedScene(768, 1344))
+    }
+
+    @Test
     fun premiumSourceThresholdIsStricterThanGeneratedSceneThreshold() {
         assertFalse(ImageBoundsValidation.isLikelyPremiumSource(576, 1024))
         assertTrue(ImageBoundsValidation.isUsableGeneratedScene(576, 1024))
