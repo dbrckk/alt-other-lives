@@ -7,6 +7,7 @@ import com.alt.otherlives.core.generation.GeneratedSceneStore
 import com.alt.otherlives.core.generation.GenerationDownloadCache
 import com.alt.otherlives.core.generation.GenerationDownloadLifecycle
 import com.alt.otherlives.core.generation.GenerationProvider
+import com.alt.otherlives.core.generation.GenerationChapterFailureKind
 import com.alt.otherlives.core.generation.GenerationRequest
 import com.alt.otherlives.core.model.Scenario
 import kotlinx.coroutines.CancellationException
@@ -17,6 +18,7 @@ import kotlinx.coroutines.withContext
 data class AiGenerationOutcome(
     val scenes: List<GeneratedScene>,
     val failedChapterIndexes: Set<Int>,
+    val failureKinds: Map<Int, GenerationChapterFailureKind>,
     val freshVariationCommitted: Boolean
 )
 
@@ -35,10 +37,15 @@ class AiGenerationOrchestrator(
         resetSeed: Boolean,
         onProgress: (completed: Int, total: Int) -> Unit,
         onScenesChanged: (List<GeneratedScene>) -> Unit,
-        onChapterFailure: (chapterIndex: Int, message: String) -> Unit
+        onChapterFailure: (
+            chapterIndex: Int,
+            message: String,
+            kind: GenerationChapterFailureKind
+        ) -> Unit
     ): AiGenerationOutcome {
         val pendingResetDownloads = mutableListOf<Uri>()
         val failedIndexes = linkedSetOf<Int>()
+        val failureKinds = linkedMapOf<Int, GenerationChapterFailureKind>()
 
         try {
             val existingSeed = withContext(Dispatchers.IO) {
@@ -62,6 +69,7 @@ class AiGenerationOrchestrator(
                 onProgress = onProgress,
                 onSceneGenerated = { generated ->
                     failedIndexes.remove(generated.chapterIndex)
+                    failureKinds.remove(generated.chapterIndex)
                     if (resetSeed) {
                         pendingResetDownloads += generated.imageUri
                     } else {
@@ -85,9 +93,10 @@ class AiGenerationOrchestrator(
                         onScenesChanged(currentScenes)
                     }
                 },
-                onChapterFailure = { chapterIndex, message ->
+                onChapterFailure = { chapterIndex, message, kind ->
                     failedIndexes += chapterIndex
-                    onChapterFailure(chapterIndex, message)
+                    failureKinds[chapterIndex] = kind
+                    onChapterFailure(chapterIndex, message, kind)
                 }
             )
 
@@ -123,6 +132,7 @@ class AiGenerationOrchestrator(
             return AiGenerationOutcome(
                 scenes = finalScenes,
                 failedChapterIndexes = failedIndexes,
+                failureKinds = failureKinds.toMap(),
                 freshVariationCommitted = policy.shouldCommitFreshVariation
             )
         } catch (cancelled: CancellationException) {
