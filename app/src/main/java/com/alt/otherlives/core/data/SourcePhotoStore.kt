@@ -98,6 +98,20 @@ class SourcePhotoStore(private val context: Context) {
         return true
     }
 
+    fun isLikelyPremiumSource(fileName: String): Boolean? {
+        val file = runCatching { storedFile(fileName) }.getOrNull() ?: return null
+        if (!isValidImage(file)) {
+            file.delete()
+            return null
+        }
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        return ImageBoundsValidation.isLikelyPremiumSource(
+            bounds.outWidth,
+            bounds.outHeight
+        )
+    }
+
     private fun storedFile(fileName: String): File {
         require(SourcePhotoFileName.isValid(fileName)) {
             "Invalid stored photo filename"
