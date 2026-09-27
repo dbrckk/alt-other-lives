@@ -3,6 +3,8 @@ package com.alt.otherlives.core.data
 import com.alt.otherlives.core.model.Scenario
 import com.alt.otherlives.core.model.TimelineChapter
 import com.alt.otherlives.core.model.TimelineConstraints
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ScenarioCatalogValidationTest {
@@ -17,6 +19,31 @@ class ScenarioCatalogValidationTest {
             TimelineChapter("Chapter $index", "Narrative $index")
         }
     )
+
+    @Test
+    fun frenchCatalogPreservesIdsAndChapterCounts() {
+        val english = ScenarioCatalog.forLanguage("en")
+        val french = ScenarioCatalog.forLanguage("fr")
+
+        assertEquals(english.map { it.id }, french.map { it.id })
+        assertEquals(
+            english.map { it.chapters.size },
+            french.map { it.chapters.size }
+        )
+        assertTrue(
+            french.zip(english).all { (fr, en) ->
+                fr.title != en.title || fr.subtitle != en.subtitle
+            }
+        )
+    }
+
+    @Test
+    fun unsupportedLanguageFallsBackToEnglishCatalog() {
+        assertEquals(
+            ScenarioCatalog.scenarios,
+            ScenarioCatalog.forLanguage("de")
+        )
+    }
 
     @Test
     fun acceptsStorageSafeScenario() {
