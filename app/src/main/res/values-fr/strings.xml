@@ -27,4 +27,25 @@
     <string name="scenario_pick_life">Choisis la vie que tu veux voir se dérouler.</string>
     <string name="scenario_chapter_story">%1$d CHAPITRES</string>
     <string name="scenario_explore_life">Explorer cette vie  →</string>
+    <string name="common_cancel">Annuler</string>
+    <string name="history_library_label">TA BIBLIOTHÈQUE ALT</string>
+    <string name="history_title">Tes autres vies</string>
+    <string name="history_private_device">Stocké en privé sur cet appareil</string>
+    <string name="history_saved_life">%1$d vie enregistrée • privée sur cet appareil</string>
+    <string name="history_saved_lives">%1$d vies enregistrées • privées sur cet appareil</string>
+    <string name="history_empty_title">Aucune vie alternative pour l’instant.</string>
+    <string name="history_empty_body">Crée-en une et elle apparaîtra ici.</string>
+    <string name="history_ai_life">VIE IA</string>
+    <string name="history_alt_life">VIE ALT</string>
+    <string name="history_deleting">Suppression…</string>
+    <string name="history_open">Ouvrir  →</string>
+    <string name="history_delete_life">Supprimer cette vie</string>
+    <string name="history_clearing">Effacement…</string>
+    <string name="history_clear_local">Effacer l’historique local</string>
+    <string name="history_delete_title">Supprimer cette vie ALT ?</string>
+    <string name="history_delete_body">Cela supprime cette timeline enregistrée et les médias privés qui ne sont plus utilisés par une autre timeline.</string>
+    <string name="history_delete_action">Supprimer</string>
+    <string name="history_clear_title">Effacer l’historique local ?</string>
+    <string name="history_clear_body">Cela supprime tes vies alternatives enregistrées sur cet appareil. Cette action est irréversible.</string>
+    <string name="history_clear_action">Effacer</string>
 </resources>
