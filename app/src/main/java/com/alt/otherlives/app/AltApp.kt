@@ -88,6 +88,9 @@ fun AltApp() {
     var connectionTestJob by remember { mutableStateOf<Job?>(null) }
     var unavailablePhotoFileNames by remember { mutableStateOf<Set<String>>(emptySet()) }
     var historyPhotoUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
+    var historyPhotoPremiumByFileName by remember {
+        mutableStateOf<Map<String, Boolean>>(emptyMap())
+    }
     var historyGeneratedPreviewUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
     var deletingHistoryEntryKey by remember { mutableStateOf<String?>(null) }
     var isClearingHistory by remember { mutableStateOf(false) }
@@ -197,6 +200,10 @@ fun AltApp() {
                     .getOrNull()
                     ?.let { fileName to it }
             }.toMap()
+            val photoQuality = availablePhotos.keys.mapNotNull { fileName ->
+                sourcePhotoStore.isLikelyPremiumSource(fileName)
+                    ?.let { fileName to it }
+            }.toMap()
             val generatedPreviews = recentEntries.mapNotNull { entry ->
                 val timelineKey = entry.timelineKey
                 runCatching {
@@ -206,10 +213,11 @@ fun AltApp() {
                 }.getOrNull()
                     ?.let { timelineKey to it }
             }.toMap()
-            availablePhotos to generatedPreviews
+            Triple(availablePhotos, photoQuality, generatedPreviews)
         }
         historyPhotoUris = preflight.first
-        historyGeneratedPreviewUris = preflight.second
+        historyPhotoPremiumByFileName = preflight.second
+        historyGeneratedPreviewUris = preflight.third
         unavailablePhotoFileNames = photoFileNames
             .filterNot { it in preflight.first }
             .toSet()
@@ -554,12 +562,14 @@ fun AltApp() {
                             selectedScenario = scenario
                             activeTimelineKey = entry.timelineKey
                             val restored = entry.photoFileName?.let { fileName ->
-                                runCatching { sourcePhotoStore.uriFor(fileName) }
-                                    .getOrNull()
+                                historyPhotoUris[fileName]
                                     ?.let { uri -> uri to fileName }
                             }
                             photoUri = restored?.first
                             photoFileName = restored?.second
+                            photoIsLikelyPremiumSource = restored?.second?.let {
+                                historyPhotoPremiumByFileName[it]
+                            }
                             if (entry.photoFileName != null && restored == null) {
                                 val hasAiPreview = entry.timelineKey in historyGeneratedPreviewUris
                                 Toast.makeText(
@@ -592,6 +602,9 @@ fun AltApp() {
                                             if (deletedPhotoFileName !in keep.photoFileNames) {
                                                 historyPhotoUris =
                                                     historyPhotoUris - deletedPhotoFileName
+                                                historyPhotoPremiumByFileName =
+                                                    historyPhotoPremiumByFileName -
+                                                        deletedPhotoFileName
                                                 unavailablePhotoFileNames =
                                                     unavailablePhotoFileNames - deletedPhotoFileName
                                                 if (photoFileName == deletedPhotoFileName) {
@@ -658,6 +671,7 @@ fun AltApp() {
                                         photoIsLikelyPremiumSource = null
                                         activeTimelineKey = null
                                         historyPhotoUris = emptyMap()
+                                        historyPhotoPremiumByFileName = emptyMap()
                                         historyGeneratedPreviewUris = emptyMap()
                                         unavailablePhotoFileNames = emptySet()
                                         deletingHistoryEntryKey = null
