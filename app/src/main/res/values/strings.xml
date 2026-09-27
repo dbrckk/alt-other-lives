@@ -197,4 +197,6 @@
     <string name="reveal_button_generate_all">Generate AI scenes</string>
     <string name="reveal_button_generate_missing">Generate missing AI scenes</string>
     <string name="reveal_button_regenerate_all">Regenerate all AI scenes</string>
+    <string name="video_share_text">ALT — %1$s\nOne choice. Another life.</string>
+    <string name="video_share_chooser">Share your ALT video</string>
 </resources>
