@@ -1,6 +1,6 @@
 package com.alt.otherlives.core.generation
 
-internal enum class GenerationSettingsValidationIssue {
+enum class GenerationSettingsValidationIssue {
     BASE_URL_TOO_LONG,
     BASE_URL_INVALID,
     BASE_URL_MUST_USE_HTTPS,
