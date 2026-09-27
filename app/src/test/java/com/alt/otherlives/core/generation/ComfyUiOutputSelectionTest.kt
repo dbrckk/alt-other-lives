@@ -55,6 +55,46 @@ class ComfyUiOutputSelectionTest {
     }
 
     @Test
+    fun preferredNodeStillPrefersRealOutputOverTempPreview() {
+        val selected = ComfyUiGenerationProvider.selectOutput(
+            outputs = listOf(
+                ComfyUiClient.OutputImage("preview.png", "", "temp", "12"),
+                ComfyUiClient.OutputImage("final.png", "", "output", "12"),
+                ComfyUiClient.OutputImage("other.png", "", "output", "99")
+            ),
+            preferredNodeId = "12"
+        )
+
+        assertEquals("final.png", selected?.filename)
+    }
+
+    @Test
+    fun missingPreferredNodeFallsBackToBestRealOutput() {
+        val selected = ComfyUiGenerationProvider.selectOutput(
+            outputs = listOf(
+                ComfyUiClient.OutputImage("preview.png", "", "temp", "7"),
+                ComfyUiClient.OutputImage("final.png", "", "output", "18")
+            ),
+            preferredNodeId = "404"
+        )
+
+        assertEquals("final.png", selected?.filename)
+    }
+
+    @Test
+    fun blankPreferredNodeOutputFallsBackToUsableOutput() {
+        val selected = ComfyUiGenerationProvider.selectOutput(
+            outputs = listOf(
+                ComfyUiClient.OutputImage("", "", "output", "12"),
+                ComfyUiClient.OutputImage("fallback.png", "", "output", "18")
+            ),
+            preferredNodeId = "12"
+        )
+
+        assertEquals("fallback.png", selected?.filename)
+    }
+
+    @Test
     fun returnsNullWhenNoUsableOutputExists() {
         val selected = ComfyUiGenerationProvider.selectOutput(
             listOf(
