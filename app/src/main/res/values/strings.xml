@@ -78,4 +78,13 @@
     <string name="history_compare_share">Share comparison</string>
     <string name="history_compare_preparing_share">Preparing comparison…</string>
     <string name="history_compare_share_failed">Could not share comparison.</string>
+    <string name="share_card_header">ALT  •  YOUR OTHER LIFE</string>
+    <string name="share_card_timeline">YOUR TIMELINE</string>
+    <string name="share_compare_header">ALT  •  TWO LIVES</string>
+    <string name="share_compare_life">LIFE %1$02d</string>
+    <string name="share_compare_footer">Which life would you choose?</string>
+    <string name="share_compare_text">ALT — Two lives. One choice. Which would you choose?</string>
+    <string name="share_compare_chooser">Share your ALT comparison</string>
+    <string name="share_single_text">ALT — %1$s\nOne choice. Another life.</string>
+    <string name="share_single_chooser">Share your ALT life</string>
 </resources>
