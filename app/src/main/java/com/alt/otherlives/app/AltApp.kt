@@ -277,16 +277,21 @@ fun AltApp() {
                                         activeTimelineKey = recordedEntry.timelineKey
                                         navigation = navigation.goTo(AltScreen.REVEAL)
 
-                                        runCatching {
-                                            withContext(Dispatchers.IO) {
-                                                sourcePhotoStore.deleteUnreferenced(
-                                                    keep.photoFileNames
-                                                )
-                                                generatedSceneStore.deleteUnreferenced(
-                                                    keep.timelineKeys
-                                                )
-                                            }
-                                        }.onFailure {
+                                        val cleanupFailures = withContext(Dispatchers.IO) {
+                                            listOfNotNull(
+                                                runCatching {
+                                                    sourcePhotoStore.deleteUnreferenced(
+                                                        keep.photoFileNames
+                                                    )
+                                                }.exceptionOrNull(),
+                                                runCatching {
+                                                    generatedSceneStore.deleteUnreferenced(
+                                                        keep.timelineKeys
+                                                    )
+                                                }.exceptionOrNull()
+                                            )
+                                        }
+                                        if (cleanupFailures.isNotEmpty()) {
                                             Toast.makeText(
                                                 context,
                                                 "Timeline created, but some old local media could not be cleaned up",
@@ -467,16 +472,21 @@ fun AltApp() {
                                             activeTimelineKey = null
                                         }
 
-                                        runCatching {
-                                            withContext(Dispatchers.IO) {
-                                                sourcePhotoStore.deleteUnreferenced(
-                                                    keep.photoFileNames
-                                                )
-                                                generatedSceneStore.deleteUnreferenced(
-                                                    keep.timelineKeys
-                                                )
-                                            }
-                                        }.onFailure {
+                                        val cleanupFailures = withContext(Dispatchers.IO) {
+                                            listOfNotNull(
+                                                runCatching {
+                                                    sourcePhotoStore.deleteUnreferenced(
+                                                        keep.photoFileNames
+                                                    )
+                                                }.exceptionOrNull(),
+                                                runCatching {
+                                                    generatedSceneStore.deleteUnreferenced(
+                                                        keep.timelineKeys
+                                                    )
+                                                }.exceptionOrNull()
+                                            )
+                                        }
+                                        if (cleanupFailures.isNotEmpty()) {
                                             Toast.makeText(
                                                 context,
                                                 "Timeline deleted, but some local media could not be cleaned up",
@@ -513,12 +523,17 @@ fun AltApp() {
                                         unavailablePhotoFileNames = emptySet()
                                         deletingHistoryEntryKey = null
 
-                                        runCatching {
-                                            withContext(Dispatchers.IO) {
-                                                sourcePhotoStore.clearAll()
-                                                generatedSceneStore.clearAll()
-                                            }
-                                        }.onFailure {
+                                        val cleanupFailures = withContext(Dispatchers.IO) {
+                                            listOfNotNull(
+                                                runCatching {
+                                                    sourcePhotoStore.clearAll()
+                                                }.exceptionOrNull(),
+                                                runCatching {
+                                                    generatedSceneStore.clearAll()
+                                                }.exceptionOrNull()
+                                            )
+                                        }
+                                        if (cleanupFailures.isNotEmpty()) {
                                             Toast.makeText(
                                                 context,
                                                 "History cleared, but some local media could not be removed",
