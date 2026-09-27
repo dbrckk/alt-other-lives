@@ -51,6 +51,9 @@ fun HistoryScreen(
 ) {
     var showClearConfirmation by remember { mutableStateOf(false) }
     var pendingDeleteEntry by remember { mutableStateOf<HistoryEntry?>(null) }
+    var isCompareMode by remember { mutableStateOf(false) }
+    var compareSelection by remember { mutableStateOf<List<String>>(emptyList()) }
+    var showCompareDialog by remember { mutableStateOf(false) }
 
     Column(Modifier.fillMaxSize().padding(top = 42.dp)) {
         Row(
@@ -108,6 +111,52 @@ fun HistoryScreen(
                 Text(stringResource(R.string.history_empty_body), color = AltMuted)
             }
         } else {
+            if (entries.size >= 2) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(
+                        onClick = {
+                            isCompareMode = !isCompareMode
+                            compareSelection = emptyList()
+                            showCompareDialog = false
+                        },
+                        enabled = deletingEntryKey == null && !isClearingHistory
+                    ) {
+                        Text(
+                            if (isCompareMode) {
+                                stringResource(R.string.history_compare_cancel)
+                            } else {
+                                stringResource(R.string.history_compare_action)
+                            },
+                            color = AltAccent,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    if (isCompareMode) {
+                        Spacer(Modifier.weight(1f))
+                        Text(
+                            stringResource(
+                                R.string.history_compare_progress,
+                                compareSelection.size
+                            ),
+                            color = AltMuted,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+                if (isCompareMode) {
+                    Text(
+                        stringResource(R.string.history_compare_hint),
+                        color = AltMuted,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                }
+            }
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 20.dp),
@@ -137,7 +186,24 @@ fun HistoryScreen(
                                 .clickable(
                                     enabled = !isDeleting && !isClearingHistory,
                                     role = Role.Button,
-                                    onClick = { onOpen(scenario, entry) }
+                                    onClick = {
+                                        if (isCompareMode) {
+                                            val key = entry.timelineKey
+                                            val updated = if (key in compareSelection) {
+                                                compareSelection.filterNot { it == key }
+                                            } else if (compareSelection.size < 2) {
+                                                compareSelection + key
+                                            } else {
+                                                listOf(compareSelection.last(), key)
+                                            }
+                                            compareSelection = updated
+                                            if (updated.size == 2) {
+                                                showCompareDialog = true
+                                            }
+                                        } else {
+                                            onOpen(scenario, entry)
+                                        }
+                                    }
                                 ),
                             shape = RoundedCornerShape(28.dp),
                             colors = CardDefaults.cardColors(containerColor = AltCard)
@@ -176,6 +242,27 @@ fun HistoryScreen(
                                             fontSize = 42.sp,
                                             fontWeight = FontWeight.Bold
                                         )
+                                    }
+
+                                    if (isCompareMode && timelineKey in compareSelection) {
+                                        Surface(
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .padding(14.dp),
+                                            shape = RoundedCornerShape(999.dp),
+                                            color = AltAccent
+                                        ) {
+                                            Text(
+                                                stringResource(
+                                                    R.string.history_compare_selected,
+                                                    compareSelection.indexOf(timelineKey) + 1
+                                                ),
+                                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                                color = androidx.compose.ui.graphics.Color(0xFF16111F),
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
                                     }
 
                                     Surface(
@@ -224,7 +311,13 @@ fun HistoryScreen(
                                         )
                                         Spacer(Modifier.weight(1f))
                                         Text(
-                                            if (isDeleting) stringResource(R.string.history_deleting) else stringResource(R.string.history_open),
+                                            when {
+                                                isDeleting -> stringResource(R.string.history_deleting)
+                                                isCompareMode && timelineKey in compareSelection ->
+                                                    stringResource(R.string.history_compare_selected_short)
+                                                isCompareMode -> stringResource(R.string.history_compare_select)
+                                                else -> stringResource(R.string.history_open)
+                                            },
                                             color = AltAccent,
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold
@@ -248,7 +341,7 @@ fun HistoryScreen(
                                     Spacer(Modifier.height(2.dp))
                                     TextButton(
                                         onClick = { pendingDeleteEntry = entry },
-                                        enabled = !isDeleting && !isClearingHistory,
+                                        enabled = !isCompareMode && !isDeleting && !isClearingHistory,
                                         contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)
                                     ) {
                                         Text(
@@ -271,6 +364,83 @@ fun HistoryScreen(
             ) {
                 Text(if (isClearingHistory) stringResource(R.string.history_clearing) else stringResource(R.string.history_clear_local))
             }
+        }
+    }
+
+    if (showCompareDialog) {
+        val comparedEntries = compareSelection.mapNotNull { key ->
+            entries.firstOrNull { it.timelineKey == key }
+        }
+        if (comparedEntries.size == 2) {
+            AlertDialog(
+                onDismissRequest = {
+                    showCompareDialog = false
+                    compareSelection = emptyList()
+                    isCompareMode = false
+                },
+                title = { Text(stringResource(R.string.history_compare_title)) },
+                text = {
+                    Column {
+                        comparedEntries.forEachIndexed { index, entry ->
+                            val scenario = scenarios.firstOrNull { it.id == entry.scenarioId }
+                            if (scenario != null) {
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(22.dp),
+                                    color = AltCard
+                                ) {
+                                    Column(Modifier.padding(16.dp)) {
+                                        Text(
+                                            stringResource(
+                                                R.string.history_compare_life_number,
+                                                index + 1
+                                            ),
+                                            color = AltAccent,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Spacer(Modifier.height(6.dp))
+                                        Text(
+                                            scenario.title,
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        Spacer(Modifier.height(4.dp))
+                                        Text(
+                                            scenario.subtitle,
+                                            color = AltMuted,
+                                            fontSize = 12.sp,
+                                            lineHeight = 18.sp
+                                        )
+                                    }
+                                }
+                                if (index == 0) {
+                                    Spacer(Modifier.height(10.dp))
+                                    Text(
+                                        stringResource(R.string.history_compare_vs),
+                                        modifier = Modifier.fillMaxWidth(),
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                        color = AltAccent,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Spacer(Modifier.height(10.dp))
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showCompareDialog = false
+                            compareSelection = emptyList()
+                            isCompareMode = false
+                        }
+                    ) {
+                        Text(stringResource(R.string.history_compare_done))
+                    }
+                }
+            )
         }
     }
 
