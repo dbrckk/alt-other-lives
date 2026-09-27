@@ -518,7 +518,7 @@ fun RevealScreen(
                                     )
 
                                     val expected = scenario.chapters.take(5).size
-                                    val message = aiGenerationCompletionMessage(
+                                    val completionState = aiGenerationCompletionState(
                                         resetSeed = resetSeed,
                                         completeFreshVariation =
                                             outcome.freshVariationCommitted,
@@ -527,6 +527,42 @@ fun RevealScreen(
                                         failedChapterIndexes =
                                             outcome.failedChapterIndexes
                                     )
+                                    val message = when (completionState) {
+                                        is AiGenerationCompletionState.FreshVariationIncomplete -> {
+                                            val failed = completionState.failedChapterNumbers
+                                                .joinToString(", ")
+                                            if (failed.isBlank()) {
+                                                context.getString(
+                                                    R.string.reveal_completion_fresh_incomplete
+                                                )
+                                            } else {
+                                                context.getString(
+                                                    R.string.reveal_completion_fresh_incomplete_failed,
+                                                    failed
+                                                )
+                                            }
+                                        }
+                                        AiGenerationCompletionState.Ready ->
+                                            context.getString(R.string.reveal_completion_ready)
+                                        is AiGenerationCompletionState.Partial -> {
+                                            val retry = completionState.retryChapterNumbers
+                                                .joinToString(", ")
+                                            if (retry.isBlank()) {
+                                                context.getString(
+                                                    R.string.reveal_completion_partial,
+                                                    completionState.readySceneCount,
+                                                    completionState.expectedSceneCount
+                                                )
+                                            } else {
+                                                context.getString(
+                                                    R.string.reveal_completion_partial_retry,
+                                                    completionState.readySceneCount,
+                                                    completionState.expectedSceneCount,
+                                                    retry
+                                                )
+                                            }
+                                        }
+                                    }
                                     if (
                                         outcome.failedChapterIndexes.isEmpty() &&
                                         outcome.scenes.size >= expected
@@ -587,13 +623,28 @@ fun RevealScreen(
                         shape = RoundedCornerShape(20.dp)
                     ) {
                         Text(
-                            aiGenerationButtonLabel(
-                                isGenerating = aiUiState.isGenerating,
-                                completed = aiUiState.completed,
-                                total = aiUiState.total,
-                                generatedSceneCount = generatedScenes.size,
-                                expectedSceneCount = scenario.chapters.take(5).size
-                            ),
+                            when (
+                                val buttonState = aiGenerationButtonState(
+                                    isGenerating = aiUiState.isGenerating,
+                                    completed = aiUiState.completed,
+                                    total = aiUiState.total,
+                                    generatedSceneCount = generatedScenes.size,
+                                    expectedSceneCount = scenario.chapters.take(5).size
+                                )
+                            ) {
+                                is AiGenerationButtonState.Generating ->
+                                    stringResource(
+                                        R.string.reveal_button_generating,
+                                        buttonState.completed,
+                                        buttonState.total
+                                    )
+                                AiGenerationButtonState.GenerateAll ->
+                                    stringResource(R.string.reveal_button_generate_all)
+                                AiGenerationButtonState.GenerateMissing ->
+                                    stringResource(R.string.reveal_button_generate_missing)
+                                AiGenerationButtonState.RegenerateAll ->
+                                    stringResource(R.string.reveal_button_regenerate_all)
+                            },
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -783,10 +834,27 @@ fun RevealScreen(
                     }
                     Spacer(Modifier.height(12.dp))
                 } else {
-                    val aiUnavailableMessage = aiGenerationUnavailableMessage(
+                    val aiUnavailableState = aiGenerationUnavailableState(
                         hasSourcePhoto = photoUri != null,
                         settings = generationSettings
                     )
+                    val aiUnavailableMessage = when (aiUnavailableState) {
+                        AiGenerationUnavailableState.MissingSourcePhoto ->
+                            stringResource(R.string.reveal_unavailable_missing_source)
+                        is AiGenerationUnavailableState.InvalidSettings ->
+                            aiUnavailableState.validationError?.let {
+                                stringResource(
+                                    R.string.reveal_unavailable_invalid_settings,
+                                    it
+                                )
+                            } ?: stringResource(
+                                R.string.reveal_unavailable_invalid_settings_generic
+                            )
+                        AiGenerationUnavailableState.MissingUploadConsent ->
+                            stringResource(R.string.reveal_unavailable_missing_consent)
+                        AiGenerationUnavailableState.NotConfigured ->
+                            stringResource(R.string.reveal_unavailable_not_configured)
+                    }
                     Text(
                         aiUnavailableMessage,
                         color = AltDimmed,
