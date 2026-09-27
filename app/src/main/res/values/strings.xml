@@ -14,4 +14,10 @@
     <string name="home_view_history">View my other lives</string>
     <string name="home_photo_action_choose">Choose a photo</string>
     <string name="home_photo_action_change">Change the selected photo</string>
+    <string name="home_brand_descriptor">CINEMATIC AI STORIES</string>
+    <string name="home_photo_ready">PHOTO READY</string>
+    <string name="home_photo_prompt">Use a clear portrait to create a more convincing alternate life.</string>
+    <string name="home_step_photo">01 PHOTO</string>
+    <string name="home_step_choice">02 CHOICE</string>
+    <string name="home_step_reveal">03 REVEAL</string>
 </resources>
