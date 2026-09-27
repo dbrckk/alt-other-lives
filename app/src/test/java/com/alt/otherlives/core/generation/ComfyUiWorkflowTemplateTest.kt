@@ -69,6 +69,31 @@ class ComfyUiWorkflowTemplateTest {
     }
 
     @Test
+    fun premiumContinuityWarningsReportMissingSeedAndNegativePrompt() {
+        val warnings = ComfyUiWorkflowTemplate.premiumContinuityWarnings(validTemplate)
+
+        assertEquals(2, warnings.size)
+        assertTrue(warnings.any { it.contains("shared seed") })
+        assertTrue(warnings.any { it.contains("negative prompt") })
+    }
+
+    @Test
+    fun premiumContinuityWarningsAreEmptyForFullyWiredWorkflow() {
+        val workflow = """
+            {
+              "1": {"inputs": {"image": "__ALT_SOURCE_IMAGE__"}},
+              "2": {"inputs": {"text": "__ALT_PROMPT__"}},
+              "3": {"inputs": {"negative": "__ALT_NEGATIVE_PROMPT__"}},
+              "4": {"inputs": {"seed": "__ALT_SEED__"}}
+            }
+        """.trimIndent()
+
+        assertTrue(
+            ComfyUiWorkflowTemplate.premiumContinuityWarnings(workflow).isEmpty()
+        )
+    }
+
+    @Test
     fun preferredOutputNodeIdFindsAltOutputMarker() {
         val workflow = org.json.JSONObject(
             """{
