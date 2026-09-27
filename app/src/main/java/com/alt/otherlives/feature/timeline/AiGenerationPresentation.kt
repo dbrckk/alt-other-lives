@@ -1,6 +1,7 @@
 package com.alt.otherlives.feature.timeline
 
 import com.alt.otherlives.core.generation.GenerationSettings
+import com.alt.otherlives.core.generation.GenerationSettingsValidationIssue
 
 sealed interface AiGenerationCompletionState {
     data class FreshVariationIncomplete(
@@ -20,7 +21,7 @@ sealed interface AiGenerationUnavailableState {
     data object MissingSourcePhoto : AiGenerationUnavailableState
 
     data class InvalidSettings(
-        val validationError: String?
+        val validationIssue: GenerationSettingsValidationIssue?
     ) : AiGenerationUnavailableState
 
     data object MissingUploadConsent : AiGenerationUnavailableState
@@ -76,7 +77,7 @@ fun aiGenerationUnavailableState(
 
     settings.hasPersistedValues && !settings.isConfigured ->
         AiGenerationUnavailableState.InvalidSettings(
-            validationError = settings.validationError
+            validationIssue = settings.validationIssue
         )
 
     settings.isConfigured && !settings.remotePhotoUploadConsent ->
