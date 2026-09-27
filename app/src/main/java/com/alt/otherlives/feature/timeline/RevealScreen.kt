@@ -78,6 +78,7 @@ import com.alt.otherlives.core.generation.GeneratedSceneStore
 import com.alt.otherlives.core.generation.AiGenerationReport
 import com.alt.otherlives.core.generation.AiGenerationReportReason
 import com.alt.otherlives.core.generation.AiGenerationReportStore
+import com.alt.otherlives.core.generation.messageRes
 import com.alt.otherlives.R
 
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -842,10 +843,10 @@ fun RevealScreen(
                         AiGenerationUnavailableState.MissingSourcePhoto ->
                             stringResource(R.string.reveal_unavailable_missing_source)
                         is AiGenerationUnavailableState.InvalidSettings ->
-                            aiUnavailableState.validationError?.let {
+                            aiUnavailableState.validationIssue?.let {
                                 stringResource(
                                     R.string.reveal_unavailable_invalid_settings,
-                                    it
+                                    stringResource(it.messageRes())
                                 )
                             } ?: stringResource(
                                 R.string.reveal_unavailable_invalid_settings_generic
