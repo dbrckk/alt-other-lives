@@ -91,6 +91,46 @@ class ComfyUiWorkflowTemplateTest {
     }
 
     @Test
+    fun premiumContinuityIssuesWarnOnAmbiguousImageOutputs() {
+        val workflow = """
+            {
+              "1": {"class_type": "LoadImage", "inputs": {"image": "__ALT_SOURCE_IMAGE__"}},
+              "2": {"class_type": "CLIPTextEncode", "inputs": {"text": "__ALT_PROMPT__"}},
+              "3": {"class_type": "SaveImage", "inputs": {"images": ["8", 0]}},
+              "4": {"class_type": "PreviewImage", "inputs": {"images": ["8", 0]}}
+            }
+        """.trimIndent()
+
+        val issues = ComfyUiWorkflowTemplate.premiumContinuityIssues(workflow)
+
+        assertTrue(
+            ComfyUiWorkflowTemplate.PremiumContinuityIssue.AMBIGUOUS_IMAGE_OUTPUTS in issues
+        )
+    }
+
+    @Test
+    fun altOutputMarkerResolvesAmbiguousImageOutputs() {
+        val workflow = """
+            {
+              "1": {"class_type": "LoadImage", "inputs": {"image": "__ALT_SOURCE_IMAGE__"}},
+              "2": {"class_type": "CLIPTextEncode", "inputs": {"text": "__ALT_PROMPT__"}},
+              "3": {
+                "class_type": "SaveImage",
+                "inputs": {"images": ["8", 0]},
+                "_meta": {"title": "ALT OUTPUT"}
+              },
+              "4": {"class_type": "PreviewImage", "inputs": {"images": ["8", 0]}}
+            }
+        """.trimIndent()
+
+        val issues = ComfyUiWorkflowTemplate.premiumContinuityIssues(workflow)
+
+        assertTrue(
+            ComfyUiWorkflowTemplate.PremiumContinuityIssue.AMBIGUOUS_IMAGE_OUTPUTS !in issues
+        )
+    }
+
+    @Test
     fun premiumContinuityWarningsAreEmptyForFullyWiredWorkflow() {
         val workflow = """
             {
