@@ -86,6 +86,11 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - ComfyUI premium continuity checks warn when workflows omit the shared seed or ALT negative prompt without breaking backward compatibility.
 - Identity prompts now explicitly resist beautification/de-aging/pose-expression-angle drift while preserving stable facial landmarks and proportions.
 - Source photos receive a non-blocking premium-quality signal; low-resolution portraits trigger a localized recommendation rather than blocking the user.
+- EN/FR localization now covers the full primary product flow: Home, Scenario, Reveal, History, advanced ComfyUI settings, social JPEGs, comparison cards and cinematic video framing.
+- The scenario catalog has a full French narrative variant with stable IDs/chapter counts; ComfyUI still uses the canonical English scenario text for prompt quality.
+- Export text layout uses one shared tested wrapping/ellipsis engine with explicit line budgets, including regression coverage for long French titles, subtitles and narratives.
+- Generated-scene acceptance now rejects undersized outputs, social-unfriendly aspect ratios and near-uniform/visually empty frames before persistence.
+- ComfyUI settings validation and premium continuity diagnostics use typed issue codes mapped to localized UI copy instead of English-message parsing.
 
 ## Current priority
 Keep the end-to-end AI generation path reliable while raising ALT to premium consumer-product quality. The active product direction is cinematic, social-first and highly shareable: Reveal, 9:16 image exports and MP4 exports must feel polished enough to publish directly to Reels, Shorts and Stories. Reliability remains the gate: visual work must not regress generation, persistence, cancellation, cleanup or export safety.
