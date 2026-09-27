@@ -160,4 +160,27 @@
     <string name="settings_test">Tester la connexion</string>
     <string name="settings_clearing">Effacement des paramètres…</string>
     <string name="settings_clear">Effacer les paramètres IA</string>
+    <string name="reveal_restore_failed">Impossible de restaurer les scènes IA enregistrées : %1$s</string>
+    <string name="reveal_hero_content_description">Image principale pour %1$s</string>
+    <string name="reveal_restoring_scenes">Restauration des scènes ALT enregistrées…</string>
+    <string name="reveal_generated_scene_content_description">Scène générée pour %1$s</string>
+    <string name="reveal_variation_failed_existing">Nouvelle variation IA en échec • scène existante conservée</string>
+    <string name="reveal_scene_failed_retry">Échec de la scène IA • réessai disponible</string>
+    <string name="reveal_flag_action">Signaler une génération IA dangereuse</string>
+    <string name="reveal_flag_note">Les signalements sont stockés localement pour l’instant et n’incluent ni ta photo ni les images générées.</string>
+    <string name="reveal_flag_title">Signaler cette génération IA</string>
+    <string name="reveal_flag_body">Choisis la raison. ALT stocke uniquement l’ID de timeline, le scénario, la raison et l’heure.</string>
+    <string name="reveal_flag_reason_sexual">Contenu sexuel ou nudité</string>
+    <string name="reveal_flag_reason_violence">Violence ou contenu graphique</string>
+    <string name="reveal_flag_reason_hate">Haine ou harcèlement</string>
+    <string name="reveal_flag_reason_other">Autre contenu dangereux</string>
+    <string name="reveal_flag_saved">Signalement enregistré localement</string>
+    <string name="reveal_flag_save_failed">Impossible d’enregistrer le signalement : %1$s</string>
+    <string name="reveal_flag_saving">Enregistrement…</string>
+    <string name="reveal_flag_save">Enregistrer le signalement</string>
+    <string name="reveal_ai_generation_failed">Échec de la génération IA : %1$s</string>
+    <string name="reveal_share_image_failed">Impossible de partager l’image : %1$s</string>
+    <string name="reveal_create_share_failed">Impossible de créer l’image de partage : %1$s</string>
+    <string name="reveal_image_saved">Enregistrée dans Pictures/ALT</string>
+    <string name="reveal_image_save_failed">Impossible d’enregistrer l’image : %1$s</string>
 </resources>
