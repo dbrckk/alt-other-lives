@@ -178,6 +178,15 @@ fun HomeScreen(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
+                    if (photoIsLikelyPremiumSource == false) {
+                        Spacer(Modifier.height(7.dp))
+                        Text(
+                            stringResource(R.string.home_source_low_quality_hint),
+                            color = AltMuted,
+                            fontSize = 11.sp,
+                            lineHeight = 16.sp
+                        )
+                    }
                 }
             } else {
                 Column(
