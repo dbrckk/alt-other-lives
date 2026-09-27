@@ -744,12 +744,17 @@ fun RevealScreen(
                     Button(
                         onClick = {
                             if (!aiUiState.isGenerating) {
-                                if (generationPlan.requiresFullRegenerationConfirmation) {
+                                if (
+                                    generationPlan.requiresFullRegenerationConfirmation ||
+                                    generationPlan.requiresFreshVariation
+                                ) {
                                     showRegenerateAllDialog = true
                                 } else {
                                     startGeneration(
-                                        if (generationPlan.missingIndexes.isNotEmpty()) {
-                                            generationPlan.missingIndexes
+                                        if (
+                                            generationPlan.sameSeedMissingIndexes.isNotEmpty()
+                                        ) {
+                                            generationPlan.sameSeedMissingIndexes
                                         } else {
                                             generationPlan.expectedIndexes
                                         },
@@ -769,7 +774,9 @@ fun RevealScreen(
                                     completed = aiUiState.completed,
                                     total = aiUiState.total,
                                     generatedSceneCount = generatedScenes.size,
-                                    expectedSceneCount = scenario.chapters.take(5).size
+                                    expectedSceneCount = scenario.chapters.take(5).size,
+                                    requiresFreshVariation =
+                                        generationPlan.requiresFreshVariation
                                 )
                             ) {
                                 is AiGenerationButtonState.Generating ->
@@ -782,6 +789,8 @@ fun RevealScreen(
                                     stringResource(R.string.reveal_button_generate_all)
                                 AiGenerationButtonState.GenerateMissing ->
                                     stringResource(R.string.reveal_button_generate_missing)
+                                AiGenerationButtonState.FreshVariationRequired ->
+                                    stringResource(R.string.reveal_button_new_variation)
                                 AiGenerationButtonState.RegenerateAll ->
                                     stringResource(R.string.reveal_button_regenerate_all)
                             },
