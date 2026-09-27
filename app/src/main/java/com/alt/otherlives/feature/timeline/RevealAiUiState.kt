@@ -14,14 +14,22 @@ data class RevealAiUiState(
     val total: Int = 0,
     val chapterFailures: Map<Int, RevealAiChapterFailure> = emptyMap()
 ) {
-    fun start(total: Int): RevealAiUiState {
+    fun start(
+        total: Int,
+        targetIndexes: Set<Int>? = null
+    ): RevealAiUiState {
         require(total >= 0) { "AI generation total must be non-negative" }
+        val retainedFailures = if (targetIndexes == null) {
+            emptyMap()
+        } else {
+            chapterFailures.filterKeys { it !in targetIndexes }
+        }
         return copy(
             isGenerating = true,
             isCancelling = false,
             completed = 0,
             total = total,
-            chapterFailures = emptyMap()
+            chapterFailures = retainedFailures
         )
     }
 
