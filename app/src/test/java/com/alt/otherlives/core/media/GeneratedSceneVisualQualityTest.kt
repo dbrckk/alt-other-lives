@@ -43,6 +43,22 @@ class GeneratedSceneVisualQualityTest {
     }
 
     @Test
+    fun transparentRgbNoiseCannotMakeUniformVisibleFramePass() {
+        val pixels = IntArray(100) { index ->
+            if (index < 90) {
+                0xFF404040.toInt()
+            } else {
+                val red = 20 + index * 2
+                val green = 200 - index
+                val blue = 80 + index
+                (red shl 16) or (green shl 8) or blue
+            }
+        }
+
+        assertFalse(GeneratedSceneVisualQuality.hasSufficientVariation(pixels))
+    }
+
+    @Test
     fun acceptsMostlyOpaqueFramesWithVisualVariation() {
         val pixels = IntArray(64) { index ->
             val alpha = if (index < 60) 255 else 0
