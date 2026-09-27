@@ -456,25 +456,13 @@ fun RevealScreen(
                                     }
 
                                     val expected = scenario.chapters.take(5).size
-                                    val message = when {
-                                        resetSeed && !completeFreshVariation -> {
-                                            val failed = aiChapterFailures.keys
-                                                .sorted()
-                                                .joinToString(", ") { (it + 1).toString() }
-                                            "New variation incomplete • previous timeline kept" +
-                                                if (failed.isBlank()) "" else " • failed chapters " + failed
-                                        }
-                                        generatedScenes.size == expected ->
-                                            "AI scenes ready"
-                                        else -> {
-                                            val failed = aiChapterFailures.keys
-                                                .sorted()
-                                                .joinToString(", ") { (it + 1).toString() }
-                                            "Partial result: " + generatedScenes.size + "/" + expected +
-                                                " scenes ready" +
-                                                if (failed.isBlank()) "" else " • retry chapters " + failed
-                                        }
-                                    }
+                                    val message = aiGenerationCompletionMessage(
+                                        resetSeed = resetSeed,
+                                        completeFreshVariation = completeFreshVariation,
+                                        readySceneCount = generatedScenes.size,
+                                        expectedSceneCount = expected,
+                                        failedChapterIndexes = aiChapterFailures.keys
+                                    )
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 } catch (cancelled: CancellationException) {
                                     if (resetSeed && pendingResetDownloads.isNotEmpty()) {
@@ -539,10 +527,13 @@ fun RevealScreen(
                         shape = RoundedCornerShape(20.dp)
                     ) {
                         Text(
-                            if (isGeneratingAi) "Generating AI scenes • $aiCompleted/$aiTotal"
-                            else if (generatedScenes.isEmpty()) "Generate AI scenes"
-                            else if (generatedScenes.size < scenario.chapters.take(5).size) "Generate missing AI scenes"
-                            else "Regenerate all AI scenes",
+                            aiGenerationButtonLabel(
+                                isGenerating = isGeneratingAi,
+                                completed = aiCompleted,
+                                total = aiTotal,
+                                generatedSceneCount = generatedScenes.size,
+                                expectedSceneCount = scenario.chapters.take(5).size
+                            ),
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -678,18 +669,10 @@ fun RevealScreen(
                     }
                     Spacer(Modifier.height(12.dp))
                 } else {
-                    val aiUnavailableMessage = when {
-                        photoUri == null ->
-                            "AI generation needs the original source photo. Saved generated scenes can still be viewed and exported."
-                        generationSettings.hasPersistedValues && !generationSettings.isConfigured ->
-                            "Saved AI settings need attention: " +
-                                (generationSettings.validationError ?: "configuration is invalid")
-                        generationSettings.isConfigured &&
-                            !generationSettings.remotePhotoUploadConsent ->
-                            "Remote AI generation is configured, but photo upload consent is not enabled."
-                        else ->
-                            "AI generation is not configured yet."
-                    }
+                    val aiUnavailableMessage = aiGenerationUnavailableMessage(
+                        hasSourcePhoto = photoUri != null,
+                        settings = generationSettings
+                    )
                     Text(
                         aiUnavailableMessage,
                         color = AltDimmed,
