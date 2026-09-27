@@ -304,7 +304,7 @@ fun AltApp() {
                             connectionTestJob = null
                             isTestingConnection = false
                             generationSettingsMessage = null
-                            screen = settingsReturnScreen
+                            navigation = navigation.closeSettings()
                         },
                         onSave = { baseUrl, workflowJson, remotePhotoUploadConsent ->
                             if (
@@ -321,7 +321,7 @@ fun AltApp() {
                                             remotePhotoUploadConsent
                                         )
                                     }
-                                    if (navigation.screen == AltAltScreen.SETTINGS) {
+                                    if (navigation.screen == AltScreen.SETTINGS) {
                                         result.onSuccess {
                                             generationSettingsMessage = "ComfyUI settings saved"
                                         }.onFailure {
@@ -368,7 +368,7 @@ fun AltApp() {
                                     val result = runCatching {
                                         generationSettingsRepository.clear()
                                     }
-                                    if (navigation.screen == AltAltScreen.SETTINGS) {
+                                    if (navigation.screen == AltScreen.SETTINGS) {
                                         result.onSuccess {
                                             generationSettingsMessage = "AI settings cleared"
                                         }.onFailure {
@@ -396,7 +396,7 @@ fun AltApp() {
                         isClearingHistory = isClearingHistory,
                         onOpen = { scenario, entry ->
                             selectedScenario = scenario
-                            activeTimelineKey = scenario.id + "-" + entry.createdAt
+                            activeTimelineKey = entry.timelineKey
                             val restored = entry.photoFileName?.let { fileName ->
                                 runCatching { sourcePhotoStore.uriFor(fileName) }
                                     .getOrNull()
