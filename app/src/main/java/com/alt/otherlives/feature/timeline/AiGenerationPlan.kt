@@ -10,7 +10,8 @@ data class AiGenerationPlan(
 fun planAiGeneration(
     chapterCount: Int,
     generatedChapterIndexes: Set<Int>,
-    failedChapterIndexes: Set<Int>
+    failedChapterIndexes: Set<Int>,
+    nonRetryableFailedIndexes: Set<Int> = emptySet()
 ): AiGenerationPlan {
     require(chapterCount >= 0) { "Chapter count must be non-negative" }
 
@@ -18,7 +19,9 @@ fun planAiGeneration(
     val validGenerated = generatedChapterIndexes.intersect(expectedIndexes)
     val missingIndexes = expectedIndexes - validGenerated
     val retryableFailedIndexes =
-        failedChapterIndexes.intersect(expectedIndexes) - validGenerated
+        failedChapterIndexes.intersect(expectedIndexes) -
+            validGenerated -
+            nonRetryableFailedIndexes.intersect(expectedIndexes)
 
     return AiGenerationPlan(
         expectedIndexes = expectedIndexes,
