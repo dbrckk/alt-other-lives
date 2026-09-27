@@ -130,6 +130,11 @@ fun RevealScreen(
         ?.imageUri
     val revealHeroUri = primaryGeneratedSceneUri ?: photoUri
     val hasVisualAsset = revealHeroUri != null
+    val storyChapterCount = scenario.chapters.take(5).size
+    val readyAiSceneCount = generatedScenes
+        .map { it.chapterIndex }
+        .distinct()
+        .count { it in 0 until storyChapterCount }
 
     LaunchedEffect(timelineKey) {
         isLoadingStoredScenes = true
@@ -234,6 +239,51 @@ fun RevealScreen(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
+                    Spacer(Modifier.height(14.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            shape = RoundedCornerShape(999.dp),
+                            color = Color.Black.copy(alpha = 0.36f)
+                        ) {
+                            Text(
+                                stringResource(
+                                    R.string.reveal_story_chapter_count,
+                                    storyChapterCount
+                                ),
+                                modifier = Modifier.padding(
+                                    horizontal = 10.dp,
+                                    vertical = 6.dp
+                                ),
+                                color = AltMuted,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Surface(
+                            shape = RoundedCornerShape(999.dp),
+                            color = Color.Black.copy(alpha = 0.36f)
+                        ) {
+                            Text(
+                                stringResource(
+                                    R.string.reveal_story_ai_progress,
+                                    readyAiSceneCount,
+                                    storyChapterCount
+                                ),
+                                modifier = Modifier.padding(
+                                    horizontal = 10.dp,
+                                    vertical = 6.dp
+                                ),
+                                color = if (readyAiSceneCount == storyChapterCount) {
+                                    AltAccent
+                                } else {
+                                    AltMuted
+                                },
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
         }
