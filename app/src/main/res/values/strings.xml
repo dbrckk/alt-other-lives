@@ -122,4 +122,24 @@
     <string name="reveal_video_save_gallery">Save MP4 to gallery</string>
     <string name="reveal_no_visual">No visual source is available for this timeline. Share and video export are disabled.</string>
     <string name="common_unknown_error">unknown error</string>
+    <string name="history_media_ai_preview">AI preview</string>
+    <string name="history_media_no_original">No original photo</string>
+    <string name="history_media_photo_unavailable">Photo unavailable</string>
+    <string name="history_preview_content_description">Preview for %1$s</string>
+    <string name="history_compare_preview_content_description">Comparison preview for %1$s</string>
+    <string name="app_photo_cleanup_warning">Photo imported, but some old local photos could not be cleaned up.</string>
+    <string name="app_photo_import_failed">Could not import photo: %1$s</string>
+    <string name="app_timeline_cleanup_warning">Timeline created, but some old local media could not be cleaned up.</string>
+    <string name="app_timeline_create_failed">Could not create timeline: %1$s</string>
+    <string name="app_remix_cleanup_warning">Remix created, but some old local media could not be cleaned up.</string>
+    <string name="app_remix_failed">Could not remix this life: %1$s</string>
+    <string name="app_settings_saved">ComfyUI settings saved</string>
+    <string name="app_settings_save_failed">Could not save ComfyUI settings</string>
+    <string name="app_connection_testing">Testing ComfyUI connection…</string>
+    <string name="app_connection_success">ComfyUI connection successful</string>
+    <string name="app_connection_failed">Could not connect to ComfyUI</string>
+    <string name="app_settings_cleared">AI settings cleared</string>
+    <string name="app_settings_clear_failed">Could not clear AI settings</string>
+    <string name="app_original_photo_missing_ai">Original photo unavailable • opening saved AI timeline</string>
+    <string name="app_original_photo_missing">This timeline’s source photo is no longer available</string>
 </resources>
