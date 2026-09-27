@@ -36,7 +36,7 @@ object TimelineSceneRenderer {
 
     fun render(
         context: Context,
-        photoUri: Uri?,
+        photoUris: List<Uri?>,
         scenario: Scenario,
         chapterImages: Map<Int, Uri> = emptyMap()
     ): RenderedTimelineScenes {
@@ -49,12 +49,16 @@ object TimelineSceneRenderer {
                     val canvas = Canvas(bitmap)
             canvas.drawColor(Color.rgb(8, 8, 10))
 
-            (chapterImages[index] ?: photoUri)?.let { uri ->
-                val source = BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)
-                    ?: run {
-                        bitmap.recycle()
-                        error("Unable to decode visual for chapter " + (index + 1))
-                    }
+            if (chapterImages[index] != null || photoUri != null) {
+                val source = BitmapLoader.decodeFirstAvailable(
+                    context = context,
+                    uris = listOf(chapterImages[index], photoUri),
+                    targetWidth = WIDTH,
+                    targetHeight = HEIGHT
+                ) ?: run {
+                    bitmap.recycle()
+                    error("Unable to decode visual for chapter " + (index + 1))
+                }
                 try {
                     drawCover(canvas, source, Rect(0, 0, WIDTH, 1180), index)
                 } finally {
@@ -158,13 +162,14 @@ object TimelineSceneRenderer {
                 }
             }
 
-            val introImage = photoUri ?: chapterImages.entries
-                .minByOrNull { it.key }
-                ?.value
+            val introImages = listOf(photoUri) +
+                chapterImages.entries
+                    .sortedBy { it.key }
+                    .map { it.value }
 
             RenderedTimelineScenes(
                 imageUris =
-                    listOf(renderIntro(context, introImage, scenario, createdFiles)) +
+                    listOf(renderIntro(context, introImages, scenario, createdFiles)) +
                         chapterScenes +
                         listOf(renderOutro(context, scenario, createdFiles)),
                 cacheFiles = createdFiles.toList()
@@ -186,12 +191,16 @@ object TimelineSceneRenderer {
             val canvas = Canvas(bitmap)
             canvas.drawColor(Color.rgb(8, 8, 10))
 
-        photoUri?.let { uri ->
-            val source = BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)
-                ?: run {
-                    bitmap.recycle()
-                    error("Unable to decode timeline intro visual")
-                }
+        if (photoUris.any { it != null }) {
+            val source = BitmapLoader.decodeFirstAvailable(
+                context = context,
+                uris = photoUris,
+                targetWidth = WIDTH,
+                targetHeight = HEIGHT
+            ) ?: run {
+                bitmap.recycle()
+                error("Unable to decode timeline intro visual")
+            }
             try {
                 drawCover(canvas, source, Rect(0, 0, WIDTH, 1260), 0)
             } finally {
