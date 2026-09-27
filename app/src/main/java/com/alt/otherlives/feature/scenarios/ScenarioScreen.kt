@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -81,8 +81,10 @@ fun ScenarioScreen(
             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            items(scenarios, key = { it.id }) { scenario ->
-                val scenarioIndex = scenarios.indexOfFirst { it.id == scenario.id }.coerceAtLeast(0)
+            itemsIndexed(
+                items = scenarios,
+                key = { _, scenario -> scenario.id }
+            ) { scenarioIndex, scenario ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -131,6 +133,21 @@ fun ScenarioScreen(
                             lineHeight = 20.sp
                         )
                         Spacer(Modifier.height(16.dp))
+                        val firstChapterLabel = scenario.chapters.firstOrNull()?.label
+                        val lastChapterLabel = scenario.chapters.lastOrNull()?.label
+                        if (
+                            firstChapterLabel != null &&
+                            lastChapterLabel != null &&
+                            firstChapterLabel != lastChapterLabel
+                        ) {
+                            Text(
+                                "$firstChapterLabel  →  $lastChapterLabel",
+                                color = AltDimmed,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Spacer(Modifier.height(10.dp))
+                        }
                         Text(
                             stringResource(R.string.scenario_explore_life),
                             color = AltAccent,
