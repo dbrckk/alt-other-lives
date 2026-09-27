@@ -248,13 +248,13 @@ class ComfyUiClient(
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(file.absolutePath, bounds)
             if (!ImageBoundsValidation.isReasonable(bounds.outWidth, bounds.outHeight)) {
-                error(
+                throw GeneratedSceneQualityException(
                     "ComfyUI returned an invalid or unreasonable image for chapter " +
                         (index + 1)
                 )
             }
             if (!ImageBoundsValidation.isUsableGeneratedScene(bounds.outWidth, bounds.outHeight)) {
-                error(
+                throw GeneratedSceneQualityException(
                     "ComfyUI output is below ALT's minimum scene quality for chapter " +
                         (index + 1) +
                         " (" + bounds.outWidth + "x" + bounds.outHeight + ")"
@@ -283,7 +283,7 @@ class ComfyUiClient(
                     sampleBitmap.height
                 )
                 if (!GeneratedSceneVisualQuality.hasSufficientVariation(pixels)) {
-                    error(
+                    throw GeneratedSceneQualityException(
                         "ComfyUI returned a visually empty or near-uniform image for chapter " +
                             (index + 1)
                     )
