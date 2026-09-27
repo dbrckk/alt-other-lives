@@ -24,8 +24,10 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.alt.otherlives.core.designsystem.AltAccent
 import com.alt.otherlives.core.designsystem.AltCard
 import com.alt.otherlives.core.designsystem.AltBackButton
+import com.alt.otherlives.core.designsystem.AltDimmed
 import com.alt.otherlives.core.designsystem.AltMuted
 import com.alt.otherlives.core.model.Scenario
 
@@ -47,7 +49,10 @@ fun ScenarioScreen(
             ) {
                 Text("Back")
             }
-            Text("What if…", fontSize = 32.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 12.dp))
+            Column(Modifier.padding(start = 12.dp)) {
+                Text("CHOOSE YOUR PATH", color = AltAccent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text("What if…", fontSize = 34.sp, fontWeight = FontWeight.SemiBold)
+            }
         }
         if (isCreatingTimeline) {
             Spacer(Modifier.height(10.dp))
@@ -58,13 +63,21 @@ fun ScenarioScreen(
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
         }
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(10.dp))
+        Text(
+            "Pick the life you want to see unfold.",
+            color = AltMuted,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(horizontal = 24.dp)
+        )
+        Spacer(Modifier.height(18.dp))
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             items(scenarios, key = { it.id }) { scenario ->
+                val scenarioIndex = scenarios.indexOfFirst { it.id == scenario.id }.coerceAtLeast(0)
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -73,13 +86,49 @@ fun ScenarioScreen(
                             role = Role.Button,
                             onClick = { onSelect(scenario) }
                         ),
-                    shape = RoundedCornerShape(24.dp),
+                    shape = RoundedCornerShape(28.dp),
                     colors = CardDefaults.cardColors(containerColor = AltCard)
                 ) {
                     Column(Modifier.padding(22.dp)) {
-                        Text(scenario.title, fontSize = 21.sp, fontWeight = FontWeight.SemiBold)
-                        Spacer(Modifier.height(8.dp))
-                        Text(scenario.subtitle, color = AltMuted, fontSize = 14.sp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                (scenarioIndex + 1).toString().padStart(2, '0'),
+                                color = AltAccent,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(Modifier.weight(1f))
+                            Text(
+                                "${scenario.chapters.size} CHAPTER STORY",
+                                color = AltDimmed,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Spacer(Modifier.height(18.dp))
+                        Text(
+                            scenario.title,
+                            fontSize = 23.sp,
+                            lineHeight = 28.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(Modifier.height(9.dp))
+                        Text(
+                            scenario.subtitle,
+                            color = AltMuted,
+                            fontSize = 14.sp,
+                            lineHeight = 20.sp
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        Text(
+                            "Explore this life  →",
+                            color = AltAccent,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
