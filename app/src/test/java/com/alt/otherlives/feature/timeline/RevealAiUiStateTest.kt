@@ -30,6 +30,35 @@ class RevealAiUiStateTest {
     }
 
     @Test
+    fun targetedStartPreservesFailuresOutsideTargetSet() {
+        val state = RevealAiUiState(
+            chapterFailures = mapOf(
+                1 to RevealAiChapterFailure(
+                    "quality",
+                    GenerationChapterFailureKind.QUALITY_REJECTED
+                ),
+                3 to RevealAiChapterFailure(
+                    "retry",
+                    GenerationChapterFailureKind.OTHER
+                )
+            )
+        ).start(
+            total = 1,
+            targetIndexes = setOf(3)
+        )
+
+        assertEquals(
+            mapOf(
+                1 to RevealAiChapterFailure(
+                    "quality",
+                    GenerationChapterFailureKind.QUALITY_REJECTED
+                )
+            ),
+            state.chapterFailures
+        )
+    }
+
+    @Test
     fun failureAndRetentionKeepOnlyRelevantChapters() {
         val state = RevealAiUiState()
             .failure(
