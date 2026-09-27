@@ -14,6 +14,8 @@ import java.io.IOException
 import com.alt.otherlives.core.io.BoundedStreamCopy
 import com.alt.otherlives.core.io.BoundedTextRead
 import com.alt.otherlives.core.media.ImageBoundsValidation
+import com.alt.otherlives.core.media.BitmapSampling
+import com.alt.otherlives.core.media.GeneratedSceneVisualQuality
 import java.net.HttpURLConnection
 import java.net.URLEncoder
 import java.net.URL
@@ -257,6 +259,37 @@ class ComfyUiClient(
                         (index + 1) +
                         " (" + bounds.outWidth + "x" + bounds.outHeight + ")"
                 )
+            }
+
+            val sampleOptions = BitmapFactory.Options().apply {
+                inSampleSize = BitmapSampling.calculateSampleSize(
+                    sourceWidth = bounds.outWidth,
+                    sourceHeight = bounds.outHeight,
+                    targetWidth = 64,
+                    targetHeight = 64
+                )
+            }
+            val sampleBitmap = BitmapFactory.decodeFile(file.absolutePath, sampleOptions)
+                ?: error("Unable to inspect generated scene quality")
+            try {
+                val pixels = IntArray(sampleBitmap.width * sampleBitmap.height)
+                sampleBitmap.getPixels(
+                    pixels,
+                    0,
+                    sampleBitmap.width,
+                    0,
+                    0,
+                    sampleBitmap.width,
+                    sampleBitmap.height
+                )
+                if (!GeneratedSceneVisualQuality.hasSufficientVariation(pixels)) {
+                    error(
+                        "ComfyUI returned a visually empty or near-uniform image for chapter " +
+                            (index + 1)
+                    )
+                }
+            } finally {
+                sampleBitmap.recycle()
             }
 
             FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
