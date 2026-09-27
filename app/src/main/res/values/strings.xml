@@ -220,4 +220,6 @@
     <string name="reveal_ai_scene_badge">AI SCENE</string>
     <string name="reveal_story_chapter_count">%1$d CHAPTERS</string>
     <string name="reveal_story_ai_progress">%1$d/%2$d AI SCENES</string>
+    <string name="home_source_premium">SOURCE READY</string>
+    <string name="home_source_low_quality">SOURCE COULD BE SHARPER</string>
 </resources>
