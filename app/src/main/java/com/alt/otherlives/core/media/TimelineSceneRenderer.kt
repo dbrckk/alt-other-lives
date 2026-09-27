@@ -97,14 +97,32 @@ object TimelineSceneRenderer {
                 textSize = 64f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             }
-            var y = drawWrappedText(canvas, chapter.label, title, 72f, 990f, 920f, 76f)
+            var y = drawWrappedText(
+                canvas = canvas,
+                text = chapter.label,
+                paint = title,
+                x = 72f,
+                startY = 990f,
+                maxWidth = 920f,
+                lineHeight = 76f,
+                maxLines = 2
+            )
 
             val body = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.rgb(235, 232, 242)
                 textSize = 38f
             }
             y += 28f
-            drawWrappedText(canvas, chapter.narrative, body, 72f, y, 920f, 52f)
+            drawWrappedText(
+                canvas = canvas,
+                text = chapter.narrative,
+                paint = body,
+                x = 72f,
+                startY = y,
+                maxWidth = 920f,
+                lineHeight = 52f,
+                maxLines = 7
+            )
 
             val scenarioPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.rgb(142, 137, 154)
@@ -193,7 +211,16 @@ object TimelineSceneRenderer {
             textSize = 72f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
-        var introY = drawWrappedText(canvas, scenario.title, title, 72f, 1065f, 920f, 86f)
+        var introY = drawWrappedText(
+            canvas = canvas,
+            text = scenario.title,
+            paint = title,
+            x = 72f,
+            startY = 1065f,
+            maxWidth = 920f,
+            lineHeight = 86f,
+            maxLines = 3
+        )
 
         val subtitle = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.rgb(210, 207, 219)
@@ -201,13 +228,14 @@ object TimelineSceneRenderer {
         }
         introY += 24f
         drawWrappedText(
-            canvas,
-            scenario.subtitle,
-            subtitle,
-            72f,
-            introY,
-            900f,
-            46f
+            canvas = canvas,
+            text = scenario.subtitle,
+            paint = subtitle,
+            x = 72f,
+            startY = introY,
+            maxWidth = 900f,
+            lineHeight = 46f,
+            maxLines = 3
         )
 
         val hook = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -262,7 +290,16 @@ object TimelineSceneRenderer {
             textSize = 48f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
-        drawWrappedText(canvas, "What would your other life look like?", body, 72f, 980f, 900f, 60f)
+        drawWrappedText(
+            canvas = canvas,
+            text = "What would your other life look like?",
+            paint = body,
+            x = 72f,
+            startY = 980f,
+            maxWidth = 900f,
+            lineHeight = 60f,
+            maxLines = 3
+        )
 
         val subtle = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.rgb(142, 137, 154)
@@ -394,24 +431,61 @@ object TimelineSceneRenderer {
         x: Float,
         startY: Float,
         maxWidth: Float,
-        lineHeight: Float
+        lineHeight: Float,
+        maxLines: Int = Int.MAX_VALUE
     ): Float {
+        require(maxLines > 0) { "maxLines must be positive" }
+        val words = text.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
+        if (words.isEmpty()) return startY
+
         var y = startY
         var line = ""
-        text.split(" ").forEach { word ->
+        var lineCount = 0
+        var wordIndex = 0
+
+        while (wordIndex < words.size && lineCount < maxLines) {
+            val word = words[wordIndex]
             val candidate = if (line.isEmpty()) word else "$line $word"
-            if (paint.measureText(candidate) > maxWidth && line.isNotEmpty()) {
-                canvas.drawText(line, x, y, paint)
-                y += lineHeight
-                line = word
+            if (paint.measureText(candidate) <= maxWidth || line.isEmpty()) {
+                line = fitToWidth(candidate, paint, maxWidth)
+                wordIndex += 1
             } else {
-                line = candidate
+                val hasMore = wordIndex < words.size
+                val output = if (lineCount == maxLines - 1 && hasMore) {
+                    fitToWidth("$line…", paint, maxWidth)
+                } else {
+                    line
+                }
+                canvas.drawText(output, x, y, paint)
+                y += lineHeight
+                lineCount += 1
+                line = ""
             }
         }
-        if (line.isNotEmpty()) {
-            canvas.drawText(line, x, y, paint)
+
+        if (line.isNotEmpty() && lineCount < maxLines) {
+            val hasMore = wordIndex < words.size
+            val output = if (hasMore) {
+                fitToWidth("$line…", paint, maxWidth)
+            } else {
+                line
+            }
+            canvas.drawText(output, x, y, paint)
             y += lineHeight
         }
         return y
+    }
+
+    private fun fitToWidth(
+        text: String,
+        paint: Paint,
+        maxWidth: Float
+    ): String {
+        if (paint.measureText(text) <= maxWidth) return text
+        var value = text
+        while (value.length > 1 && paint.measureText("$value…") > maxWidth) {
+            value = value.dropLast(1)
+        }
+        return if (value == text) value else "$value…"
     }
 }
