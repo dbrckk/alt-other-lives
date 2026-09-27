@@ -30,6 +30,7 @@ class SourcePhotoStore(private val context: Context) {
         val fileName = "source-" + id + "." + extension
         val target = File(dir, fileName)
         val temporary = File(dir, ".source-" + id + ".tmp")
+        var isLikelyPremiumSource = false
 
         try {
             context.contentResolver.openInputStream(uri)?.use { input ->
@@ -53,6 +54,10 @@ class SourcePhotoStore(private val context: Context) {
             ) {
                 "Selected image is invalid, unsupported, or too large"
             }
+            isLikelyPremiumSource = ImageBoundsValidation.isLikelyPremiumSource(
+                bounds.outWidth,
+                bounds.outHeight
+            )
 
             if (!temporary.renameTo(target)) {
                 error("Unable to finalize selected photo import")
@@ -66,10 +71,7 @@ class SourcePhotoStore(private val context: Context) {
         return StoredPhoto(
             fileName = fileName,
             uri = uriFor(fileName),
-            isLikelyPremiumSource = ImageBoundsValidation.isLikelyPremiumSource(
-                bounds.outWidth,
-                bounds.outHeight
-            )
+            isLikelyPremiumSource = isLikelyPremiumSource
         )
     }
 
