@@ -54,6 +54,9 @@ object ComfyUiWorkflow {
             append("preserve identity-defining facial geometry, eye color, skin tone, hairline and hair texture, ")
             append("preserve face shape, eyebrow shape, nose bridge and tip, lip shape, jaw and chin proportions, ear shape and natural facial asymmetries, ")
             append("preserve apparent gender presentation and distinctive facial features unless the narrative explicitly requires a change, ")
+            append("preserve the same recognizable identity across changes in pose, expression, camera angle and lighting, ")
+            append("expressions may vary but stable facial landmarks and proportions must remain unchanged, ")
+            append("do not beautify, idealize, de-age, reshape or normalize the face into a different-looking person, ")
             append("clothing, hairstyle, grooming and environment may evolve with the chapter while the underlying face remains the same person, ")
             append("no identity swap, no lookalike drift, no face replacement, ")
             append("keep facial age consistent unless the timeline explicitly advances time; when aging is justified, evolve from the same facial baseline rather than recasting the person, ")
@@ -76,6 +79,7 @@ object ComfyUiWorkflow {
     fun negativePrompt(): String =
         "different person, identity drift, identity swap, face replacement, altered facial geometry, " +
             "changed nose, changed lip shape, changed jawline, changed face shape, genericized face, " +
+            "beautification drift, face slimming, eye enlargement, de-aging, facial feature normalization, " +
             "inconsistent eye color, inconsistent skin tone, malformed face, deformed anatomy, " +
             "extra fingers, extra limbs, duplicate person, low-detail skin, plastic skin, " +
             "text, caption, logo, watermark, frame, collage"
