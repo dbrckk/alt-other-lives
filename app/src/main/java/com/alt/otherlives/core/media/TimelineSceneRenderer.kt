@@ -49,10 +49,25 @@ object TimelineSceneRenderer {
                     val canvas = Canvas(bitmap)
             canvas.drawColor(Color.rgb(8, 8, 10))
 
-            if (chapterImages[index] != null || photoUri != null) {
+            val nearestGeneratedUri = TimelineVisualSelection
+                .nearestChapterIndex(
+                    targetIndex = index,
+                    availableIndexes = chapterImages.keys
+                )
+                ?.let(chapterImages::get)
+
+            if (
+                chapterImages[index] != null ||
+                photoUri != null ||
+                nearestGeneratedUri != null
+            ) {
                 val source = BitmapLoader.decodeFirstAvailable(
                     context = context,
-                    uris = listOf(chapterImages[index], photoUri),
+                    uris = listOf(
+                        chapterImages[index],
+                        photoUri,
+                        nearestGeneratedUri
+                    ),
                     targetWidth = WIDTH,
                     targetHeight = HEIGHT
                 ) ?: run {
