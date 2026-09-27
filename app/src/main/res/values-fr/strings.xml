@@ -92,4 +92,8 @@
     <string name="reveal_generation_identity_hint">ALT conserve la même identité visuelle tout au long de la séquence pendant que le décor, le style et l’histoire évoluent.</string>
     <string name="reveal_generation_cancel">Annuler la génération IA</string>
     <string name="reveal_generation_cancelling">Annulation de la génération IA…</string>
+    <string name="video_chapter_progress">ALT • CHAPITRE %1$d SUR %2$d</string>
+    <string name="video_intro_header">ALT • TON AUTRE VIE</string>
+    <string name="video_outro_question">À quoi ressemblerait ton autre vie ?</string>
+    <string name="video_outro_footer">Pensé pour le partage • histoire cinématique 9:16</string>
 </resources>
