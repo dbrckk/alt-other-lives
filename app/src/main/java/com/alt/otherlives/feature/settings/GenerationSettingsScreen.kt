@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.alt.otherlives.core.designsystem.AltMuted
 import com.alt.otherlives.core.designsystem.AltBackButton
+import com.alt.otherlives.core.generation.ComfyUiWorkflowTemplate
 import com.alt.otherlives.core.generation.GenerationSettings
 import com.alt.otherlives.core.generation.GenerationSettingsValidation
 
@@ -42,6 +43,16 @@ fun GenerationSettingsScreen(
     var workflow by remember(settings.workflowJson) { mutableStateOf(settings.workflowJson) }
     var remotePhotoUploadConsent by remember(settings.remotePhotoUploadConsent) {
         mutableStateOf(settings.remotePhotoUploadConsent)
+    }
+
+    val continuityWarnings = remember(workflow) {
+        if (workflow.isBlank()) {
+            emptyList()
+        } else {
+            runCatching {
+                ComfyUiWorkflowTemplate.premiumContinuityWarnings(workflow)
+            }.getOrDefault(emptyList())
+        }
     }
 
     Column(
@@ -91,7 +102,8 @@ fun GenerationSettingsScreen(
             label = { Text("Workflow API JSON") },
             supportingText = {
                 Text(
-                    "Required: __ALT_SOURCE_IMAGE__ and __ALT_PROMPT__. Optional: __ALT_NEGATIVE_PROMPT__ and __ALT_SEED__. " +
+                    "Required: __ALT_SOURCE_IMAGE__ and __ALT_PROMPT__. " +
+                        "For best identity continuity, also use __ALT_NEGATIVE_PROMPT__ and __ALT_SEED__. " +
                         "For workflows with multiple image outputs, name the preferred node ALT OUTPUT. " +
                         "${workflow.length}/${GenerationSettingsValidation.MAX_WORKFLOW_CHARS} chars"
                 )
@@ -99,6 +111,22 @@ fun GenerationSettingsScreen(
             modifier = Modifier.fillMaxWidth(),
             minLines = 12
         )
+        if (continuityWarnings.isNotEmpty()) {
+            Text(
+                "Identity continuity quality check",
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(6.dp))
+            continuityWarnings.forEach { warning ->
+                Text(
+                    "• $warning",
+                    color = AltMuted
+                )
+                Spacer(Modifier.height(4.dp))
+            }
+            Spacer(Modifier.height(10.dp))
+        }
+
         Spacer(Modifier.height(18.dp))
         androidx.compose.foundation.layout.Row(
             modifier = Modifier.fillMaxWidth(),
