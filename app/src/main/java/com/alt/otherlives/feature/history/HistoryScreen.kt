@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,6 +31,7 @@ import com.alt.otherlives.core.designsystem.AltDimmed
 import com.alt.otherlives.core.designsystem.AltMuted
 import com.alt.otherlives.core.designsystem.AltSurface
 import com.alt.otherlives.core.model.Scenario
+import com.alt.otherlives.R
 import java.text.DateFormat
 import java.util.Date
 
@@ -59,21 +61,25 @@ fun HistoryScreen(
                 onClick = onBack,
                 enabled = !isClearingHistory
             ) {
-                Text("Back")
+                Text(stringResource(R.string.common_back))
             }
             Column(Modifier.padding(start = 12.dp).weight(1f)) {
                 Text(
-                    "YOUR ALT LIBRARY",
+                    stringResource(R.string.history_library_label),
                     color = AltAccent,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Text("Your other lives", fontSize = 31.sp, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.history_title), fontSize = 31.sp, fontWeight = FontWeight.SemiBold)
                 Text(
                     if (entries.isEmpty()) {
-                        "Stored privately on this device"
+                        stringResource(R.string.history_private_device)
                     } else {
-                        "${entries.size} saved ${if (entries.size == 1) "life" else "lives"} • private to this device"
+                        if (entries.size == 1) {
+                            stringResource(R.string.history_saved_life, entries.size)
+                        } else {
+                            stringResource(R.string.history_saved_lives, entries.size)
+                        }
                     },
                     color = AltMuted,
                     fontSize = 13.sp
@@ -97,9 +103,9 @@ fun HistoryScreen(
                     Text("ALT", color = AltAccent, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(20.dp))
-                Text("No alternate lives yet.", fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.history_empty_title), fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(8.dp))
-                Text("Create one and it will appear here.", color = AltMuted)
+                Text(stringResource(R.string.history_empty_body), color = AltMuted)
             }
         } else {
             LazyColumn(
@@ -180,7 +186,7 @@ fun HistoryScreen(
                                         color = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.42f)
                                     ) {
                                         Text(
-                                            if (hasAiPreview) "AI LIFE" else "ALT LIFE",
+                                            if (hasAiPreview) stringResource(R.string.history_ai_life) else stringResource(R.string.history_alt_life),
                                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                                             color = AltAccent,
                                             fontSize = 10.sp,
@@ -218,7 +224,7 @@ fun HistoryScreen(
                                         )
                                         Spacer(Modifier.weight(1f))
                                         Text(
-                                            if (isDeleting) "Deleting…" else "Open  →",
+                                            if (isDeleting) stringResource(R.string.history_deleting) else stringResource(R.string.history_open),
                                             color = AltAccent,
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold
@@ -246,7 +252,7 @@ fun HistoryScreen(
                                         contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)
                                     ) {
                                         Text(
-                                            if (isDeleting) "Deleting…" else "Delete this life",
+                                            if (isDeleting) stringResource(R.string.history_deleting) else stringResource(R.string.history_delete_life),
                                             color = AltDimmed,
                                             fontSize = 11.sp
                                         )
@@ -263,7 +269,7 @@ fun HistoryScreen(
                 enabled = deletingEntryKey == null && !isClearingHistory,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
-                Text(if (isClearingHistory) "Clearing…" else "Clear local history")
+                Text(if (isClearingHistory) stringResource(R.string.history_clearing) else stringResource(R.string.history_clear_local))
             }
         }
     }
@@ -271,9 +277,9 @@ fun HistoryScreen(
     pendingDeleteEntry?.let { entry ->
         AlertDialog(
             onDismissRequest = { pendingDeleteEntry = null },
-            title = { Text("Delete this ALT life?") },
+            title = { Text(stringResource(R.string.history_delete_title)) },
             text = {
-                Text("This removes this saved timeline and any private media no longer used by another timeline.")
+                Text(stringResource(R.string.history_delete_body))
             },
             confirmButton = {
                 TextButton(
@@ -282,12 +288,12 @@ fun HistoryScreen(
                         onDelete(entry)
                     }
                 ) {
-                    Text("Delete")
+                    Text(stringResource(R.string.history_delete_action))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { pendingDeleteEntry = null }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )
@@ -296,9 +302,9 @@ fun HistoryScreen(
     if (showClearConfirmation) {
         AlertDialog(
             onDismissRequest = { showClearConfirmation = false },
-            title = { Text("Clear local history?") },
+            title = { Text(stringResource(R.string.history_clear_title)) },
             text = {
-                Text("This removes your saved alternate lives from this device. This action cannot be undone.")
+                Text(stringResource(R.string.history_clear_body))
             },
             confirmButton = {
                 TextButton(
@@ -307,12 +313,12 @@ fun HistoryScreen(
                         onClear()
                     }
                 ) {
-                    Text("Clear")
+                    Text(stringResource(R.string.history_clear_action))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showClearConfirmation = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )
