@@ -611,15 +611,20 @@ fun AltApp() {
                                         if (cleanupFailures.isNotEmpty()) {
                                             Toast.makeText(
                                                 context,
-                                                "Timeline deleted, but some local media could not be cleaned up",
+                                                context.getString(R.string.app_timeline_delete_cleanup_warning),
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
                                     }.onFailure {
                                         Toast.makeText(
                                             context,
-                                            "Could not delete timeline: " +
-                                                (it.message ?: "unknown error"),
+                                            context.getString(
+                                                R.string.app_timeline_delete_failed,
+                                                it.message
+                                                    ?: context.getString(
+                                                        R.string.common_unknown_error
+                                                    )
+                                            ),
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     }
@@ -658,15 +663,20 @@ fun AltApp() {
                                         if (cleanupFailures.isNotEmpty()) {
                                             Toast.makeText(
                                                 context,
-                                                "History cleared, but some local media could not be removed",
+                                                context.getString(R.string.app_history_clear_cleanup_warning),
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
                                     }.onFailure {
                                         Toast.makeText(
                                             context,
-                                            "Could not clear history: " +
-                                                (it.message ?: "unknown error"),
+                                            context.getString(
+                                                R.string.app_history_clear_failed,
+                                                it.message
+                                                    ?: context.getString(
+                                                        R.string.common_unknown_error
+                                                    )
+                                            ),
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     }
