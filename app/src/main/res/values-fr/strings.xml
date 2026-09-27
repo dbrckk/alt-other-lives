@@ -142,4 +142,22 @@
     <string name="app_settings_clear_failed">Impossible d’effacer les paramètres IA</string>
     <string name="app_original_photo_missing_ai">Photo originale indisponible • ouverture de la timeline IA enregistrée</string>
     <string name="app_original_photo_missing">La photo source de cette timeline n’est plus disponible</string>
+    <string name="settings_title">Configuration IA avancée</string>
+    <string name="settings_intro">Configuration développeur pour un endpoint ComfyUI personnalisé. La plupart des utilisateurs n’auront plus besoin de modifier ceci une fois qu’ALT disposera d’un backend géré.</string>
+    <string name="settings_attention">Les paramètres IA enregistrés nécessitent une vérification%1$s</string>
+    <string name="settings_base_url">URL de base ComfyUI</string>
+    <string name="settings_base_url_placeholder">https://votre-comfyui.exemple</string>
+    <string name="settings_workflow_json">JSON API du workflow</string>
+    <string name="settings_workflow_help">Requis : __ALT_SOURCE_IMAGE__ et __ALT_PROMPT__. Pour une meilleure continuité d’identité, utilise aussi __ALT_NEGATIVE_PROMPT__ et __ALT_SEED__. Pour les workflows avec plusieurs sorties image, nomme le nœud préféré ALT OUTPUT. %1$d/%2$d caractères</string>
+    <string name="settings_continuity_check">Contrôle de continuité d’identité</string>
+    <string name="settings_warning_seed">Le workflow n’utilise pas le seed partagé d’ALT ; la continuité visuelle entre chapitres peut dériver.</string>
+    <string name="settings_warning_negative">Le workflow n’utilise pas le negative prompt d’ALT ; la réduction de dérive d’identité est moins forte.</string>
+    <string name="settings_upload_consent">Je comprends que la génération IA envoie ma photo source sélectionnée vers le serveur ComfyUI distant configuré.</string>
+    <string name="settings_privacy_note">ALT conserve la photo originale sur l’appareil sauf si tu actives la génération IA distante. Le serveur distant est contrôlé par l’opérateur de l’URL ci-dessus.</string>
+    <string name="settings_saving">Enregistrement…</string>
+    <string name="settings_save">Enregistrer les paramètres ComfyUI</string>
+    <string name="settings_testing">Test de la connexion…</string>
+    <string name="settings_test">Tester la connexion</string>
+    <string name="settings_clearing">Effacement des paramètres…</string>
+    <string name="settings_clear">Effacer les paramètres IA</string>
 </resources>
