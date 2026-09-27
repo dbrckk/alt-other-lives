@@ -20,6 +20,19 @@ class AiGenerationPlanTest {
     }
 
     @Test
+    fun qualityRejectedFailuresAreNotSameSeedRetryTargets() {
+        val plan = planAiGeneration(
+            chapterCount = 5,
+            generatedChapterIndexes = setOf(0, 2, 4),
+            failedChapterIndexes = setOf(1, 3),
+            nonRetryableFailedIndexes = setOf(3)
+        )
+
+        assertEquals(setOf(1), plan.retryableFailedIndexes)
+        assertEquals(setOf(1, 3), plan.missingIndexes)
+    }
+
+    @Test
     fun completeTimelineRequiresConfirmationBeforeFullRegeneration() {
         val plan = planAiGeneration(
             chapterCount = 3,
