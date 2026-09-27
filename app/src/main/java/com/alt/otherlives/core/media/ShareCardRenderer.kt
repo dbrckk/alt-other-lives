@@ -46,7 +46,7 @@ object ShareCardRenderer {
                 val source = BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)
                     ?: error("Unable to decode ALT share visual")
                 try {
-                    drawCover(canvas, source, Rect(0, 0, WIDTH, 900))
+                    drawCover(canvas, source, Rect(0, 0, WIDTH, 1180))
                 } finally {
                     source.recycle()
                 }
@@ -57,28 +57,30 @@ object ShareCardRenderer {
                     0f,
                     280f,
                     0f,
-                    1050f,
+                    1380f,
                     intArrayOf(
-                        Color.TRANSPARENT,
-                        Color.argb(180, 8, 8, 10),
+                        Color.argb(10, 8, 8, 10),
+                        Color.argb(70, 8, 8, 10),
+                        Color.argb(225, 8, 8, 10),
                         Color.rgb(8, 8, 10)
                     ),
                     null,
                     Shader.TileMode.CLAMP
                 )
             }
-            canvas.drawRect(0f, 250f, WIDTH.toFloat(), 1100f, overlay)
+            canvas.drawRect(0f, 240f, WIDTH.toFloat(), 1450f, overlay)
 
             val accent = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.rgb(183, 167, 255)
-                textSize = 34f
+                textSize = 31f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                letterSpacing = 0.08f
             }
-            canvas.drawText("ALT  •  YOUR OTHER LIFE", 72f, 760f, accent)
+            canvas.drawText("ALT  •  YOUR OTHER LIFE", 72f, 850f, accent)
 
             val title = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.WHITE
-                textSize = 70f
+                textSize = 78f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             }
             var y = drawWrappedText(
@@ -86,43 +88,74 @@ object ShareCardRenderer {
                 scenario.title,
                 title,
                 72f,
-                845f,
+                950f,
                 936f,
-                82f
+                88f
             )
 
-            val body = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.rgb(232, 230, 238)
-                textSize = 36f
+            val subtitle = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.rgb(210, 207, 219)
+                textSize = 34f
             }
-            val label = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            y += 18f
+            y = drawWrappedText(
+                canvas,
+                scenario.subtitle,
+                subtitle,
+                72f,
+                y,
+                900f,
+                44f
+            )
+
+            val timelineLabel = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.rgb(130, 127, 140)
+                textSize = 24f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            y += 44f
+            canvas.drawText("YOUR TIMELINE", 72f, y, timelineLabel)
+            y += 46f
+
+            val numberPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.rgb(183, 167, 255)
-                textSize = 27f
+                textSize = 36f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            val chapterPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                textSize = 34f
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             }
 
-            y += 28f
-            scenario.chapters.take(5).forEach { chapter ->
-                canvas.drawText(chapter.label.uppercase(), 72f, y, label)
-                y += 48f
-                y = drawWrappedText(
-                    canvas,
-                    chapter.narrative,
-                    body,
+            scenario.chapters.take(3).forEachIndexed { index, chapter ->
+                canvas.drawText(
+                    (index + 1).toString().padStart(2, '0'),
                     72f,
                     y,
-                    936f,
-                    47f
+                    numberPaint
                 )
-                y += 34f
+                canvas.drawText(
+                    chapter.label,
+                    148f,
+                    y,
+                    chapterPaint
+                )
+                y += 62f
             }
 
             val footer = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.rgb(130, 127, 140)
+                color = Color.rgb(150, 146, 162)
                 textSize = 27f
             }
-            canvas.drawText("See the lives you could have lived.", 72f, 1815f, footer)
-            canvas.drawText("ALT", 930f, 1815f, accent)
+            canvas.drawText("One choice. Another life.", 72f, 1812f, footer)
+
+            val brand = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.rgb(183, 167, 255)
+                textSize = 34f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            canvas.drawText("ALT", 930f, 1812f, brand)
 
             val dir = File(context.cacheDir, "shares").apply { mkdirs() }
             cleanupOldShareImages(dir)
