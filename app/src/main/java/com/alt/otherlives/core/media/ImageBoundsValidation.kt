@@ -5,6 +5,8 @@ internal object ImageBoundsValidation {
     const val MAX_PIXELS = 300_000_000L
     const val PREMIUM_MIN_SHORT_EDGE = 720
     const val PREMIUM_MIN_PIXELS = 1_000_000L
+    const val GENERATED_MIN_SHORT_EDGE = 512
+    const val GENERATED_MIN_PIXELS = 500_000L
 
     fun isReasonable(width: Int, height: Int): Boolean {
         if (width <= 0 || height <= 0) return false
@@ -17,5 +19,13 @@ internal object ImageBoundsValidation {
         val shortEdge = minOf(width, height)
         val pixels = width.toLong() * height.toLong()
         return shortEdge >= PREMIUM_MIN_SHORT_EDGE && pixels >= PREMIUM_MIN_PIXELS
+    }
+
+    fun isUsableGeneratedScene(width: Int, height: Int): Boolean {
+        if (!isReasonable(width, height)) return false
+        val shortEdge = minOf(width, height)
+        val pixels = width.toLong() * height.toLong()
+        return shortEdge >= GENERATED_MIN_SHORT_EDGE &&
+            pixels >= GENERATED_MIN_PIXELS
     }
 }
