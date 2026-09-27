@@ -216,4 +216,5 @@
     <string name="settings_validation_missing_source">Workflow must contain __ALT_SOURCE_IMAGE__ as an exact JSON value.</string>
     <string name="settings_validation_missing_prompt">Workflow must contain __ALT_PROMPT__ as an exact JSON value.</string>
     <string name="settings_validation_unknown">AI configuration is invalid.</string>
+    <string name="settings_warning_ambiguous_output">Workflow has multiple image output nodes without an ALT OUTPUT marker; ALT may select the wrong branch.</string>
 </resources>
