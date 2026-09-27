@@ -223,4 +223,5 @@
     <string name="home_source_premium">SOURCE PRÊTE</string>
     <string name="home_source_low_quality">SOURCE À AMÉLIORER</string>
     <string name="home_source_low_quality_hint">Pour une meilleure continuité d’identité, utilise un portrait d’au moins 720 px sur le côté le plus court.</string>
+    <string name="reveal_scene_quality_rejected">Scène IA rejetée par les contrôles qualité • crée une nouvelle variation</string>
 </resources>
