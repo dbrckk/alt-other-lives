@@ -47,12 +47,12 @@ fun GenerationSettingsScreen(
         mutableStateOf(settings.remotePhotoUploadConsent)
     }
 
-    val continuityWarnings = remember(workflow) {
+    val continuityIssues = remember(workflow) {
         if (workflow.isBlank()) {
             emptyList()
         } else {
             runCatching {
-                ComfyUiWorkflowTemplate.premiumContinuityWarnings(workflow)
+                ComfyUiWorkflowTemplate.premiumContinuityIssues(workflow)
             }.getOrDefault(emptyList())
         }
     }
@@ -116,21 +116,21 @@ fun GenerationSettingsScreen(
             modifier = Modifier.fillMaxWidth(),
             minLines = 12
         )
-        if (continuityWarnings.isNotEmpty()) {
+        if (continuityIssues.isNotEmpty()) {
             Text(
                 stringResource(R.string.settings_continuity_check),
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(6.dp))
-            continuityWarnings.forEach { warning ->
+            continuityIssues.forEach { issue ->
+                val message = when (issue) {
+                    ComfyUiWorkflowTemplate.PremiumContinuityIssue.MISSING_SHARED_SEED ->
+                        stringResource(R.string.settings_warning_seed)
+                    ComfyUiWorkflowTemplate.PremiumContinuityIssue.MISSING_NEGATIVE_PROMPT ->
+                        stringResource(R.string.settings_warning_negative)
+                }
                 Text(
-                    "• " + when {
-                        warning.contains("shared seed") ->
-                            stringResource(R.string.settings_warning_seed)
-                        warning.contains("negative prompt") ->
-                            stringResource(R.string.settings_warning_negative)
-                        else -> warning
-                    },
+                    "• $message",
                     color = AltMuted
                 )
                 Spacer(Modifier.height(4.dp))
