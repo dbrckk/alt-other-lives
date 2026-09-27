@@ -43,6 +43,7 @@ import com.alt.otherlives.feature.history.HistoryScreen
 import com.alt.otherlives.feature.scenarios.ScenarioScreen
 import com.alt.otherlives.feature.settings.GenerationSettingsScreen
 import com.alt.otherlives.feature.timeline.RevealScreen
+import com.alt.otherlives.R
 
 private const val HISTORY_PREVIEW_LIMIT = 16
 
@@ -237,7 +238,7 @@ fun AltApp() {
                                             if (!stored.isLikelyPremiumSource) {
                                                 Toast.makeText(
                                                     context,
-                                                    "For sharper AI identity, use a portrait at least 720 px on the short edge.",
+                                                    context.getString(R.string.home_low_quality_source_warning),
                                                     Toast.LENGTH_LONG
                                                 ).show()
                                             }
