@@ -31,6 +31,9 @@ class HomeScreenTest {
 
         composeRule.onNodeWithText("SOURCE COULD BE SHARPER")
             .assertIsDisplayed()
+        composeRule.onNodeWithText(
+            "For stronger identity continuity, use a portrait at least 720 px on the short edge."
+        ).assertIsDisplayed()
         composeRule.onNodeWithText("Choose another life")
             .assertIsDisplayed()
     }
