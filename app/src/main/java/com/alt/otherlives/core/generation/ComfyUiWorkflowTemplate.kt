@@ -6,7 +6,8 @@ import org.json.JSONObject
 object ComfyUiWorkflowTemplate {
     enum class PremiumContinuityIssue {
         MISSING_SHARED_SEED,
-        MISSING_NEGATIVE_PROMPT
+        MISSING_NEGATIVE_PROMPT,
+        AMBIGUOUS_IMAGE_OUTPUTS
     }
 
     private const val PREFERRED_OUTPUT_TITLE = "ALT OUTPUT"
@@ -91,6 +92,12 @@ object ComfyUiWorkflowTemplate {
             if (!containsExactPlaceholderValue(root, ComfyUiWorkflow.PLACEHOLDER_NEGATIVE_PROMPT)) {
                 add(PremiumContinuityIssue.MISSING_NEGATIVE_PROMPT)
             }
+            if (
+                likelyImageOutputNodeCount(root) > 1 &&
+                preferredOutputNodeId(root) == null
+            ) {
+                add(PremiumContinuityIssue.AMBIGUOUS_IMAGE_OUTPUTS)
+            }
         }
     }
 
@@ -101,8 +108,20 @@ object ComfyUiWorkflowTemplate {
                     "Workflow does not use ALT's shared seed; chapter-to-chapter visual continuity may drift."
                 PremiumContinuityIssue.MISSING_NEGATIVE_PROMPT ->
                     "Workflow does not use ALT's negative prompt; identity drift suppression is reduced."
+                PremiumContinuityIssue.AMBIGUOUS_IMAGE_OUTPUTS ->
+                    "Workflow has multiple image output nodes without an ALT OUTPUT marker; ALT may select the wrong branch."
             }
         }
+
+    internal fun likelyImageOutputNodeCount(workflow: JSONObject): Int =
+        workflow.keys()
+            .asSequence()
+            .mapNotNull { nodeId -> workflow.optJSONObject(nodeId) }
+            .count { node ->
+                val classType = node.optString("class_type").trim()
+                classType.equals("SaveImage", ignoreCase = true) ||
+                    classType.equals("PreviewImage", ignoreCase = true)
+            }
 
     fun preferredOutputNodeId(workflow: JSONObject): String? =
         workflow.keys()
