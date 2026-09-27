@@ -2,65 +2,109 @@ package com.alt.otherlives.feature.timeline
 
 import com.alt.otherlives.core.generation.GenerationSettings
 
-fun aiGenerationCompletionMessage(
+sealed interface AiGenerationCompletionState {
+    data class FreshVariationIncomplete(
+        val failedChapterNumbers: List<Int>
+    ) : AiGenerationCompletionState
+
+    data object Ready : AiGenerationCompletionState
+
+    data class Partial(
+        val readySceneCount: Int,
+        val expectedSceneCount: Int,
+        val retryChapterNumbers: List<Int>
+    ) : AiGenerationCompletionState
+}
+
+sealed interface AiGenerationUnavailableState {
+    data object MissingSourcePhoto : AiGenerationUnavailableState
+
+    data class InvalidSettings(
+        val validationError: String?
+    ) : AiGenerationUnavailableState
+
+    data object MissingUploadConsent : AiGenerationUnavailableState
+    data object NotConfigured : AiGenerationUnavailableState
+}
+
+sealed interface AiGenerationButtonState {
+    data class Generating(
+        val completed: Int,
+        val total: Int
+    ) : AiGenerationButtonState
+
+    data object GenerateAll : AiGenerationButtonState
+    data object GenerateMissing : AiGenerationButtonState
+    data object RegenerateAll : AiGenerationButtonState
+}
+
+fun aiGenerationCompletionState(
     resetSeed: Boolean,
     completeFreshVariation: Boolean,
     readySceneCount: Int,
     expectedSceneCount: Int,
     failedChapterIndexes: Set<Int>
-): String {
-    val failed = failedChapterIndexes
+): AiGenerationCompletionState {
+    val failedChapterNumbers = failedChapterIndexes
         .sorted()
-        .joinToString(", ") { (it + 1).toString() }
+        .map { it + 1 }
 
     return when {
         resetSeed && !completeFreshVariation ->
-            "New variation incomplete • previous timeline kept" +
-                if (failed.isBlank()) "" else " • failed chapters $failed"
+            AiGenerationCompletionState.FreshVariationIncomplete(
+                failedChapterNumbers = failedChapterNumbers
+            )
 
         readySceneCount == expectedSceneCount ->
-            "AI scenes ready"
+            AiGenerationCompletionState.Ready
 
         else ->
-            "Partial result: $readySceneCount/$expectedSceneCount scenes ready" +
-                if (failed.isBlank()) "" else " • retry chapters $failed"
+            AiGenerationCompletionState.Partial(
+                readySceneCount = readySceneCount,
+                expectedSceneCount = expectedSceneCount,
+                retryChapterNumbers = failedChapterNumbers
+            )
     }
 }
 
-fun aiGenerationUnavailableMessage(
+fun aiGenerationUnavailableState(
     hasSourcePhoto: Boolean,
     settings: GenerationSettings
-): String = when {
+): AiGenerationUnavailableState = when {
     !hasSourcePhoto ->
-        "AI generation needs the original source photo. Saved generated scenes can still be viewed and exported."
+        AiGenerationUnavailableState.MissingSourcePhoto
 
     settings.hasPersistedValues && !settings.isConfigured ->
-        "Saved AI settings need attention: " +
-            (settings.validationError ?: "configuration is invalid")
+        AiGenerationUnavailableState.InvalidSettings(
+            validationError = settings.validationError
+        )
 
     settings.isConfigured && !settings.remotePhotoUploadConsent ->
-        "Remote AI generation is configured, but photo upload consent is not enabled."
+        AiGenerationUnavailableState.MissingUploadConsent
 
     else ->
-        "AI generation is not configured yet."
+        AiGenerationUnavailableState.NotConfigured
 }
 
-fun aiGenerationButtonLabel(
+fun aiGenerationButtonState(
     isGenerating: Boolean,
     completed: Int,
     total: Int,
     generatedSceneCount: Int,
     expectedSceneCount: Int
-): String = when {
+): AiGenerationButtonState = when {
     isGenerating ->
-        "Generating AI scenes • $completed/$total"
+        AiGenerationButtonState.Generating(
+            completed = completed,
+            total = total
+        )
 
     generatedSceneCount == 0 ->
-        "Generate AI scenes"
+        AiGenerationButtonState.GenerateAll
 
     generatedSceneCount < expectedSceneCount ->
-        "Generate missing AI scenes"
+        AiGenerationButtonState.GenerateMissing
 
     else ->
-        "Regenerate all AI scenes"
+        AiGenerationButtonState.RegenerateAll
 }
