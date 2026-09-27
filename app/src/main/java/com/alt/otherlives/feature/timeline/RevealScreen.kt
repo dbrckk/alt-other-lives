@@ -45,6 +45,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -75,6 +76,7 @@ import com.alt.otherlives.core.generation.GeneratedSceneStore
 import com.alt.otherlives.core.generation.AiGenerationReport
 import com.alt.otherlives.core.generation.AiGenerationReportReason
 import com.alt.otherlives.core.generation.AiGenerationReportStore
+import com.alt.otherlives.R
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
@@ -187,12 +189,12 @@ fun RevealScreen(
                     onClick = onBack,
                     modifier = Modifier.padding(start = 16.dp, top = 36.dp)
                 ) {
-                    Text("‹ Back")
+                    Text("‹ " + stringResource(R.string.common_back))
                 }
                 Column(modifier = Modifier.align(Alignment.BottomStart).padding(24.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            if (primaryGeneratedSceneUri != null) "ALT ORIGINAL • AI GENERATED" else "ALT ORIGINAL",
+                            if (primaryGeneratedSceneUri != null) stringResource(R.string.reveal_alt_original_ai) else stringResource(R.string.reveal_alt_original),
                             color = AltAccent,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
@@ -214,7 +216,7 @@ fun RevealScreen(
                     )
                     Spacer(Modifier.height(14.dp))
                     Text(
-                        "One choice. Another life.",
+                        stringResource(R.string.reveal_one_choice),
                         color = Color.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
@@ -277,7 +279,7 @@ fun RevealScreen(
                             Spacer(Modifier.width(14.dp))
                             Column {
                                 Text(
-                                    "CHAPTER ${index + 1}",
+                                    stringResource(R.string.reveal_chapter_number, index + 1),
                                     color = AltDimmed,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold
@@ -300,7 +302,7 @@ fun RevealScreen(
                         if (generated == null) {
                             Spacer(Modifier.height(14.dp))
                             Text(
-                                "Generate this chapter to unlock its cinematic scene.",
+                                stringResource(R.string.reveal_generate_chapter),
                                 color = AltDimmed,
                                 fontSize = 12.sp
                             )
@@ -732,7 +734,7 @@ fun RevealScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = AltPrimary, contentColor = Color(0xFF16111F))
                 ) {
                     Text(
-                        if (isRenderingShareImage) "Preparing share image…" else "Share your ALT life",
+                        if (isRenderingShareImage) stringResource(R.string.reveal_preparing_share) else stringResource(R.string.reveal_share_life),
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -769,7 +771,7 @@ fun RevealScreen(
                         enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isRenderingShareImage && !aiUiState.isGenerating && !isExporting && hasVisualAsset,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
-                    ) { Text("Save 9:16 image", fontWeight = FontWeight.Bold) }
+                    ) { Text(stringResource(R.string.reveal_save_image), fontWeight = FontWeight.Bold) }
                 }
                 Spacer(Modifier.height(12.dp))
                 Button(
@@ -871,7 +873,7 @@ fun RevealScreen(
                 ) {
                     Text(
                         if (isExporting) "Creating video" + (exportProgress?.let { " • $it%" } ?: "…")
-                        else "Create cinematic MP4",
+                        else stringResource(R.string.reveal_create_video),
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -920,7 +922,7 @@ fun RevealScreen(
                         enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !aiUiState.isGenerating && !isExporting,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(20.dp)
-                    ) { Text("Share MP4", fontWeight = FontWeight.Bold) }
+                    ) { Text(stringResource(R.string.reveal_share_video), fontWeight = FontWeight.Bold) }
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         Spacer(Modifier.height(8.dp))
@@ -990,14 +992,14 @@ fun RevealScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        "Create another ALT life  →",
+                        stringResource(R.string.reveal_create_another),
                         color = AltAccent,
                         fontWeight = FontWeight.Bold
                     )
                 }
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Made for Reels • Shorts • Stories • 9:16 cinematic export",
+                    stringResource(R.string.reveal_social_footer),
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                     color = AltDimmed,
