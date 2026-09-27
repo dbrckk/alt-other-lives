@@ -59,10 +59,7 @@ import com.alt.otherlives.core.media.CinematicVideoExporter
 import com.alt.otherlives.core.media.TimelineSceneRenderer
 import com.alt.otherlives.core.media.RenderedTimelineScenes
 import com.alt.otherlives.core.generation.ComfyUiConfig
-import com.alt.otherlives.core.generation.GenerationDownloadCache
-import com.alt.otherlives.core.generation.GenerationDownloadLifecycle
 import com.alt.otherlives.core.generation.ComfyUiGenerationProvider
-import com.alt.otherlives.core.generation.GenerationRequest
 import com.alt.otherlives.core.generation.GenerationSettings
 import com.alt.otherlives.core.generation.GeneratedScene
 import com.alt.otherlives.core.generation.GeneratedSceneStore
@@ -82,6 +79,9 @@ fun RevealScreen(
 ) {
     val context = LocalContext.current
     val sceneStore = remember(context) { GeneratedSceneStore(context.applicationContext) }
+    val aiOrchestrator = remember(context, sceneStore) {
+        AiGenerationOrchestrator(context.applicationContext, sceneStore)
+    }
     val reportStore = remember(context) { AiGenerationReportStore(context.applicationContext) }
     val scope = rememberCoroutineScope()
     var isExporting by remember { mutableStateOf(false) }
@@ -362,131 +362,48 @@ fun RevealScreen(
                             aiTotal = targetIndexes.size
                             aiChapterFailures = emptyMap()
                             aiGenerationJob = scope.launch {
-                                var previousSeed: Long? = null
-                                val pendingResetDownloads = mutableListOf<Uri>()
                                 try {
-                                    previousSeed = withContext(Dispatchers.IO) {
-                                        sceneStore.getOrCreateSeed(timelineKey)
-                                    }
-                                    val generationSeed = if (resetSeed) {
-                                        withContext(Dispatchers.IO) {
-                                            sceneStore.createSeed()
-                                        }
-                                    } else {
-                                        previousSeed
-                                    }
-
                                     val provider = ComfyUiGenerationProvider(
                                         context = context,
                                         config = ComfyUiConfig(generationSettings.comfyUiBaseUrl),
                                         workflowTemplateJson = generationSettings.workflowJson
                                     )
-                                    val newScenes = provider.generate(
-                                        request = GenerationRequest(
-                                            sourcePhoto = photoUri,
-                                            scenario = scenario,
-                                            chapterIndexes = targetIndexes,
-                                            seed = generationSeed
-                                        ),
+                                    val outcome = aiOrchestrator.generate(
+                                        provider = provider,
+                                        sourcePhoto = photoUri,
+                                        scenario = scenario,
+                                        timelineKey = timelineKey,
+                                        targetIndexes = targetIndexes,
+                                        resetSeed = resetSeed,
                                         onProgress = { completed, total ->
                                             aiCompleted = completed
                                             aiTotal = total
                                         },
-                                        onSceneGenerated = { generated ->
-                                            aiChapterFailures =
-                                                aiChapterFailures - generated.chapterIndex
-                                            if (resetSeed) {
-                                                pendingResetDownloads += generated.imageUri
-                                            } else {
-                                                generatedScenes = withContext(Dispatchers.IO) {
-                                                    GenerationDownloadLifecycle.persistAndRelease(
-                                                        persist = {
-                                                            sceneStore.persist(
-                                                                timelineKey,
-                                                                listOf(generated)
-                                                            )
-                                                        },
-                                                        release = {
-                                                            GenerationDownloadCache.deleteIfOwned(
-                                                                context,
-                                                                generated.imageUri
-                                                            )
-                                                        }
-                                                    )
-                                                    sceneStore.load(timelineKey)
-                                                }
-                                            }
+                                        onScenesChanged = { scenes ->
+                                            generatedScenes = scenes
                                         },
                                         onChapterFailure = { chapterIndex, message ->
                                             aiChapterFailures =
                                                 aiChapterFailures + (chapterIndex to message)
                                         }
                                     )
-
-                                    val resultPolicy = decideAiGenerationResultPolicy(
-                                        resetSeed = resetSeed,
-                                        generatedSceneCount = newScenes.size,
-                                        requestedSceneCount = targetIndexes.size
-                                    )
-                                    if (resultPolicy.shouldCommitFreshVariation) {
-                                        generatedScenes = withContext(Dispatchers.IO) {
-                                            if (resetSeed) {
-                                                sceneStore.replaceBatchAtomically(
-                                                    timelineKey = timelineKey,
-                                                    scenes = newScenes,
-                                                    seed = generationSeed
-                                                )
-                                                pendingResetDownloads.forEach { uri ->
-                                                    GenerationDownloadCache.deleteIfOwned(
-                                                        context,
-                                                        uri
-                                                    )
-                                                }
-                                                pendingResetDownloads.clear()
-                                            }
-                                            sceneStore.load(timelineKey)
-                                        }
-                                    } else if (resultPolicy.shouldDiscardPendingFreshDownloads) {
-                                        withContext(Dispatchers.IO) {
-                                            pendingResetDownloads.forEach { uri ->
-                                                GenerationDownloadCache.deleteIfOwned(
-                                                    context,
-                                                    uri
-                                                )
-                                            }
-                                            pendingResetDownloads.clear()
-                                        }
-                                    }
+                                    aiChapterFailures = aiChapterFailures
+                                        .filterKeys { it in outcome.failedChapterIndexes }
 
                                     val expected = scenario.chapters.take(5).size
                                     val message = aiGenerationCompletionMessage(
                                         resetSeed = resetSeed,
                                         completeFreshVariation =
-                                            resultPolicy.shouldCommitFreshVariation,
-                                        readySceneCount = generatedScenes.size,
+                                            outcome.freshVariationCommitted,
+                                        readySceneCount = outcome.scenes.size,
                                         expectedSceneCount = expected,
-                                        failedChapterIndexes = aiChapterFailures.keys
+                                        failedChapterIndexes =
+                                            outcome.failedChapterIndexes
                                     )
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 } catch (cancelled: CancellationException) {
-                                    if (resetSeed && pendingResetDownloads.isNotEmpty()) {
-                                        withContext(kotlinx.coroutines.NonCancellable + Dispatchers.IO) {
-                                            pendingResetDownloads.forEach { uri ->
-                                                GenerationDownloadCache.deleteIfOwned(context, uri)
-                                            }
-                                            pendingResetDownloads.clear()
-                                        }
-                                    }
                                     throw cancelled
                                 } catch (error: Throwable) {
-                                    if (resetSeed && pendingResetDownloads.isNotEmpty()) {
-                                        withContext(Dispatchers.IO) {
-                                            pendingResetDownloads.forEach { uri ->
-                                                GenerationDownloadCache.deleteIfOwned(context, uri)
-                                            }
-                                            pendingResetDownloads.clear()
-                                        }
-                                    }
                                     Toast.makeText(
                                         context,
                                         "AI generation failed: " +
