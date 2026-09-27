@@ -69,6 +69,19 @@ class ComfyUiWorkflowTemplateTest {
     }
 
     @Test
+    fun premiumContinuityIssuesAreTypedAndOrdered() {
+        val issues = ComfyUiWorkflowTemplate.premiumContinuityIssues(validTemplate)
+
+        assertEquals(
+            listOf(
+                ComfyUiWorkflowTemplate.PremiumContinuityIssue.MISSING_SHARED_SEED,
+                ComfyUiWorkflowTemplate.PremiumContinuityIssue.MISSING_NEGATIVE_PROMPT
+            ),
+            issues
+        )
+    }
+
+    @Test
     fun premiumContinuityWarningsReportMissingSeedAndNegativePrompt() {
         val warnings = ComfyUiWorkflowTemplate.premiumContinuityWarnings(validTemplate)
 
