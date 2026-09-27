@@ -218,4 +218,6 @@
     <string name="settings_validation_unknown">La configuration IA est invalide.</string>
     <string name="settings_warning_ambiguous_output">Le workflow possède plusieurs nœuds de sortie image sans marqueur ALT OUTPUT ; ALT peut sélectionner la mauvaise branche.</string>
     <string name="reveal_ai_scene_badge">SCÈNE IA</string>
+    <string name="reveal_story_chapter_count">%1$d CHAPITRES</string>
+    <string name="reveal_story_ai_progress">%1$d/%2$d SCÈNES IA</string>
 </resources>
