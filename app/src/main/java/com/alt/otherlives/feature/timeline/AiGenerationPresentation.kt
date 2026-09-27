@@ -38,6 +38,7 @@ sealed interface AiGenerationButtonState {
 
     data object GenerateAll : AiGenerationButtonState
     data object GenerateMissing : AiGenerationButtonState
+    data object FreshVariationRequired : AiGenerationButtonState
     data object RegenerateAll : AiGenerationButtonState
 }
 
@@ -108,13 +109,17 @@ fun aiGenerationButtonState(
     completed: Int,
     total: Int,
     generatedSceneCount: Int,
-    expectedSceneCount: Int
+    expectedSceneCount: Int,
+    requiresFreshVariation: Boolean = false
 ): AiGenerationButtonState = when {
     isGenerating ->
         AiGenerationButtonState.Generating(
             completed = completed,
             total = total
         )
+
+    requiresFreshVariation ->
+        AiGenerationButtonState.FreshVariationRequired
 
     generatedSceneCount == 0 ->
         AiGenerationButtonState.GenerateAll
