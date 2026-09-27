@@ -510,17 +510,25 @@ fun RevealScreen(
                         }
                     }
 
+                    val generationPlan = planAiGeneration(
+                        chapterCount = scenario.chapters.take(5).size,
+                        generatedChapterIndexes =
+                            generatedScenes.map { it.chapterIndex }.toSet(),
+                        failedChapterIndexes = aiChapterFailures.keys
+                    )
+
                     Button(
                         onClick = {
                             if (!isGeneratingAi) {
-                                val expectedIndexes = scenario.chapters.take(5).indices.toSet()
-                                val existingIndexes = generatedScenes.map { it.chapterIndex }.toSet()
-                                val missingIndexes = expectedIndexes - existingIndexes
-                                if (generatedScenes.size >= expectedIndexes.size && expectedIndexes.isNotEmpty()) {
+                                if (generationPlan.requiresFullRegenerationConfirmation) {
                                     showRegenerateAllDialog = true
                                 } else {
                                     startGeneration(
-                                        if (missingIndexes.isNotEmpty()) missingIndexes else expectedIndexes,
+                                        if (generationPlan.missingIndexes.isNotEmpty()) {
+                                            generationPlan.missingIndexes
+                                        } else {
+                                            generationPlan.expectedIndexes
+                                        },
                                         false
                                     )
                                 }
@@ -538,16 +546,11 @@ fun RevealScreen(
                             fontWeight = FontWeight.Bold
                         )
                     }
-                    val existingChapterIndexes =
-                        generatedScenes.map { it.chapterIndex }.toSet()
-                    val retryableFailedIndexes = aiChapterFailures.keys
-                        .filterNot { it in existingChapterIndexes }
-                        .toSet()
-                    if (retryableFailedIndexes.isNotEmpty()) {
+                    if (generationPlan.retryableFailedIndexes.isNotEmpty()) {
                         TextButton(
                             onClick = {
                                 startGeneration(
-                                    retryableFailedIndexes,
+                                    generationPlan.retryableFailedIndexes,
                                     false
                                 )
                             },
@@ -561,7 +564,7 @@ fun RevealScreen(
                         ) {
                             Text(
                                 "Retry failed chapters " +
-                                    retryableFailedIndexes
+                                    generationPlan.retryableFailedIndexes
                                         .sorted()
                                         .joinToString(", ") { (it + 1).toString() }
                             )
