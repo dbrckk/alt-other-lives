@@ -134,7 +134,11 @@ object TimelineSceneRenderer {
                 textSize = 26f
             }
             canvas.drawText(
-                fitToWidth(scenario.title, scenarioPaint, 900f),
+                TextLineLayout.ellipsize(
+                    scenario.title,
+                    900f,
+                    scenarioPaint::measureText
+                ),
                 72f,
                 1810f,
                 scenarioPaint
@@ -459,58 +463,16 @@ object TimelineSceneRenderer {
         lineHeight: Float,
         maxLines: Int = Int.MAX_VALUE
     ): Float {
-        require(maxLines > 0) { "maxLines must be positive" }
-        val words = text.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
-        if (words.isEmpty()) return startY
-
         var y = startY
-        var line = ""
-        var lineCount = 0
-        var wordIndex = 0
-
-        while (wordIndex < words.size && lineCount < maxLines) {
-            val word = words[wordIndex]
-            val candidate = if (line.isEmpty()) word else "$line $word"
-            if (paint.measureText(candidate) <= maxWidth || line.isEmpty()) {
-                line = fitToWidth(candidate, paint, maxWidth)
-                wordIndex += 1
-            } else {
-                val hasMore = wordIndex < words.size
-                val output = if (lineCount == maxLines - 1 && hasMore) {
-                    fitToWidth("$line…", paint, maxWidth)
-                } else {
-                    line
-                }
-                canvas.drawText(output, x, y, paint)
-                y += lineHeight
-                lineCount += 1
-                line = ""
-            }
-        }
-
-        if (line.isNotEmpty() && lineCount < maxLines) {
-            val hasMore = wordIndex < words.size
-            val output = if (hasMore) {
-                fitToWidth("$line…", paint, maxWidth)
-            } else {
-                line
-            }
-            canvas.drawText(output, x, y, paint)
+        TextLineLayout.layout(
+            text = text,
+            maxWidth = maxWidth,
+            maxLines = maxLines,
+            measure = paint::measureText
+        ).forEach { line ->
+            canvas.drawText(line, x, y, paint)
             y += lineHeight
         }
         return y
-    }
-
-    private fun fitToWidth(
-        text: String,
-        paint: Paint,
-        maxWidth: Float
-    ): String {
-        if (paint.measureText(text) <= maxWidth) return text
-        var value = text
-        while (value.length > 1 && paint.measureText("$value…") > maxWidth) {
-            value = value.dropLast(1)
-        }
-        return if (value == text) value else "$value…"
     }
 }
