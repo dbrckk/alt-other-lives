@@ -2,6 +2,8 @@ package com.alt.otherlives.feature.timeline
 
 import android.net.Uri
 import android.os.Build
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -241,7 +243,8 @@ fun RevealScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 18.dp, vertical = 10.dp),
+                    .padding(horizontal = 18.dp, vertical = 10.dp)
+                    .animateContentSize(animationSpec = tween(durationMillis = 420)),
                 shape = RoundedCornerShape(30.dp),
                 colors = CardDefaults.cardColors(containerColor = AltCard)
             ) {
