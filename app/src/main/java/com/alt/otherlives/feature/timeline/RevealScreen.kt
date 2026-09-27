@@ -487,6 +487,14 @@ fun RevealScreen(
                                         failedChapterIndexes =
                                             outcome.failedChapterIndexes
                                     )
+                                    if (
+                                        outcome.failedChapterIndexes.isEmpty() &&
+                                        outcome.scenes.size >= expected
+                                    ) {
+                                        haptics.performHapticFeedback(
+                                            HapticFeedbackType.LongPress
+                                        )
+                                    }
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 } catch (cancelled: CancellationException) {
                                     throw cancelled
