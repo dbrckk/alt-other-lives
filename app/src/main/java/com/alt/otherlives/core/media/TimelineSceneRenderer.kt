@@ -133,7 +133,12 @@ object TimelineSceneRenderer {
                 color = Color.rgb(142, 137, 154)
                 textSize = 26f
             }
-            canvas.drawText(scenario.title, 72f, 1810f, scenarioPaint)
+            canvas.drawText(
+                fitToWidth(scenario.title, scenarioPaint, 900f),
+                72f,
+                1810f,
+                scenarioPaint
+            )
 
             val file = writeJpegAtomically(
                 context = context,
