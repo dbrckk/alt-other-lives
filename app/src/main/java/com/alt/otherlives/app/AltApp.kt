@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -67,9 +68,16 @@ fun AltApp() {
     ) {
         mutableStateOf(AltNavigationState())
     }
+    val configuration = LocalConfiguration.current
+    val appLanguage = configuration.locales[0].language
+    val scenarios = remember(appLanguage) {
+        ScenarioCatalog.forLanguage(appLanguage)
+    }
     var photoUri by remember { mutableStateOf<Uri?>(null) }
     var photoFileName by remember { mutableStateOf<String?>(null) }
-    var selectedScenario by remember { mutableStateOf(ScenarioCatalog.scenarios.first()) }
+    var selectedScenario by remember {
+        mutableStateOf(scenarios.first())
+    }
     var activeTimelineKey by remember { mutableStateOf<String?>(null) }
     var generationSettingsMessage by remember { mutableStateOf<String?>(null) }
     var isImportingPhoto by remember { mutableStateOf(false) }
@@ -84,6 +92,13 @@ fun AltApp() {
     var isClearingHistory by remember { mutableStateOf(false) }
     var isCreatingTimeline by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    LaunchedEffect(scenarios) {
+        selectedScenario = scenarios
+            .firstOrNull { it.id == selectedScenario.id }
+            ?: scenarios.first()
+    }
+
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
     val sourcePhotoStore = remember(context) { SourcePhotoStore(context.applicationContext) }
     val generationSettingsRepository = remember(context) {
@@ -133,7 +148,7 @@ fun AltApp() {
                 )
             ) {
                 StartupRestoreDecision.USE_CURRENT_HISTORY_CONTEXT -> {
-                    ScenarioCatalog.scenarios
+                    scenarios
                         .firstOrNull { it.id == latest.scenarioId }
                         ?.let { scenario ->
                             selectedScenario = scenario
@@ -151,7 +166,7 @@ fun AltApp() {
                     if (restoredHistoryPhoto != null) {
                         photoUri = restoredHistoryPhoto
                         photoFileName = latest.photoFileName
-                        ScenarioCatalog.scenarios
+                        scenarios
                             .firstOrNull { it.id == latest.scenarioId }
                             ?.let { scenario ->
                                 selectedScenario = scenario
@@ -275,7 +290,7 @@ fun AltApp() {
                         onHistory = { navigation = navigation.goTo(AltScreen.HISTORY) }
                     )
                     AltScreen.SCENARIOS -> ScenarioScreen(
-                        scenarios = ScenarioCatalog.scenarios,
+                        scenarios = scenarios,
                         onBack = {
                             if (!isCreatingTimeline) {
                                 navigation = navigation.goTo(AltScreen.HOME)
@@ -492,7 +507,7 @@ fun AltApp() {
                     )
                     AltScreen.HISTORY -> HistoryScreen(
                         entries = history,
-                        scenarios = ScenarioCatalog.scenarios,
+                        scenarios = scenarios,
                         onBack = { navigation = navigation.goTo(AltScreen.HOME) },
                         unavailablePhotoFileNames = unavailablePhotoFileNames,
                         photoUrisByFileName = historyPhotoUris,
