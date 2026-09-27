@@ -20,4 +20,11 @@
     <string name="home_step_photo">01 PHOTO</string>
     <string name="home_step_choice">02 CHOICE</string>
     <string name="home_step_reveal">03 REVEAL</string>
+    <string name="common_back">Back</string>
+    <string name="scenario_choose_path">CHOOSE YOUR PATH</string>
+    <string name="scenario_what_if">What if…</string>
+    <string name="scenario_creating_timeline">Creating timeline…</string>
+    <string name="scenario_pick_life">Pick the life you want to see unfold.</string>
+    <string name="scenario_chapter_story">%1$d CHAPTER STORY</string>
+    <string name="scenario_explore_life">Explore this life  →</string>
 </resources>
