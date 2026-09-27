@@ -61,4 +61,7 @@
     <string name="reveal_create_another">Create another ALT life  →</string>
     <string name="reveal_social_footer">Made for Reels • Shorts • Stories • 9:16 cinematic export</string>
     <string name="home_low_quality_source_warning">For sharper AI identity, use a portrait at least 720 px on the short edge.</string>
+    <string name="reveal_remix">Remix this ALT life</string>
+    <string name="reveal_remixing">Creating remix…</string>
+    <string name="reveal_remix_hint">Same photo. Same scenario. A fresh timeline and new AI variation.</string>
 </resources>
