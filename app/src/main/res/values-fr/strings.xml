@@ -64,4 +64,15 @@
     <string name="reveal_remix">Remixer cette vie ALT</string>
     <string name="reveal_remixing">Création du remix…</string>
     <string name="reveal_remix_hint">Même photo. Même scénario. Une nouvelle timeline et une nouvelle variation IA.</string>
+    <string name="history_compare_action">Comparer deux vies</string>
+    <string name="history_compare_cancel">Annuler la comparaison</string>
+    <string name="history_compare_progress">%1$d/2 sélectionnées</string>
+    <string name="history_compare_hint">Touchez deux vies enregistrées pour comparer leurs trajectoires.</string>
+    <string name="history_compare_selected">%1$d SÉLECTIONNÉE</string>
+    <string name="history_compare_selected_short">Sélectionnée</string>
+    <string name="history_compare_select">Sélectionner</string>
+    <string name="history_compare_title">Compare tes vies ALT</string>
+    <string name="history_compare_life_number">VIE %1$d</string>
+    <string name="history_compare_vs">VS</string>
+    <string name="history_compare_done">Terminé</string>
 </resources>
