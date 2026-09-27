@@ -75,4 +75,7 @@
     <string name="history_compare_life_number">VIE %1$d</string>
     <string name="history_compare_vs">VS</string>
     <string name="history_compare_done">Terminé</string>
+    <string name="history_compare_share">Partager la comparaison</string>
+    <string name="history_compare_preparing_share">Préparation de la comparaison…</string>
+    <string name="history_compare_share_failed">Impossible de partager la comparaison.</string>
 </resources>
