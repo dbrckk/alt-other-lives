@@ -1,11 +1,18 @@
 package com.alt.otherlives.feature.timeline
 
+import com.alt.otherlives.core.generation.GenerationChapterFailureKind
+
+data class RevealAiChapterFailure(
+    val message: String,
+    val kind: GenerationChapterFailureKind
+)
+
 data class RevealAiUiState(
     val isGenerating: Boolean = false,
     val isCancelling: Boolean = false,
     val completed: Int = 0,
     val total: Int = 0,
-    val chapterFailures: Map<Int, String> = emptyMap()
+    val chapterFailures: Map<Int, RevealAiChapterFailure> = emptyMap()
 ) {
     fun start(total: Int): RevealAiUiState {
         require(total >= 0) { "AI generation total must be non-negative" }
@@ -25,10 +32,18 @@ data class RevealAiUiState(
         return copy(completed = completed, total = total)
     }
 
-    fun failure(chapterIndex: Int, message: String): RevealAiUiState {
+    fun failure(
+        chapterIndex: Int,
+        message: String,
+        kind: GenerationChapterFailureKind
+    ): RevealAiUiState {
         require(chapterIndex >= 0) { "Chapter index must be non-negative" }
         require(message.isNotBlank()) { "Chapter failure message is required" }
-        return copy(chapterFailures = chapterFailures + (chapterIndex to message))
+        return copy(
+            chapterFailures = chapterFailures + (
+                chapterIndex to RevealAiChapterFailure(message, kind)
+            )
+        )
     }
 
     fun retainFailures(indexes: Set<Int>): RevealAiUiState =
