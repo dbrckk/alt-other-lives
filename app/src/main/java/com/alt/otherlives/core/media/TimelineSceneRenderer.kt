@@ -12,6 +12,7 @@ import android.graphics.Typeface
 import android.net.Uri
 import androidx.core.content.FileProvider
 import com.alt.otherlives.core.model.Scenario
+import com.alt.otherlives.R
 import java.io.File
 import java.io.FileOutputStream
 import java.util.UUID
@@ -81,7 +82,11 @@ object TimelineSceneRenderer {
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             }
             canvas.drawText(
-                "ALT • CHAPTER ${index + 1} OF ${scenario.chapters.take(5).size}",
+                context.getString(
+                    R.string.video_chapter_progress,
+                    index + 1,
+                    scenario.chapters.take(5).size
+                ),
                 72f,
                 900f,
                 eyebrow
@@ -204,7 +209,12 @@ object TimelineSceneRenderer {
             textSize = 30f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
-        canvas.drawText("ALT • YOUR OTHER LIFE", 72f, 960f, accent)
+        canvas.drawText(
+            context.getString(R.string.video_intro_header),
+            72f,
+            960f,
+            accent
+        )
 
         val title = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
@@ -243,7 +253,12 @@ object TimelineSceneRenderer {
             textSize = 30f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
-        canvas.drawText("One choice. Another life.", 72f, 1715f, hook)
+        canvas.drawText(
+            context.getString(R.string.reveal_one_choice),
+            72f,
+            1715f,
+            hook
+        )
 
         val file = writeJpegAtomically(
             context = context,
@@ -292,7 +307,7 @@ object TimelineSceneRenderer {
         }
         drawWrappedText(
             canvas = canvas,
-            text = "What would your other life look like?",
+            text = context.getString(R.string.video_outro_question),
             paint = body,
             x = 72f,
             startY = 980f,
@@ -305,7 +320,12 @@ object TimelineSceneRenderer {
             color = Color.rgb(142, 137, 154)
             textSize = 28f
         }
-        canvas.drawText("Made for sharing • 9:16 cinematic story", 72f, 1650f, subtle)
+        canvas.drawText(
+            context.getString(R.string.video_outro_footer),
+            72f,
+            1650f,
+            subtle
+        )
 
         val file = writeJpegAtomically(
             context = context,
