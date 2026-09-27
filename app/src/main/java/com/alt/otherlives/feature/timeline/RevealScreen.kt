@@ -656,31 +656,70 @@ fun RevealScreen(
                         )
                     }
                     if (aiUiState.isGenerating) {
-                        Spacer(Modifier.height(8.dp))
-                        TextButton(
-                            onClick = {
-                                if (!aiUiState.isCancelling) {
-                                    aiUiState = aiUiState.requestCancellation()
-                                    aiGenerationJob?.cancel()
-                                }
-                            },
-                            enabled = !aiUiState.isCancelling,
-                            modifier = Modifier.fillMaxWidth()
+                        Spacer(Modifier.height(12.dp))
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(containerColor = AltCard)
                         ) {
-                            Text(
-                                if (aiUiState.isCancelling) {
-                                    "Cancelling AI generation…"
-                                } else {
-                                    "Cancel AI generation"
+                            Column(Modifier.padding(18.dp)) {
+                                Text(
+                                    stringResource(R.string.reveal_generation_label),
+                                    color = AltAccent,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(Modifier.height(6.dp))
+                                Text(
+                                    stringResource(
+                                        R.string.reveal_generation_progress,
+                                        (aiUiState.completed + 1)
+                                            .coerceAtMost(aiUiState.total.coerceAtLeast(1)),
+                                        aiUiState.total.coerceAtLeast(1)
+                                    ),
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Spacer(Modifier.height(10.dp))
+                                LinearProgressIndicator(
+                                    progress = {
+                                        if (aiUiState.total == 0) {
+                                            0f
+                                        } else {
+                                            aiUiState.completed.toFloat() /
+                                                aiUiState.total.toFloat()
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                Spacer(Modifier.height(10.dp))
+                                Text(
+                                    stringResource(R.string.reveal_generation_identity_hint),
+                                    color = AltMuted,
+                                    fontSize = 12.sp,
+                                    lineHeight = 18.sp
+                                )
+                                Spacer(Modifier.height(6.dp))
+                                TextButton(
+                                    onClick = {
+                                        if (!aiUiState.isCancelling) {
+                                            aiUiState = aiUiState.requestCancellation()
+                                            aiGenerationJob?.cancel()
+                                        }
+                                    },
+                                    enabled = !aiUiState.isCancelling,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        if (aiUiState.isCancelling) {
+                                            stringResource(R.string.reveal_generation_cancelling)
+                                        } else {
+                                            stringResource(R.string.reveal_generation_cancel)
+                                        }
+                                    )
                                 }
-                            )
+                            }
                         }
-                        LinearProgressIndicator(
-                            progress = {
-                                if (aiUiState.total == 0) 0f else aiUiState.completed.toFloat() / aiUiState.total.toFloat()
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        )
                     }
                     Spacer(Modifier.height(12.dp))
                 } else {
