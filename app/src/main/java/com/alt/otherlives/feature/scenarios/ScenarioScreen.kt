@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -61,12 +62,19 @@ fun ScenarioScreen(
         }
         if (isCreatingTimeline) {
             Spacer(Modifier.height(10.dp))
-            Text(
-                stringResource(R.string.scenario_creating_timeline),
-                color = AltMuted,
-                fontSize = 13.sp,
+            Column(
                 modifier = Modifier.padding(horizontal = 24.dp)
-            )
+            ) {
+                Text(
+                    stringResource(R.string.scenario_creating_timeline),
+                    color = AltMuted,
+                    fontSize = 13.sp
+                )
+                Spacer(Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
         Spacer(Modifier.height(10.dp))
         Text(
