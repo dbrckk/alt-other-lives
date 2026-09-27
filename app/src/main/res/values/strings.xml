@@ -64,4 +64,15 @@
     <string name="reveal_remix">Remix this ALT life</string>
     <string name="reveal_remixing">Creating remix…</string>
     <string name="reveal_remix_hint">Same photo. Same scenario. A fresh timeline and new AI variation.</string>
+    <string name="history_compare_action">Compare two lives</string>
+    <string name="history_compare_cancel">Cancel comparison</string>
+    <string name="history_compare_progress">%1$d/2 selected</string>
+    <string name="history_compare_hint">Tap two saved lives to compare their paths.</string>
+    <string name="history_compare_selected">%1$d SELECTED</string>
+    <string name="history_compare_selected_short">Selected</string>
+    <string name="history_compare_select">Select</string>
+    <string name="history_compare_title">Compare your ALT lives</string>
+    <string name="history_compare_life_number">LIFE %1$d</string>
+    <string name="history_compare_vs">VS</string>
+    <string name="history_compare_done">Done</string>
 </resources>
