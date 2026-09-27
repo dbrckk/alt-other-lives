@@ -76,6 +76,7 @@ import com.alt.otherlives.core.generation.ComfyUiGenerationProvider
 import com.alt.otherlives.core.generation.GenerationSettings
 import com.alt.otherlives.core.generation.GeneratedScene
 import com.alt.otherlives.core.generation.GeneratedSceneStore
+import com.alt.otherlives.core.generation.GenerationChapterFailureKind
 import com.alt.otherlives.core.generation.AiGenerationReport
 import com.alt.otherlives.core.generation.AiGenerationReportReason
 import com.alt.otherlives.core.generation.AiGenerationReportStore
@@ -421,15 +422,23 @@ fun RevealScreen(
                                 fontSize = 12.sp
                             )
                         }
-                        if (index in aiUiState.chapterFailures) {
+                        aiUiState.chapterFailures[index]?.let { failure ->
                             Spacer(Modifier.height(10.dp))
                             Text(
-                                if (generated != null) {
-                                    stringResource(
-                                        R.string.reveal_variation_failed_existing
-                                    )
-                                } else {
-                                    stringResource(R.string.reveal_scene_failed_retry)
+                                when {
+                                    generated != null ->
+                                        stringResource(
+                                            R.string.reveal_variation_failed_existing
+                                        )
+                                    failure.kind ==
+                                        GenerationChapterFailureKind.QUALITY_REJECTED ->
+                                        stringResource(
+                                            R.string.reveal_scene_quality_rejected
+                                        )
+                                    else ->
+                                        stringResource(
+                                            R.string.reveal_scene_failed_retry
+                                        )
                                 },
                                 color = AltDimmed,
                                 fontSize = 12.sp
@@ -609,8 +618,12 @@ fun RevealScreen(
                                         onScenesChanged = { scenes ->
                                             generatedScenes = scenes
                                         },
-                                        onChapterFailure = { chapterIndex, message ->
-                                            aiUiState = aiUiState.failure(chapterIndex, message)
+                                        onChapterFailure = { chapterIndex, message, kind ->
+                                            aiUiState = aiUiState.failure(
+                                                chapterIndex,
+                                                message,
+                                                kind
+                                            )
                                         }
                                     )
                                     aiUiState = aiUiState.retainFailures(
@@ -698,7 +711,13 @@ fun RevealScreen(
                         chapterCount = scenario.chapters.take(5).size,
                         generatedChapterIndexes =
                             generatedScenes.map { it.chapterIndex }.toSet(),
-                        failedChapterIndexes = aiUiState.chapterFailures.keys
+                        failedChapterIndexes = aiUiState.chapterFailures.keys,
+                        nonRetryableFailedIndexes = aiUiState.chapterFailures
+                            .filterValues {
+                                it.kind ==
+                                    GenerationChapterFailureKind.QUALITY_REJECTED
+                            }
+                            .keys
                     )
 
                     Button(
