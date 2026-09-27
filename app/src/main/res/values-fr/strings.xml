@@ -14,4 +14,10 @@
     <string name="home_view_history">Voir mes autres vies</string>
     <string name="home_photo_action_choose">Choisir une photo</string>
     <string name="home_photo_action_change">Changer la photo sélectionnée</string>
+    <string name="home_brand_descriptor">HISTOIRES IA CINÉMATIQUES</string>
+    <string name="home_photo_ready">PHOTO PRÊTE</string>
+    <string name="home_photo_prompt">Utilise un portrait net pour créer une vie alternative plus convaincante.</string>
+    <string name="home_step_photo">01 PHOTO</string>
+    <string name="home_step_choice">02 CHOIX</string>
+    <string name="home_step_reveal">03 RÉVÉLATION</string>
 </resources>
