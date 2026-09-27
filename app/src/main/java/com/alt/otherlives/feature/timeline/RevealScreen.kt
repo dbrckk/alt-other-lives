@@ -638,7 +638,8 @@ fun RevealScreen(
                                         readySceneCount = outcome.scenes.size,
                                         expectedSceneCount = expected,
                                         failedChapterIndexes =
-                                            outcome.failedChapterIndexes
+                                            outcome.failedChapterIndexes,
+                                        failureKinds = outcome.failureKinds
                                     )
                                     val message = when (completionState) {
                                         is AiGenerationCompletionState.FreshVariationIncomplete -> {
@@ -660,19 +661,39 @@ fun RevealScreen(
                                         is AiGenerationCompletionState.Partial -> {
                                             val retry = completionState.retryChapterNumbers
                                                 .joinToString(", ")
-                                            if (retry.isBlank()) {
-                                                context.getString(
-                                                    R.string.reveal_completion_partial,
-                                                    completionState.readySceneCount,
-                                                    completionState.expectedSceneCount
-                                                )
-                                            } else {
-                                                context.getString(
-                                                    R.string.reveal_completion_partial_retry,
-                                                    completionState.readySceneCount,
-                                                    completionState.expectedSceneCount,
-                                                    retry
-                                                )
+                                            val newVariation =
+                                                completionState.newVariationChapterNumbers
+                                                    .joinToString(", ")
+                                            when {
+                                                retry.isNotBlank() &&
+                                                    newVariation.isNotBlank() ->
+                                                    context.getString(
+                                                        R.string.reveal_completion_partial_mixed,
+                                                        completionState.readySceneCount,
+                                                        completionState.expectedSceneCount,
+                                                        retry,
+                                                        newVariation
+                                                    )
+                                                newVariation.isNotBlank() ->
+                                                    context.getString(
+                                                        R.string.reveal_completion_partial_quality,
+                                                        completionState.readySceneCount,
+                                                        completionState.expectedSceneCount,
+                                                        newVariation
+                                                    )
+                                                retry.isNotBlank() ->
+                                                    context.getString(
+                                                        R.string.reveal_completion_partial_retry,
+                                                        completionState.readySceneCount,
+                                                        completionState.expectedSceneCount,
+                                                        retry
+                                                    )
+                                                else ->
+                                                    context.getString(
+                                                        R.string.reveal_completion_partial,
+                                                        completionState.readySceneCount,
+                                                        completionState.expectedSceneCount
+                                                    )
                                             }
                                         }
                                     }
