@@ -4,6 +4,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 object ComfyUiWorkflowTemplate {
+    enum class PremiumContinuityIssue {
+        MISSING_SHARED_SEED,
+        MISSING_NEGATIVE_PROMPT
+    }
+
     private const val PREFERRED_OUTPUT_TITLE = "ALT OUTPUT"
     fun validateTemplate(templateJson: String) {
         require(templateJson.isNotBlank()) { "Workflow JSON is required" }
@@ -74,18 +79,30 @@ object ComfyUiWorkflowTemplate {
         return root
     }
 
-    fun premiumContinuityWarnings(templateJson: String): List<String> {
+    fun premiumContinuityIssues(
+        templateJson: String
+    ): List<PremiumContinuityIssue> {
         validateTemplate(templateJson)
         val root = JSONObject(templateJson)
         return buildList {
             if (!containsExactPlaceholderValue(root, ComfyUiWorkflow.PLACEHOLDER_SEED)) {
-                add("Workflow does not use ALT's shared seed; chapter-to-chapter visual continuity may drift.")
+                add(PremiumContinuityIssue.MISSING_SHARED_SEED)
             }
             if (!containsExactPlaceholderValue(root, ComfyUiWorkflow.PLACEHOLDER_NEGATIVE_PROMPT)) {
-                add("Workflow does not use ALT's negative prompt; identity drift suppression is reduced.")
+                add(PremiumContinuityIssue.MISSING_NEGATIVE_PROMPT)
             }
         }
     }
+
+    fun premiumContinuityWarnings(templateJson: String): List<String> =
+        premiumContinuityIssues(templateJson).map { issue ->
+            when (issue) {
+                PremiumContinuityIssue.MISSING_SHARED_SEED ->
+                    "Workflow does not use ALT's shared seed; chapter-to-chapter visual continuity may drift."
+                PremiumContinuityIssue.MISSING_NEGATIVE_PROMPT ->
+                    "Workflow does not use ALT's negative prompt; identity drift suppression is reduced."
+            }
+        }
 
     fun preferredOutputNodeId(workflow: JSONObject): String? =
         workflow.keys()
