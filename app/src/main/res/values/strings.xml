@@ -222,4 +222,5 @@
     <string name="reveal_story_ai_progress">%1$d/%2$d AI SCENES</string>
     <string name="home_source_premium">SOURCE READY</string>
     <string name="home_source_low_quality">SOURCE COULD BE SHARPER</string>
+    <string name="home_source_low_quality_hint">For stronger identity continuity, use a portrait at least 720 px on the short edge.</string>
 </resources>
