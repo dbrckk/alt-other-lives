@@ -3,10 +3,19 @@ package com.alt.otherlives.core.media
 internal object ImageBoundsValidation {
     const val MAX_DIMENSION = 32_768
     const val MAX_PIXELS = 300_000_000L
+    const val PREMIUM_MIN_SHORT_EDGE = 720
+    const val PREMIUM_MIN_PIXELS = 1_000_000L
 
     fun isReasonable(width: Int, height: Int): Boolean {
         if (width <= 0 || height <= 0) return false
         if (width > MAX_DIMENSION || height > MAX_DIMENSION) return false
         return width.toLong() * height.toLong() <= MAX_PIXELS
+    }
+
+    fun isLikelyPremiumSource(width: Int, height: Int): Boolean {
+        if (!isReasonable(width, height)) return false
+        val shortEdge = minOf(width, height)
+        val pixels = width.toLong() * height.toLong()
+        return shortEdge >= PREMIUM_MIN_SHORT_EDGE && pixels >= PREMIUM_MIN_PIXELS
     }
 }
