@@ -1,5 +1,6 @@
 package com.alt.otherlives.feature.timeline
 
+import com.alt.otherlives.core.generation.GenerationChapterFailureKind
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -13,7 +14,12 @@ class RevealAiUiStateTest {
             isCancelling = true,
             completed = 3,
             total = 5,
-            chapterFailures = mapOf(2 to "failed")
+            chapterFailures = mapOf(
+                2 to RevealAiChapterFailure(
+                    "failed",
+                    GenerationChapterFailureKind.OTHER
+                )
+            )
         ).start(total = 4)
 
         assertTrue(state.isGenerating)
@@ -26,11 +32,27 @@ class RevealAiUiStateTest {
     @Test
     fun failureAndRetentionKeepOnlyRelevantChapters() {
         val state = RevealAiUiState()
-            .failure(1, "one")
-            .failure(3, "three")
+            .failure(
+                1,
+                "one",
+                GenerationChapterFailureKind.OTHER
+            )
+            .failure(
+                3,
+                "three",
+                GenerationChapterFailureKind.QUALITY_REJECTED
+            )
             .retainFailures(setOf(3))
 
-        assertEquals(mapOf(3 to "three"), state.chapterFailures)
+        assertEquals(
+            mapOf(
+                3 to RevealAiChapterFailure(
+                    "three",
+                    GenerationChapterFailureKind.QUALITY_REJECTED
+                )
+            ),
+            state.chapterFailures
+        )
     }
 
     @Test
@@ -40,13 +62,26 @@ class RevealAiUiStateTest {
             isCancelling = true,
             completed = 4,
             total = 5,
-            chapterFailures = mapOf(4 to "failed")
+            chapterFailures = mapOf(
+                4 to RevealAiChapterFailure(
+                    "failed",
+                    GenerationChapterFailureKind.OTHER
+                )
+            )
         ).finish()
 
         assertFalse(state.isGenerating)
         assertFalse(state.isCancelling)
         assertEquals(4, state.completed)
         assertEquals(5, state.total)
-        assertEquals(mapOf(4 to "failed"), state.chapterFailures)
+        assertEquals(
+            mapOf(
+                4 to RevealAiChapterFailure(
+                    "failed",
+                    GenerationChapterFailureKind.OTHER
+                )
+            ),
+            state.chapterFailures
+        )
     }
 }
