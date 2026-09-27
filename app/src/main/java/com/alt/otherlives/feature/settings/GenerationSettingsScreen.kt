@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.alt.otherlives.core.designsystem.AltMuted
@@ -26,6 +27,7 @@ import com.alt.otherlives.core.designsystem.AltBackButton
 import com.alt.otherlives.core.generation.ComfyUiWorkflowTemplate
 import com.alt.otherlives.core.generation.GenerationSettings
 import com.alt.otherlives.core.generation.GenerationSettingsValidation
+import com.alt.otherlives.R
 
 @Composable
 fun GenerationSettingsScreen(
@@ -62,18 +64,20 @@ fun GenerationSettingsScreen(
             .padding(24.dp)
     ) {
         AltBackButton(onClick = onBack)
-        Text("Advanced AI setup", fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.settings_title), fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(6.dp))
         Text(
-            "Developer setup for a custom ComfyUI endpoint. Most users should not need to change this once ALT has a managed backend.",
+            stringResource(R.string.settings_intro),
             color = AltMuted
         )
         Spacer(Modifier.height(20.dp))
 
         if (settings.hasPersistedValues && !settings.isConfigured) {
             Text(
-                "Saved AI settings need attention" +
-                    (settings.validationError?.let { ": " + it } ?: ""),
+                stringResource(
+                    R.string.settings_attention,
+                    settings.validationError?.let { ": $it" } ?: ""
+                ),
                 color = AltMuted
             )
             Spacer(Modifier.height(12.dp))
@@ -86,8 +90,8 @@ fun GenerationSettingsScreen(
                     baseUrl = it
                 }
             },
-            label = { Text("ComfyUI base URL") },
-            placeholder = { Text("https://your-comfyui.example") },
+            label = { Text(stringResource(R.string.settings_base_url)) },
+            placeholder = { Text(stringResource(R.string.settings_base_url_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -99,13 +103,14 @@ fun GenerationSettingsScreen(
                     workflow = it
                 }
             },
-            label = { Text("Workflow API JSON") },
+            label = { Text(stringResource(R.string.settings_workflow_json)) },
             supportingText = {
                 Text(
-                    "Required: __ALT_SOURCE_IMAGE__ and __ALT_PROMPT__. " +
-                        "For best identity continuity, also use __ALT_NEGATIVE_PROMPT__ and __ALT_SEED__. " +
-                        "For workflows with multiple image outputs, name the preferred node ALT OUTPUT. " +
-                        "${workflow.length}/${GenerationSettingsValidation.MAX_WORKFLOW_CHARS} chars"
+                    stringResource(
+                        R.string.settings_workflow_help,
+                        workflow.length,
+                        GenerationSettingsValidation.MAX_WORKFLOW_CHARS
+                    )
                 )
             },
             modifier = Modifier.fillMaxWidth(),
@@ -113,13 +118,19 @@ fun GenerationSettingsScreen(
         )
         if (continuityWarnings.isNotEmpty()) {
             Text(
-                "Identity continuity quality check",
+                stringResource(R.string.settings_continuity_check),
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(6.dp))
             continuityWarnings.forEach { warning ->
                 Text(
-                    "• $warning",
+                    "• " + when {
+                        warning.contains("shared seed") ->
+                            stringResource(R.string.settings_warning_seed)
+                        warning.contains("negative prompt") ->
+                            stringResource(R.string.settings_warning_negative)
+                        else -> warning
+                    },
                     color = AltMuted
                 )
                 Spacer(Modifier.height(4.dp))
@@ -137,14 +148,14 @@ fun GenerationSettingsScreen(
                 onCheckedChange = { remotePhotoUploadConsent = it }
             )
             Text(
-                "I understand that AI generation uploads my selected source photo to the configured remote ComfyUI server.",
+                stringResource(R.string.settings_upload_consent),
                 modifier = Modifier.padding(start = 8.dp),
                 color = AltMuted
             )
         }
         Spacer(Modifier.height(8.dp))
         Text(
-            "ALT keeps the original photo on-device unless you enable remote AI generation. The remote server is controlled by whoever operates the URL above.",
+            stringResource(R.string.settings_privacy_note),
             color = AltMuted
         )
         Spacer(Modifier.height(18.dp))
@@ -157,7 +168,13 @@ fun GenerationSettingsScreen(
                 !isClearingSettings,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(if (isSavingSettings) "Saving settings…" else "Save ComfyUI settings")
+            Text(
+                if (isSavingSettings) {
+                    stringResource(R.string.settings_saving)
+                } else {
+                    stringResource(R.string.settings_save)
+                }
+            )
         }
 
         Spacer(Modifier.height(10.dp))
@@ -168,7 +185,15 @@ fun GenerationSettingsScreen(
                 !isSavingSettings &&
                 !isClearingSettings,
             modifier = Modifier.fillMaxWidth()
-        ) { Text(if (isTestingConnection) "Testing connection…" else "Test connection") }
+        ) {
+            Text(
+                if (isTestingConnection) {
+                    stringResource(R.string.settings_testing)
+                } else {
+                    stringResource(R.string.settings_test)
+                }
+            )
+        }
 
         statusMessage?.let {
             Spacer(Modifier.height(10.dp))
@@ -182,7 +207,13 @@ fun GenerationSettingsScreen(
                 enabled = !isTestingConnection && !isSavingSettings && !isClearingSettings,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(if (isClearingSettings) "Clearing settings…" else "Clear AI settings")
+                Text(
+                    if (isClearingSettings) {
+                        stringResource(R.string.settings_clearing)
+                    } else {
+                        stringResource(R.string.settings_clear)
+                    }
+                )
             }
         }
     }
