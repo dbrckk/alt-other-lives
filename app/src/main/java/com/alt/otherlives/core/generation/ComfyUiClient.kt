@@ -251,6 +251,13 @@ class ComfyUiClient(
                         (index + 1)
                 )
             }
+            if (!ImageBoundsValidation.isUsableGeneratedScene(bounds.outWidth, bounds.outHeight)) {
+                error(
+                    "ComfyUI output is below ALT's minimum scene quality for chapter " +
+                        (index + 1) +
+                        " (" + bounds.outWidth + "x" + bounds.outHeight + ")"
+                )
+            }
 
             FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
         } catch (error: Throwable) {
