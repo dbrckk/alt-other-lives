@@ -75,6 +75,7 @@ fun AltApp() {
     }
     var photoUri by remember { mutableStateOf<Uri?>(null) }
     var photoFileName by remember { mutableStateOf<String?>(null) }
+    var photoIsLikelyPremiumSource by remember { mutableStateOf<Boolean?>(null) }
     var selectedScenario by remember {
         mutableStateOf(scenarios.first())
     }
@@ -133,6 +134,7 @@ fun AltApp() {
         latestStoredPhoto?.let { stored ->
             photoUri = stored.uri
             photoFileName = stored.fileName
+            photoIsLikelyPremiumSource = stored.isLikelyPremiumSource
         }
 
         val startupHistory = runCatching {
@@ -166,6 +168,11 @@ fun AltApp() {
                     if (restoredHistoryPhoto != null) {
                         photoUri = restoredHistoryPhoto
                         photoFileName = latest.photoFileName
+                        photoIsLikelyPremiumSource = withContext(Dispatchers.IO) {
+                            sourcePhotoStore.isLikelyPremiumSource(
+                                requireNotNull(latest.photoFileName)
+                            )
+                        }
                         scenarios
                             .firstOrNull { it.id == latest.scenarioId }
                             ?.let { scenario ->
@@ -233,6 +240,7 @@ fun AltApp() {
                 when (current) {
                     AltScreen.HOME -> HomeScreen(
                         photoUri = photoUri,
+                        photoIsLikelyPremiumSource = photoIsLikelyPremiumSource,
                         isImportingPhoto = isImportingPhoto,
                         onPhotoSelected = { selectedUri ->
                             if (!isImportingPhoto) {
@@ -248,6 +256,8 @@ fun AltApp() {
                                         imported.onSuccess { stored ->
                                             photoUri = stored.uri
                                             photoFileName = stored.fileName
+                                            photoIsLikelyPremiumSource =
+                                                stored.isLikelyPremiumSource
                                             activeTimelineKey = null
 
                                             if (!stored.isLikelyPremiumSource) {
@@ -587,6 +597,7 @@ fun AltApp() {
                                                 if (photoFileName == deletedPhotoFileName) {
                                                     photoUri = null
                                                     photoFileName = null
+                                                    photoIsLikelyPremiumSource = null
                                                 }
                                             }
                                         }
@@ -644,6 +655,7 @@ fun AltApp() {
                                     cleared.onSuccess {
                                         photoUri = null
                                         photoFileName = null
+                                        photoIsLikelyPremiumSource = null
                                         activeTimelineKey = null
                                         historyPhotoUris = emptyMap()
                                         historyGeneratedPreviewUris = emptyMap()
