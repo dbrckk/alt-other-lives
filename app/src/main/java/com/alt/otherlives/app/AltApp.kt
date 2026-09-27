@@ -5,7 +5,10 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -194,7 +197,21 @@ fun AltApp() {
         Surface(modifier = Modifier.fillMaxSize(), color = AltBackground) {
             AnimatedContent(
                 targetState = navigation.screen,
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                transitionSpec = {
+                    (
+                        fadeIn(animationSpec = tween(280)) +
+                            scaleIn(
+                                initialScale = 0.985f,
+                                animationSpec = tween(320)
+                            )
+                        ) togetherWith (
+                        fadeOut(animationSpec = tween(180)) +
+                            scaleOut(
+                                targetScale = 1.01f,
+                                animationSpec = tween(180)
+                            )
+                        )
+                },
                 label = "screen"
             ) { current ->
                 when (current) {
