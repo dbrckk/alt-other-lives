@@ -326,19 +326,39 @@ object ShareCardRenderer {
             Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(20, 18, 26) }
         )
 
-        visualUri?.let { uri ->
-            val source = BitmapLoader.decodeSampled(context, uri, WIDTH, bottom - top)
-            if (source != null) {
-                try {
-                    drawCover(
-                        canvas,
-                        source,
-                        Rect(48, top, WIDTH - 48, bottom)
-                    )
-                } finally {
-                    source.recycle()
-                }
+        val source = BitmapLoader.decodeFirstAvailable(
+            context = context,
+            uris = listOf(visualUri),
+            targetWidth = WIDTH,
+            targetHeight = bottom - top
+        )
+        if (source != null) {
+            try {
+                drawCover(
+                    canvas,
+                    source,
+                    Rect(48, top, WIDTH - 48, bottom)
+                )
+            } finally {
+                source.recycle()
             }
+        } else {
+            val fallbackInitial = scenario.title
+                .firstOrNull()
+                ?.uppercase()
+                ?: "ALT"
+            val fallbackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.argb(72, 183, 167, 255)
+                textSize = 170f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                textAlign = Paint.Align.CENTER
+            }
+            canvas.drawText(
+                fallbackInitial,
+                WIDTH / 2f,
+                top + (bottom - top) * 0.50f,
+                fallbackPaint
+            )
         }
 
         val overlay = Paint().apply {
