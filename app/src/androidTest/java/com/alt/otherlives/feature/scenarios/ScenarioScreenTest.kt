@@ -31,6 +31,8 @@ class ScenarioScreenTest {
 
         composeRule.onNodeWithText("What if…")
             .assertIsDisplayed()
+        composeRule.onNodeWithText("2026  →  2036")
+            .assertIsDisplayed()
         composeRule.onNodeWithText("What if I became wealthy?")
             .assertIsDisplayed()
             .performClick()
