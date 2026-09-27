@@ -423,9 +423,12 @@ fun RevealScreen(
                                         }
                                     )
 
-                                    val completeFreshVariation =
-                                        !resetSeed || newScenes.size == targetIndexes.size
-                                    if (completeFreshVariation) {
+                                    val resultPolicy = decideAiGenerationResultPolicy(
+                                        resetSeed = resetSeed,
+                                        generatedSceneCount = newScenes.size,
+                                        requestedSceneCount = targetIndexes.size
+                                    )
+                                    if (resultPolicy.shouldCommitFreshVariation) {
                                         generatedScenes = withContext(Dispatchers.IO) {
                                             if (resetSeed) {
                                                 sceneStore.replaceBatchAtomically(
@@ -443,7 +446,7 @@ fun RevealScreen(
                                             }
                                             sceneStore.load(timelineKey)
                                         }
-                                    } else if (resetSeed) {
+                                    } else if (resultPolicy.shouldDiscardPendingFreshDownloads) {
                                         withContext(Dispatchers.IO) {
                                             pendingResetDownloads.forEach { uri ->
                                                 GenerationDownloadCache.deleteIfOwned(
@@ -458,7 +461,8 @@ fun RevealScreen(
                                     val expected = scenario.chapters.take(5).size
                                     val message = aiGenerationCompletionMessage(
                                         resetSeed = resetSeed,
-                                        completeFreshVariation = completeFreshVariation,
+                                        completeFreshVariation =
+                                            resultPolicy.shouldCommitFreshVariation,
                                         readySceneCount = generatedScenes.size,
                                         expectedSceneCount = expected,
                                         failedChapterIndexes = aiChapterFailures.keys
