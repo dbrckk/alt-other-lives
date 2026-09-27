@@ -160,4 +160,27 @@
     <string name="settings_test">Test connection</string>
     <string name="settings_clearing">Clearing settings…</string>
     <string name="settings_clear">Clear AI settings</string>
+    <string name="reveal_restore_failed">Could not restore saved AI scenes: %1$s</string>
+    <string name="reveal_hero_content_description">Hero image for %1$s</string>
+    <string name="reveal_restoring_scenes">Restoring saved ALT scenes…</string>
+    <string name="reveal_generated_scene_content_description">Generated scene for %1$s</string>
+    <string name="reveal_variation_failed_existing">New AI variation failed • existing scene kept</string>
+    <string name="reveal_scene_failed_retry">AI scene failed • retry available</string>
+    <string name="reveal_flag_action">Flag unsafe AI generation</string>
+    <string name="reveal_flag_note">Flags are stored locally for now and do not include your photo or generated images.</string>
+    <string name="reveal_flag_title">Flag this AI generation</string>
+    <string name="reveal_flag_body">Choose the reason. ALT stores only the timeline ID, scenario, reason and time.</string>
+    <string name="reveal_flag_reason_sexual">Sexual or nude content</string>
+    <string name="reveal_flag_reason_violence">Violence or graphic content</string>
+    <string name="reveal_flag_reason_hate">Hate or harassment</string>
+    <string name="reveal_flag_reason_other">Other unsafe content</string>
+    <string name="reveal_flag_saved">Flag saved locally</string>
+    <string name="reveal_flag_save_failed">Could not save flag: %1$s</string>
+    <string name="reveal_flag_saving">Saving…</string>
+    <string name="reveal_flag_save">Save flag</string>
+    <string name="reveal_ai_generation_failed">AI generation failed: %1$s</string>
+    <string name="reveal_share_image_failed">Could not share image: %1$s</string>
+    <string name="reveal_create_share_failed">Could not create share image: %1$s</string>
+    <string name="reveal_image_saved">Saved to Pictures/ALT</string>
+    <string name="reveal_image_save_failed">Could not save image: %1$s</string>
 </resources>
