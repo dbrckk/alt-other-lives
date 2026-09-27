@@ -20,6 +20,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -40,6 +42,7 @@ fun ScenarioScreen(
     onSelect: (Scenario) -> Unit,
     isCreatingTimeline: Boolean = false
 ) {
+    val haptics = LocalHapticFeedback.current
     Column(modifier = Modifier.fillMaxSize().padding(top = 42.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
@@ -86,7 +89,10 @@ fun ScenarioScreen(
                         .clickable(
                             enabled = !isCreatingTimeline,
                             role = Role.Button,
-                            onClick = { onSelect(scenario) }
+                            onClick = {
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onSelect(scenario)
+                            }
                         ),
                     shape = RoundedCornerShape(28.dp),
                     colors = CardDefaults.cardColors(containerColor = AltCard)
