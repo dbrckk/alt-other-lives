@@ -15,6 +15,14 @@ data class GeneratedScene(
     val imageUri: Uri
 )
 
+enum class GenerationChapterFailureKind {
+    QUALITY_REJECTED,
+    OTHER
+}
+
+class GeneratedSceneQualityException(message: String) :
+    IllegalStateException(message)
+
 sealed interface GenerationState {
     data object Idle : GenerationState
     data class Running(val completed: Int, val total: Int) : GenerationState
@@ -30,6 +38,10 @@ interface GenerationProvider {
         request: GenerationRequest,
         onProgress: (completed: Int, total: Int) -> Unit = { _, _ -> },
         onSceneGenerated: suspend (GeneratedScene) -> Unit = {},
-        onChapterFailure: (chapterIndex: Int, message: String) -> Unit = { _, _ -> }
+        onChapterFailure: (
+            chapterIndex: Int,
+            message: String,
+            kind: GenerationChapterFailureKind
+        ) -> Unit = { _, _, _ -> }
     ): List<GeneratedScene>
 }
