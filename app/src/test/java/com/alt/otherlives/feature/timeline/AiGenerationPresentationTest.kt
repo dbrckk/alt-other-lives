@@ -1,5 +1,6 @@
 package com.alt.otherlives.feature.timeline
 
+import com.alt.otherlives.core.generation.GenerationChapterFailureKind
 import com.alt.otherlives.core.generation.GenerationSettings
 import com.alt.otherlives.core.generation.GenerationSettingsValidationIssue
 import org.junit.Assert.assertEquals
@@ -39,7 +40,32 @@ class AiGenerationPresentationTest {
             AiGenerationCompletionState.Partial(
                 readySceneCount = 3,
                 expectedSceneCount = 5,
-                retryChapterNumbers = listOf(2, 5)
+                retryChapterNumbers = listOf(2, 5),
+                newVariationChapterNumbers = emptyList()
+            ),
+            state
+        )
+    }
+
+    @Test
+    fun partialGenerationSeparatesQualityRejectionsFromRetries() {
+        val state = aiGenerationCompletionState(
+            resetSeed = false,
+            completeFreshVariation = true,
+            readySceneCount = 3,
+            expectedSceneCount = 5,
+            failedChapterIndexes = setOf(1, 4),
+            failureKinds = mapOf(
+                4 to GenerationChapterFailureKind.QUALITY_REJECTED
+            )
+        )
+
+        assertEquals(
+            AiGenerationCompletionState.Partial(
+                readySceneCount = 3,
+                expectedSceneCount = 5,
+                retryChapterNumbers = listOf(2),
+                newVariationChapterNumbers = listOf(5)
             ),
             state
         )
