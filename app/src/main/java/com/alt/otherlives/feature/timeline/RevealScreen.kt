@@ -45,6 +45,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -92,6 +94,7 @@ fun RevealScreen(
     isRemixingLife: Boolean = false
 ) {
     val context = LocalContext.current
+    val haptics = LocalHapticFeedback.current
     val sceneStore = remember(context) { GeneratedSceneStore(context.applicationContext) }
     val aiOrchestrator = remember(context, sceneStore) {
         AiGenerationOrchestrator(context.applicationContext, sceneStore)
@@ -984,7 +987,10 @@ fun RevealScreen(
                 }
                 Spacer(Modifier.height(18.dp))
                 Button(
-                    onClick = onRemixThisLife,
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onRemixThisLife()
+                    },
                     enabled = !isRemixingLife &&
                         !isLoadingStoredScenes &&
                         !isClearingAi &&
@@ -1014,7 +1020,10 @@ fun RevealScreen(
                 )
                 Spacer(Modifier.height(8.dp))
                 TextButton(
-                    onClick = onCreateAnotherLife,
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onCreateAnotherLife()
+                    },
                     enabled = !isRemixingLife &&
                         !isLoadingStoredScenes &&
                         !isClearingAi &&
