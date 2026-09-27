@@ -181,15 +181,41 @@ fun RevealScreen(
     LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 40.dp)) {
         item {
             Box(modifier = Modifier.fillMaxWidth().height(620.dp)) {
-                AsyncImage(
-                    model = revealHeroUri,
-                    contentDescription = stringResource(
-                        R.string.reveal_hero_content_description,
-                        scenario.title
-                    ),
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                if (revealHeroUri != null) {
+                    AsyncImage(
+                        model = revealHeroUri,
+                        contentDescription = stringResource(
+                            R.string.reveal_hero_content_description,
+                            scenario.title
+                        ),
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(
+                                        AltCard,
+                                        AltBackground
+                                    )
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            scenario.title
+                                .firstOrNull()
+                                ?.uppercase()
+                                ?: "ALT",
+                            color = AltAccent.copy(alpha = 0.32f),
+                            fontSize = 128.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
                 Box(
                     modifier = Modifier.fillMaxSize().background(
                         Brush.verticalGradient(
