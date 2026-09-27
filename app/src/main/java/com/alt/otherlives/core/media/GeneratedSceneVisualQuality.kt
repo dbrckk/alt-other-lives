@@ -24,13 +24,13 @@ internal object GeneratedSceneVisualQuality {
 
             if (alpha >= MIN_VISIBLE_ALPHA) {
                 visiblePixels += 1
+                if (red < minRed) minRed = red
+                if (red > maxRed) maxRed = red
+                if (green < minGreen) minGreen = green
+                if (green > maxGreen) maxGreen = green
+                if (blue < minBlue) minBlue = blue
+                if (blue > maxBlue) maxBlue = blue
             }
-            if (red < minRed) minRed = red
-            if (red > maxRed) maxRed = red
-            if (green < minGreen) minGreen = green
-            if (green > maxGreen) maxGreen = green
-            if (blue < minBlue) minBlue = blue
-            if (blue > maxBlue) maxBlue = blue
         }
 
         val visibleRatio = visiblePixels.toFloat() / pixels.size.toFloat()
