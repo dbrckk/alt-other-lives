@@ -1,5 +1,6 @@
 package com.alt.otherlives.feature.timeline
 
+import com.alt.otherlives.core.generation.GenerationChapterFailureKind
 import com.alt.otherlives.core.generation.GenerationSettings
 import com.alt.otherlives.core.generation.GenerationSettingsValidationIssue
 
@@ -13,7 +14,8 @@ sealed interface AiGenerationCompletionState {
     data class Partial(
         val readySceneCount: Int,
         val expectedSceneCount: Int,
-        val retryChapterNumbers: List<Int>
+        val retryChapterNumbers: List<Int>,
+        val newVariationChapterNumbers: List<Int>
     ) : AiGenerationCompletionState
 }
 
@@ -44,9 +46,22 @@ fun aiGenerationCompletionState(
     completeFreshVariation: Boolean,
     readySceneCount: Int,
     expectedSceneCount: Int,
-    failedChapterIndexes: Set<Int>
+    failedChapterIndexes: Set<Int>,
+    failureKinds: Map<Int, GenerationChapterFailureKind> = emptyMap()
 ): AiGenerationCompletionState {
     val failedChapterNumbers = failedChapterIndexes
+        .sorted()
+        .map { it + 1 }
+    val qualityRejectedIndexes = failureKinds
+        .filterValues {
+            it == GenerationChapterFailureKind.QUALITY_REJECTED
+        }
+        .keys
+        .intersect(failedChapterIndexes)
+    val retryChapterNumbers = (failedChapterIndexes - qualityRejectedIndexes)
+        .sorted()
+        .map { it + 1 }
+    val newVariationChapterNumbers = qualityRejectedIndexes
         .sorted()
         .map { it + 1 }
 
@@ -63,7 +78,8 @@ fun aiGenerationCompletionState(
             AiGenerationCompletionState.Partial(
                 readySceneCount = readySceneCount,
                 expectedSceneCount = expectedSceneCount,
-                retryChapterNumbers = failedChapterNumbers
+                retryChapterNumbers = retryChapterNumbers,
+                newVariationChapterNumbers = newVariationChapterNumbers
             )
     }
 }
