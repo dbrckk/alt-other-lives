@@ -36,9 +36,6 @@ object CinematicVideoExporter {
         WeakHashMap<Transformer, Boolean>()
     )
 
-    private const val INTRO_DURATION_MS = 1800L
-    private const val CHAPTER_DURATION_MS = 2200L
-    private const val OUTRO_DURATION_MS = 1600L
     private const val FRAME_RATE = 30
     private const val PENDING_MEDIA_EXPIRY_SECONDS = 24L * 60L * 60L
 
@@ -59,11 +56,11 @@ object CinematicVideoExporter {
         )
 
         val editedScenes = imageUris.mapIndexed { index, imageUri ->
-            val durationMs = when (index) {
-                0 -> INTRO_DURATION_MS
-                imageUris.lastIndex -> OUTRO_DURATION_MS
-                else -> CHAPTER_DURATION_MS
-            }
+            val durationMs = CinematicPacing.sceneDurationMs(
+                sceneIndex = index,
+                sceneCount = imageUris.size,
+                scenario = scenario
+            )
 
             val mediaItem = MediaItem.Builder()
                 .setUri(imageUri)
