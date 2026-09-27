@@ -2,6 +2,8 @@ package com.alt.otherlives.core.media
 
 internal object GeneratedSceneVisualQuality {
     private const val MIN_CHANNEL_RANGE = 12
+    private const val MIN_VISIBLE_RATIO = 0.85f
+    private const val MIN_VISIBLE_ALPHA = 16
 
     fun hasSufficientVariation(pixels: IntArray): Boolean {
         if (pixels.size < 16) return false
@@ -12,12 +14,17 @@ internal object GeneratedSceneVisualQuality {
         var maxGreen = 0
         var minBlue = 255
         var maxBlue = 0
+        var visiblePixels = 0
 
         pixels.forEach { color ->
+            val alpha = color ushr 24 and 0xFF
             val red = color ushr 16 and 0xFF
             val green = color ushr 8 and 0xFF
             val blue = color and 0xFF
 
+            if (alpha >= MIN_VISIBLE_ALPHA) {
+                visiblePixels += 1
+            }
             if (red < minRed) minRed = red
             if (red > maxRed) maxRed = red
             if (green < minGreen) minGreen = green
@@ -25,6 +32,9 @@ internal object GeneratedSceneVisualQuality {
             if (blue < minBlue) minBlue = blue
             if (blue > maxBlue) maxBlue = blue
         }
+
+        val visibleRatio = visiblePixels.toFloat() / pixels.size.toFloat()
+        if (visibleRatio < MIN_VISIBLE_RATIO) return false
 
         val widestRange = maxOf(
             maxRed - minRed,
