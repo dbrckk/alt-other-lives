@@ -48,4 +48,16 @@
     <string name="history_clear_title">Effacer l’historique local ?</string>
     <string name="history_clear_body">Cela supprime tes vies alternatives enregistrées sur cet appareil. Cette action est irréversible.</string>
     <string name="history_clear_action">Effacer</string>
+    <string name="reveal_alt_original_ai">ALT ORIGINAL • GÉNÉRÉ PAR IA</string>
+    <string name="reveal_alt_original">ALT ORIGINAL</string>
+    <string name="reveal_one_choice">Un choix. Une autre vie.</string>
+    <string name="reveal_chapter_number">CHAPITRE %1$d</string>
+    <string name="reveal_generate_chapter">Génère ce chapitre pour débloquer sa scène cinématique.</string>
+    <string name="reveal_preparing_share">Préparation de l’image…</string>
+    <string name="reveal_share_life">Partager ta vie ALT</string>
+    <string name="reveal_save_image">Enregistrer l’image 9:16</string>
+    <string name="reveal_create_video">Créer le MP4 cinématique</string>
+    <string name="reveal_share_video">Partager le MP4</string>
+    <string name="reveal_create_another">Créer une autre vie ALT  →</string>
+    <string name="reveal_social_footer">Pensé pour Reels • Shorts • Stories • export cinématique 9:16</string>
 </resources>
