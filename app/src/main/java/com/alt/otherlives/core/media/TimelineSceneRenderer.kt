@@ -36,7 +36,7 @@ object TimelineSceneRenderer {
 
     fun render(
         context: Context,
-        photoUris: List<Uri?>,
+        photoUri: Uri?,
         scenario: Scenario,
         chapterImages: Map<Int, Uri> = emptyMap()
     ): RenderedTimelineScenes {
@@ -182,7 +182,7 @@ object TimelineSceneRenderer {
 
     private fun renderIntro(
         context: Context,
-        photoUri: Uri?,
+        photoUris: List<Uri?>,
         scenario: Scenario,
         createdFiles: MutableList<File>
     ): Uri {
