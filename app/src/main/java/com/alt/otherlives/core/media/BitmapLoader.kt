@@ -6,6 +6,28 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 
 object BitmapLoader {
+    fun decodeFirstAvailable(
+        context: Context,
+        uris: Iterable<Uri?>,
+        targetWidth: Int,
+        targetHeight: Int
+    ): Bitmap? {
+        val seen = mutableSetOf<String>()
+        uris.forEach { uri ->
+            if (uri == null || !seen.add(uri.toString())) return@forEach
+            val decoded = runCatching {
+                decodeSampled(
+                    context = context,
+                    uri = uri,
+                    targetWidth = targetWidth,
+                    targetHeight = targetHeight
+                )
+            }.getOrNull()
+            if (decoded != null) return decoded
+        }
+        return null
+    }
+
     fun decodeSampled(
         context: Context,
         uri: Uri,
