@@ -393,34 +393,50 @@ fun HistoryScreen(
                         comparedEntries.forEachIndexed { index, entry ->
                             val scenario = scenarios.firstOrNull { it.id == entry.scenarioId }
                             if (scenario != null) {
+                                val previewUri =
+                                    generatedPreviewUrisByTimelineKey[entry.timelineKey]
+                                        ?: entry.photoFileName
+                                            ?.let { photoUrisByFileName[it] }
                                 Surface(
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(22.dp),
                                     color = AltCard
                                 ) {
-                                    Column(Modifier.padding(16.dp)) {
-                                        Text(
-                                            stringResource(
-                                                R.string.history_compare_life_number,
-                                                index + 1
-                                            ),
-                                            color = AltAccent,
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Spacer(Modifier.height(6.dp))
-                                        Text(
-                                            scenario.title,
-                                            fontSize = 18.sp,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
-                                        Spacer(Modifier.height(4.dp))
-                                        Text(
-                                            scenario.subtitle,
-                                            color = AltMuted,
-                                            fontSize = 12.sp,
-                                            lineHeight = 18.sp
-                                        )
+                                    Column {
+                                        if (previewUri != null) {
+                                            AsyncImage(
+                                                model = previewUri,
+                                                contentDescription = "Comparison preview for ${scenario.title}",
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(150.dp),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                        Column(Modifier.padding(16.dp)) {
+                                            Text(
+                                                stringResource(
+                                                    R.string.history_compare_life_number,
+                                                    index + 1
+                                                ),
+                                                color = AltAccent,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Spacer(Modifier.height(6.dp))
+                                            Text(
+                                                scenario.title,
+                                                fontSize = 18.sp,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                            Spacer(Modifier.height(4.dp))
+                                            Text(
+                                                scenario.subtitle,
+                                                color = AltMuted,
+                                                fontSize = 12.sp,
+                                                lineHeight = 18.sp
+                                            )
+                                        }
                                     }
                                 }
                                 if (index == 0) {
