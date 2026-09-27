@@ -186,7 +186,7 @@ fun HistoryScreen(
                         val entryKey = entry.scenarioId + ":" + entry.createdAt
                         val isDeleting = deletingEntryKey == entryKey
                         val isSelectedForCompare =
-                            isSelectedForCompare
+                            isCompareMode && timelineKey in compareSelection
                         val mediaStatus = when {
                             entry.photoFileName == null && hasAiPreview -> "AI preview"
                             entry.photoFileName == null -> "No original photo"
