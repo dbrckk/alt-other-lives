@@ -2,15 +2,15 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Continue premium cinematic polish after completing full EN/FR primary-flow localization, typed ComfyUI validation, tested export text budgets, and stricter generated-scene acceptance.",
-  "lastKnownBlocker": "No active blocker. Cumulative green runs validate localization through final Reveal/history states, shared export text layout and French catalog compatibility. Typed validation and the near-uniform generated-scene gate are still completing CI.",
-  "fixApplied": "ALT now separates localized display copy from canonical English AI prompts, shares one tested text-layout engine across social/video exports, rejects undersized/extreme-ratio/near-uniform AI outputs, and maps settings/continuity failures through typed localized issue codes.",
+  "currentTask": "Continue premium UX hardening after Reveal progress/fallback polish, persistent source-quality guidance, History preflight reuse, adaptive short-form video pacing, and stricter generated-scene acceptance.",
+  "lastKnownBlocker": "No confirmed active blocker. Reveal action hierarchy has passed unit/lint/debug/instrumentation compile and is finishing AAB; transparency, scenario-arc, Home accessibility and latest UI tests are still completing CI.",
+  "fixApplied": "Reveal now communicates AI readiness and handles missing visuals editorially; Home keeps source quality visible and scrollable; History avoids duplicate UI-thread photo validation; ComfyUI rejects undersized/extreme-ratio/near-uniform/mostly-transparent outputs and warns about ambiguous image outputs.",
   "next": [
-    "Verify cumulative CI for typed settings validation and near-uniform generated-scene rejection",
-    "Polish Compare/share-card composition and hierarchy without adding new growth mechanics",
-    "Improve cinematic MP4 pacing/transitions only where Media3 support remains reliable",
-    "Audit output selection/reference-conditioning signals available from ComfyUI workflows",
-    "Keep premium changes gated by unit tests, lint, APK, instrumentation compile and AAB build"
+    "Verify cumulative CI for Home accessibility, scenario narrative arc, transparency rejection and Reveal action hierarchy",
+    "Polish remaining cross-screen typography/spacing only where it improves readability",
+    "Audit generated output acceptance for objective corruption/artifact signals without subjective aesthetic scoring",
+    "Keep video pacing within the tested 12–16 second localized short-form budget",
+    "Keep all changes gated by unit tests, lint, debug APK, instrumentation compile and release AAB"
   ],
   "updated": "2026-09-27"
 }
