@@ -124,6 +124,23 @@ class AiGenerationPresentationTest {
     }
 
     @Test
+    fun qualityOnlyGapUsesFreshVariationButtonState() {
+        val state = aiGenerationButtonState(
+            isGenerating = false,
+            completed = 0,
+            total = 0,
+            generatedSceneCount = 4,
+            expectedSceneCount = 5,
+            requiresFreshVariation = true
+        )
+
+        assertEquals(
+            AiGenerationButtonState.FreshVariationRequired,
+            state
+        )
+    }
+
+    @Test
     fun generatingButtonStatePreservesProgress() {
         val state = aiGenerationButtonState(
             isGenerating = true,
