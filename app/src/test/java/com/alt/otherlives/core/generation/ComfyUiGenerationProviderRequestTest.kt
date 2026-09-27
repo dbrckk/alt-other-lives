@@ -1,10 +1,25 @@
 package com.alt.otherlives.core.generation
 
 import org.junit.Assert.assertEquals
+import com.alt.otherlives.core.data.ScenarioCatalog
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ComfyUiGenerationProviderRequestTest {
+    @Test
+    fun localizedScenarioUsesCanonicalEnglishPromptSource() {
+        val frenchScenario = ScenarioCatalog.forLanguage("fr")
+            .first { it.id == "japan" }
+
+        val canonical = ComfyUiGenerationProvider.canonicalPromptScenario(
+            frenchScenario
+        )
+
+        assertEquals("japan", canonical.id)
+        assertEquals("What if I moved to Japan?", canonical.title)
+        assertTrue(canonical.chapters.first().narrative.startsWith("You arrive"))
+    }
+
     @Test
     fun nullRequestSelectsEveryChapter() {
         assertEquals(
