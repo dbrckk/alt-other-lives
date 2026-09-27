@@ -16,6 +16,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
@@ -43,7 +45,24 @@ private const val HISTORY_PREVIEW_LIMIT = 16
 
 @Composable
 fun AltApp() {
-    var navigation by remember { mutableStateOf(AltNavigationState()) }
+    var navigation by rememberSaveable(
+        stateSaver = Saver(
+            save = { state ->
+                listOf(
+                    state.screen.name,
+                    state.settingsReturnScreen.name
+                )
+            },
+            restore = { saved ->
+                AltNavigationState.restore(
+                    screenName = saved.getOrNull(0),
+                    settingsReturnScreenName = saved.getOrNull(1)
+                )
+            }
+        )
+    ) {
+        mutableStateOf(AltNavigationState())
+    }
     var photoUri by remember { mutableStateOf<Uri?>(null) }
     var photoFileName by remember { mutableStateOf<String?>(null) }
     var selectedScenario by remember { mutableStateOf(ScenarioCatalog.scenarios.first()) }
