@@ -12,7 +12,8 @@ import com.alt.otherlives.core.media.ImageBoundsValidation
 
 data class StoredPhoto(
     val fileName: String,
-    val uri: Uri
+    val uri: Uri,
+    val isLikelyPremiumSource: Boolean
 )
 
 class SourcePhotoStore(private val context: Context) {
@@ -62,7 +63,14 @@ class SourcePhotoStore(private val context: Context) {
             throw error
         }
 
-        return StoredPhoto(fileName, uriFor(fileName))
+        return StoredPhoto(
+            fileName = fileName,
+            uri = uriFor(fileName),
+            isLikelyPremiumSource = ImageBoundsValidation.isLikelyPremiumSource(
+                bounds.outWidth,
+                bounds.outHeight
+            )
+        )
     }
 
     fun uriFor(fileName: String): Uri {
@@ -113,7 +121,16 @@ class SourcePhotoStore(private val context: Context) {
             if (!isValidImage(file)) {
                 file.delete()
             } else {
-                return StoredPhoto(file.name, uriFor(file.name))
+                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeFile(file.absolutePath, bounds)
+                return StoredPhoto(
+                    fileName = file.name,
+                    uri = uriFor(file.name),
+                    isLikelyPremiumSource = ImageBoundsValidation.isLikelyPremiumSource(
+                        bounds.outWidth,
+                        bounds.outHeight
+                    )
+                )
             }
         }
         return null
