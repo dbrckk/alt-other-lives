@@ -183,4 +183,18 @@
     <string name="reveal_create_share_failed">Could not create share image: %1$s</string>
     <string name="reveal_image_saved">Saved to Pictures/ALT</string>
     <string name="reveal_image_save_failed">Could not save image: %1$s</string>
+    <string name="reveal_completion_fresh_incomplete">New variation incomplete • previous timeline kept</string>
+    <string name="reveal_completion_fresh_incomplete_failed">New variation incomplete • previous timeline kept • failed chapters %1$s</string>
+    <string name="reveal_completion_ready">AI scenes ready</string>
+    <string name="reveal_completion_partial">Partial result: %1$d/%2$d scenes ready</string>
+    <string name="reveal_completion_partial_retry">Partial result: %1$d/%2$d scenes ready • retry chapters %3$s</string>
+    <string name="reveal_unavailable_missing_source">AI generation needs the original source photo. Saved generated scenes can still be viewed and exported.</string>
+    <string name="reveal_unavailable_invalid_settings">Saved AI settings need attention: %1$s</string>
+    <string name="reveal_unavailable_invalid_settings_generic">Saved AI settings need attention.</string>
+    <string name="reveal_unavailable_missing_consent">Remote AI generation is configured, but photo upload consent is not enabled.</string>
+    <string name="reveal_unavailable_not_configured">AI generation is not configured yet.</string>
+    <string name="reveal_button_generating">Generating AI scenes • %1$d/%2$d</string>
+    <string name="reveal_button_generate_all">Generate AI scenes</string>
+    <string name="reveal_button_generate_missing">Generate missing AI scenes</string>
+    <string name="reveal_button_regenerate_all">Regenerate all AI scenes</string>
 </resources>
