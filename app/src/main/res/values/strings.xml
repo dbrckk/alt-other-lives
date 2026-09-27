@@ -226,4 +226,5 @@
     <string name="reveal_scene_quality_rejected">AI scene rejected by quality checks • create a new variation</string>
     <string name="reveal_completion_partial_quality">Partial result: %1$d/%2$d scenes ready • new variation needed for chapters %3$s</string>
     <string name="reveal_completion_partial_mixed">Partial result: %1$d/%2$d scenes ready • retry chapters %3$s • new variation needed for %4$s</string>
+    <string name="reveal_button_new_variation">Create a new AI variation</string>
 </resources>
