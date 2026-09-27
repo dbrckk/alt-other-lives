@@ -18,6 +18,7 @@ data class GenerationSettings(
     val workflowJson: String = "",
     val isConfigured: Boolean = false,
     val validationError: String? = null,
+    val validationIssue: GenerationSettingsValidationIssue? = null,
     val remotePhotoUploadConsent: Boolean = false
 ) {
     val hasPersistedValues: Boolean
@@ -46,15 +47,17 @@ class GenerationSettingsRepository(private val context: Context) {
                 ComfyUiWorkflowTemplate.validateTemplate(workflowJson)
             }
             val hasPersistedValues = baseUrl.isNotBlank() || workflowJson.isNotBlank()
+            val validationError = if (hasPersistedValues) {
+                validation.exceptionOrNull()
+            } else {
+                null
+            }
             GenerationSettings(
                 comfyUiBaseUrl = baseUrl,
                 workflowJson = workflowJson,
                 isConfigured = hasPersistedValues && validation.isSuccess,
-                validationError = if (hasPersistedValues) {
-                    validation.exceptionOrNull()?.message
-                } else {
-                    null
-                },
+                validationError = validationError?.message,
+                validationIssue = GenerationSettingsValidation.classify(validationError),
                 remotePhotoUploadConsent = remotePhotoUploadConsent
             )
         }
