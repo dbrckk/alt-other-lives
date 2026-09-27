@@ -1,5 +1,6 @@
 package com.alt.otherlives.core.media
 
+import com.alt.otherlives.core.data.ScenarioCatalog
 import com.alt.otherlives.core.model.Scenario
 import com.alt.otherlives.core.model.TimelineChapter
 import org.junit.Assert.assertEquals
@@ -40,6 +41,24 @@ class CinematicPacingTest {
         assertTrue(long > short)
         assertTrue(short >= CinematicPacing.MIN_CHAPTER_DURATION_MS)
         assertTrue(long <= CinematicPacing.MAX_CHAPTER_DURATION_MS)
+    }
+
+    @Test
+    fun everyEnglishAndFrenchCatalogStoryStaysShortForm() {
+        listOf(
+            ScenarioCatalog.forLanguage("en"),
+            ScenarioCatalog.forLanguage("fr")
+        ).flatten().forEach { catalogScenario ->
+            val total = CinematicPacing.totalDurationMs(
+                sceneCount = catalogScenario.chapters.size + 2,
+                scenario = catalogScenario
+            )
+
+            assertTrue(
+                "Unexpected duration for ${catalogScenario.id}: $total",
+                total in 12_000L..16_000L
+            )
+        }
     }
 
     @Test
