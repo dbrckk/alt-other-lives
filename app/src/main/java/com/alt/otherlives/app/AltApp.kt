@@ -336,6 +336,9 @@ fun AltApp() {
                         onBack = { navigation = navigation.goTo(AltScreen.SCENARIOS) },
                         onAiSettings = {
                             navigation = navigation.openSettings()
+                        },
+                        onCreateAnotherLife = {
+                            navigation = navigation.goTo(AltScreen.SCENARIOS)
                         }
                     )
                     AltScreen.SETTINGS -> GenerationSettingsScreen(
