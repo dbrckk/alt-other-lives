@@ -8,11 +8,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -60,20 +62,53 @@ fun HomeScreen(
     )
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 42.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp, vertical = 34.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Column {
-            Text(stringResource(R.string.home_brand), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AltAccent)
-            Spacer(Modifier.height(14.dp))
-            Text(stringResource(R.string.home_headline), fontSize = 42.sp, lineHeight = 44.sp, fontWeight = FontWeight.SemiBold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(R.string.home_brand),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AltAccent
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    stringResource(R.string.home_brand_descriptor),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AltDimmed
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+            Text(
+                stringResource(R.string.home_headline),
+                fontSize = 44.sp,
+                lineHeight = 45.sp,
+                fontWeight = FontWeight.SemiBold
+            )
             Spacer(Modifier.height(12.dp))
-            Text(stringResource(R.string.home_subtitle), color = AltMuted, fontSize = 17.sp)
+            Text(
+                stringResource(R.string.home_subtitle),
+                color = AltMuted,
+                fontSize = 16.sp,
+                lineHeight = 23.sp
+            )
         }
 
         Box(
-            modifier = Modifier.fillMaxWidth().height(360.dp).clip(RoundedCornerShape(32.dp))
-                .background(Brush.verticalGradient(listOf(Color(0xFF29213D), Color(0xFF111116))))
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(350.dp)
+                .clip(RoundedCornerShape(34.dp))
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF32264B), Color(0xFF16131E), Color(0xFF101014))
+                    )
+                )
                 .semantics(mergeDescendants = true) {
                     contentDescription = photoActionDescription
                     role = Role.Button
@@ -85,50 +120,132 @@ fun HomeScreen(
             contentAlignment = Alignment.Center
         ) {
             if (photoUri != null) {
-                AsyncImage(model = photoUri, contentDescription = stringResource(R.string.home_selected_photo), modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                AsyncImage(
+                    model = photoUri,
+                    contentDescription = stringResource(R.string.home_selected_photo),
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
                 Box(
-                    modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()
-                        .background(Color.Black.copy(alpha = 0.48f)).padding(16.dp)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(
+                                    Color.Transparent,
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.72f)
+                                )
+                            )
+                        )
+                )
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(22.dp)
                 ) {
                     Text(
-                        if (isImportingPhoto) stringResource(R.string.home_importing_photo) else stringResource(R.string.home_change_photo),
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                        stringResource(R.string.home_photo_ready),
+                        color = AltAccent,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        if (isImportingPhoto) {
+                            stringResource(R.string.home_importing_photo)
+                        } else {
+                            stringResource(R.string.home_change_photo)
+                        },
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
                     )
                 }
             } else {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("+", fontSize = 48.sp, color = AltPrimary)
-                    Text(stringResource(R.string.home_choose_photo), fontSize = 19.sp, fontWeight = FontWeight.Medium)
-                    Text(stringResource(R.string.home_photo_local), color = AltMuted, fontSize = 13.sp)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(horizontal = 34.dp)
+                ) {
+                    Text("＋", fontSize = 44.sp, color = AltPrimary)
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        stringResource(R.string.home_choose_photo),
+                        fontSize = 21.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(Modifier.height(7.dp))
+                    Text(
+                        stringResource(R.string.home_photo_prompt),
+                        color = AltMuted,
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(14.dp))
+                    Text(
+                        stringResource(R.string.home_photo_local),
+                        color = AltAccent,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
 
         Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    stringResource(R.string.home_step_photo),
+                    color = if (photoUri != null) AltAccent else AltMuted,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    stringResource(R.string.home_step_choice),
+                    color = AltMuted,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    stringResource(R.string.home_step_reveal),
+                    color = AltMuted,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(Modifier.height(12.dp))
             Button(
-            onClick = onContinue,
-            enabled = photoUri != null && !isImportingPhoto,
-            modifier = Modifier.fillMaxWidth().height(58.dp),
-            shape = RoundedCornerShape(20.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AltPrimary,
-                contentColor = Color(0xFF16111F),
-                disabledContainerColor = Color(0xFF25242B),
-                disabledContentColor = AltDimmed
-            )
-        ) {
-            Text(
-                if (isImportingPhoto) stringResource(R.string.home_preparing_photo) else stringResource(R.string.home_choose_life),
-                fontWeight = FontWeight.Bold
-            )
-        }
-            Spacer(Modifier.height(8.dp))
+                onClick = onContinue,
+                enabled = photoUri != null && !isImportingPhoto,
+                modifier = Modifier.fillMaxWidth().height(60.dp),
+                shape = RoundedCornerShape(22.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AltPrimary,
+                    contentColor = Color(0xFF16111F),
+                    disabledContainerColor = Color(0xFF25242B),
+                    disabledContentColor = AltDimmed
+                )
+            ) {
+                Text(
+                    if (isImportingPhoto) {
+                        stringResource(R.string.home_preparing_photo)
+                    } else {
+                        stringResource(R.string.home_choose_life)
+                    },
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(Modifier.height(6.dp))
             androidx.compose.material3.TextButton(
                 onClick = onHistory,
                 enabled = !isImportingPhoto,
                 modifier = Modifier.fillMaxWidth()
-            ) { Text(stringResource(R.string.home_view_history), color = AltMuted) }
+            ) {
+                Text(stringResource(R.string.home_view_history), color = AltMuted)
+            }
         }
     }
 }
