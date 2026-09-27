@@ -569,10 +569,12 @@ fun RevealScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                "Retry failed chapters " +
+                                stringResource(
+                                    R.string.reveal_retry_failed_chapters,
                                     generationPlan.retryableFailedIndexes
                                         .sorted()
                                         .joinToString(", ") { (it + 1).toString() }
+                                )
                             )
                         }
                     }
@@ -582,14 +584,14 @@ fun RevealScreen(
                             onClick = { showClearAiDialog = true },
                             enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !aiUiState.isGenerating && !isExporting && !isRenderingShareImage,
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text("Remove generated AI scenes") }
+                        ) { Text(stringResource(R.string.reveal_remove_ai_scenes)) }
                     }
 
                     if (showClearAiDialog) {
                         AlertDialog(
                             onDismissRequest = { showClearAiDialog = false },
-                            title = { Text("Remove AI scenes?") },
-                            text = { Text("The generated chapter images for this timeline will be deleted from this device.") },
+                            title = { Text(stringResource(R.string.reveal_remove_ai_title)) },
+                            text = { Text(stringResource(R.string.reveal_remove_ai_body)) },
                             confirmButton = {
                                 TextButton(
                                     enabled = !isClearingAi,
@@ -607,14 +609,19 @@ fun RevealScreen(
                                                     completedVideoUri = null
                                                     Toast.makeText(
                                                         context,
-                                                        "AI scenes removed",
+                                                        context.getString(R.string.reveal_ai_scenes_removed),
                                                         Toast.LENGTH_SHORT
                                                     ).show()
                                                 }.onFailure {
                                                     Toast.makeText(
                                                         context,
-                                                        "Could not remove AI scenes: " +
-                                                            (it.message ?: "unknown error"),
+                                                        context.getString(
+                                                            R.string.reveal_remove_ai_failed,
+                                                            it.message
+                                                                ?: context.getString(
+                                                                    R.string.common_unknown_error
+                                                                )
+                                                        ),
                                                         Toast.LENGTH_SHORT
                                                     ).show()
                                                 }
@@ -622,11 +629,19 @@ fun RevealScreen(
                                             }
                                         }
                                     }
-                                ) { Text(if (isClearingAi) "Removing…" else "Remove") }
+                                ) {
+                                    Text(
+                                        if (isClearingAi) {
+                                            stringResource(R.string.reveal_removing)
+                                        } else {
+                                            stringResource(R.string.reveal_remove)
+                                        }
+                                    )
+                                }
                             },
                             dismissButton = {
                                 TextButton(onClick = { showClearAiDialog = false }) {
-                                    Text("Cancel")
+                                    Text(stringResource(R.string.common_cancel))
                                 }
                             }
                         )
@@ -635,8 +650,8 @@ fun RevealScreen(
                     if (showRegenerateAllDialog) {
                         AlertDialog(
                             onDismissRequest = { showRegenerateAllDialog = false },
-                            title = { Text("Regenerate all AI scenes?") },
-                            text = { Text("This creates a new visual variation for the full timeline. It replaces the current version only if every chapter succeeds.") },
+                            title = { Text(stringResource(R.string.reveal_regenerate_title)) },
+                            text = { Text(stringResource(R.string.reveal_regenerate_body)) },
                             confirmButton = {
                                 TextButton(
                                     onClick = {
@@ -646,7 +661,7 @@ fun RevealScreen(
                                             true
                                         )
                                     }
-                                ) { Text("Regenerate all") }
+                                ) { Text(stringResource(R.string.reveal_regenerate_all)) }
                             },
                             dismissButton = {
                                 TextButton(onClick = { showRegenerateAllDialog = false }) {
@@ -738,7 +753,7 @@ fun RevealScreen(
                         enabled = !aiUiState.isGenerating && !isExporting && !isRenderingShareImage,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Set up AI generation")
+                        Text(stringResource(R.string.reveal_setup_ai))
                     }
                     Spacer(Modifier.height(12.dp))
                 }
@@ -861,7 +876,7 @@ fun RevealScreen(
                                                 completedVideoUri = videoUri
                                                 Toast.makeText(
                                                     context,
-                                                    "Video ready",
+                                                    context.getString(R.string.reveal_video_ready),
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                             },
@@ -875,8 +890,13 @@ fun RevealScreen(
                                                 completedVideoUri = null
                                                 Toast.makeText(
                                                     context,
-                                                    "Video export failed: " +
-                                                        (it.message ?: "unknown error"),
+                                                    context.getString(
+                                                        R.string.reveal_video_export_failed,
+                                                        it.message
+                                                            ?: context.getString(
+                                                                R.string.common_unknown_error
+                                                            )
+                                                    ),
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                             }
@@ -894,8 +914,13 @@ fun RevealScreen(
                                         if (it !is CancellationException) {
                                             Toast.makeText(
                                                 context,
-                                                "Could not start video export: " +
-                                                    (it.message ?: "unknown error"),
+                                                context.getString(
+                                                    R.string.reveal_video_start_failed,
+                                                    it.message
+                                                        ?: context.getString(
+                                                            R.string.common_unknown_error
+                                                        )
+                                                ),
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
@@ -910,8 +935,13 @@ fun RevealScreen(
                                     if (it !is CancellationException) {
                                         Toast.makeText(
                                             context,
-                                            "Could not prepare video: " +
-                                                (it.message ?: "unknown error"),
+                                            context.getString(
+                                                R.string.reveal_video_prepare_failed,
+                                                it.message
+                                                    ?: context.getString(
+                                                        R.string.common_unknown_error
+                                                    )
+                                            ),
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     }
@@ -924,8 +954,16 @@ fun RevealScreen(
                     shape = RoundedCornerShape(20.dp)
                 ) {
                     Text(
-                        if (isExporting) "Creating video" + (exportProgress?.let { " • $it%" } ?: "…")
-                        else stringResource(R.string.reveal_create_video),
+                        if (isExporting) {
+                            exportProgress?.let {
+                                stringResource(
+                                    R.string.reveal_video_creating_progress,
+                                    it
+                                )
+                            } ?: stringResource(R.string.reveal_video_creating)
+                        } else {
+                            stringResource(R.string.reveal_create_video)
+                        },
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -952,7 +990,7 @@ fun RevealScreen(
                             exportProgress = null
                         },
                         modifier = Modifier.fillMaxWidth()
-                    ) { Text("Cancel export") }
+                    ) { Text(stringResource(R.string.reveal_cancel_export)) }
                 }
 
                 completedVideoUri?.let { videoUri ->
@@ -965,8 +1003,13 @@ fun RevealScreen(
                                 completedVideoUri = null
                                 Toast.makeText(
                                     context,
-                                    "Could not share video: " +
-                                        (it.message ?: "unknown error"),
+                                    context.getString(
+                                        R.string.reveal_video_share_failed,
+                                        it.message
+                                            ?: context.getString(
+                                                R.string.common_unknown_error
+                                            )
+                                    ),
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
@@ -999,14 +1042,19 @@ fun RevealScreen(
                                         }.onSuccess {
                                             Toast.makeText(
                                                 context,
-                                                "Saved to Movies/ALT",
+                                                context.getString(R.string.reveal_video_saved),
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }.onFailure {
                                             Toast.makeText(
                                                 context,
-                                                "Could not save video: " +
-                                                    (it.message ?: "unknown error"),
+                                                context.getString(
+                                                    R.string.reveal_video_save_failed,
+                                                    it.message
+                                                        ?: context.getString(
+                                                            R.string.common_unknown_error
+                                                        )
+                                                ),
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
@@ -1017,7 +1065,11 @@ fun RevealScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                if (isSavingVideoToGallery) "Saving MP4…" else "Save MP4 to gallery"
+                                if (isSavingVideoToGallery) {
+                                    stringResource(R.string.reveal_video_saving)
+                                } else {
+                                    stringResource(R.string.reveal_video_save_gallery)
+                                }
                             )
                         }
                     }
@@ -1025,7 +1077,7 @@ fun RevealScreen(
                 if (!hasVisualAsset) {
                     Spacer(Modifier.height(12.dp))
                     Text(
-                        "No visual source is available for this timeline. Share and video export are disabled.",
+                        stringResource(R.string.reveal_no_visual),
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         color = AltDimmed,
