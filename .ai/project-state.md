@@ -91,6 +91,13 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - Export text layout uses one shared tested wrapping/ellipsis engine with explicit line budgets, including regression coverage for long French titles, subtitles and narratives.
 - Generated-scene acceptance now rejects undersized outputs, social-unfriendly aspect ratios and near-uniform/visually empty frames before persistence.
 - ComfyUI settings validation and premium continuity diagnostics use typed issue codes mapped to localized UI copy instead of English-message parsing.
+- Reveal now exposes story length and AI-scene readiness in the hero, badges generated chapters, and uses an editorial fallback when no visual asset remains.
+- Reveal share/export actions now have clearer visual priority: share is primary, cinematic video creation is a strong secondary action, and gallery saves are visually quieter.
+- Home persists the imported source-photo quality signal across startup/history restoration, shows non-blocking inline quality guidance, and no longer relies on a transient low-resolution toast.
+- History opening reuses its existing photo preflight cache instead of revalidating the same file synchronously on the UI thread; source quality metadata is preflighted alongside photo URIs.
+- Home is vertically scrollable so the full creation path remains reachable on small screens and with larger accessibility text.
+- Scenario cards now surface the narrative arc from first to last chapter and use indexed list rendering directly.
+- Generated-scene acceptance also rejects mostly transparent outputs before persistence, in addition to size/aspect/near-uniform checks.
 
 ## Current priority
 Keep the end-to-end AI generation path reliable while raising ALT to premium consumer-product quality. The active product direction is cinematic, social-first and highly shareable: Reveal, 9:16 image exports and MP4 exports must feel polished enough to publish directly to Reels, Shorts and Stories. Reliability remains the gate: visual work must not regress generation, persistence, cancellation, cleanup or export safety.
