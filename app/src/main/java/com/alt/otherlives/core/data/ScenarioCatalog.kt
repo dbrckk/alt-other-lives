@@ -104,4 +104,109 @@ object ScenarioCatalog {
         )
         )
     )
+
+    private val frenchScenarios = ScenarioCatalogValidation.validate(
+        listOf(
+            Scenario(
+                id = "wealth",
+                title = "Et si je devenais riche ?",
+                subtitle = "Une décennie où une seule décision change tout.",
+                chapters = listOf(
+                    TimelineChapter("2026", "Tu arrêtes d’optimiser le confort et commences à construire des leviers."),
+                    TimelineChapter("2028", "Un petit projet devient ta première véritable source de liberté."),
+                    TimelineChapter("2031", "Tu construis des systèmes qui continuent de fonctionner pendant ton sommeil."),
+                    TimelineChapter("2034", "L’argent cesse d’être une destination et devient une infrastructure."),
+                    TimelineChapter("2036", "De l’extérieur, ta vie paraît luxueuse ; de l’intérieur, elle est calme.")
+                )
+            ),
+            Scenario(
+                id = "japan",
+                title = "Et si je partais vivre au Japon ?",
+                subtitle = "Une nouvelle ville, une nouvelle langue, une nouvelle version de toi.",
+                chapters = listOf(
+                    TimelineChapter("2026", "Tu arrives avec deux valises et aucune routine familière."),
+                    TimelineChapter("2027", "La ville cesse de te sembler étrangère et commence à te sembler précise."),
+                    TimelineChapter("2029", "Ton travail, tes amis et tes habitudes font désormais partie du lieu."),
+                    TimelineChapter("2032", "Tu réalises que tu ne traduis plus ta vie dans ta tête."),
+                    TimelineChapter("2036", "Chez toi n’est plus l’endroit d’où tu es parti.")
+                )
+            ),
+            Scenario(
+                id = "future",
+                title = "Et si je vivais en 2100 ?",
+                subtitle = "Ta vie alternative dans un monde qui a continué d’avancer.",
+                chapters = listOf(
+                    TimelineChapter("2068", "Ton identité devient portable entre les espaces physiques et numériques."),
+                    TimelineChapter("2077", "Le travail repose surtout sur la direction, le goût et le jugement."),
+                    TimelineChapter("2086", "Les villes semblent plus calmes parce que l’infrastructure est devenue invisible."),
+                    TimelineChapter("2094", "Tes plus vieux souvenirs existent sous des formes que les nouvelles générations peuvent parcourir."),
+                    TimelineChapter("2100", "Le futur paraît ordinaire lorsqu’on vit à l’intérieur.")
+                )
+            ),
+            Scenario(
+                id = "disappear",
+                title = "Et si je disparaissais pendant 5 ans ?",
+                subtitle = "Pas de public. Pas de nouvelles. Seulement le changement.",
+                chapters = listOf(
+                    TimelineChapter("Année 1", "Tu supprimes le bruit avant même de savoir ce qui le remplacera."),
+                    TimelineChapter("Année 2", "La nouvelle routine cesse de sembler temporaire."),
+                    TimelineChapter("Année 3", "Tes compétences deviennent visibles avant toi."),
+                    TimelineChapter("Année 4", "Tu arrêtes de mesurer tes progrès à travers les autres."),
+                    TimelineChapter("Année 5", "Tu reviens avec une vie qui n’a plus besoin d’être expliquée.")
+                )
+            ),
+            Scenario(
+                id = "famous",
+                title = "Et si je devenais célèbre ?",
+                subtitle = "La version où tout le monde finit par connaître ton nom.",
+                chapters = listOf(
+                    TimelineChapter("2026", "Une de tes créations dépasse soudain ton cercle habituel."),
+                    TimelineChapter("2027", "La reconnaissance arrive plus vite que tes habitudes ne peuvent s’adapter."),
+                    TimelineChapter("2029", "Tu apprends la différence entre être visible et être réellement connu."),
+                    TimelineChapter("2032", "Tu poses des limites autour des parties de ta vie qui n’appartiennent encore qu’à toi."),
+                    TimelineChapter("2036", "La célébrité devient un bruit de fond ; le travail redevient l’essentiel.")
+                )
+            ),
+            Scenario(
+                id = "mars",
+                title = "Et si je vivais sur Mars ?",
+                subtitle = "Une vie rythmée par les fenêtres de lancement et les horizons rouges.",
+                chapters = listOf(
+                    TimelineChapter("2037", "La Terre devient un souvenir bleu encadré par une petite fenêtre."),
+                    TimelineChapter("2038", "Chaque habitude ordinaire participe désormais à maintenir une colonie en vie."),
+                    TimelineChapter("2041", "Tu cesses de considérer l’habitat comme temporaire."),
+                    TimelineChapter("2045", "Une génération apparaît sans avoir jamais senti la pluie."),
+                    TimelineChapter("2050", "Tu observes deux mondes dans le ciel et appelles l’un d’eux chez toi.")
+                )
+            ),
+            Scenario(
+                id = "artist",
+                title = "Et si je devenais artiste ?",
+                subtitle = "Une vie construite autour de choses qui n’existaient pas auparavant.",
+                chapters = listOf(
+                    TimelineChapter("2026", "Tu crées quelque chose chaque jour avant même de décider si c’est réussi."),
+                    TimelineChapter("2028", "Ton style apparaît lentement, surtout à travers les choix que tu répètes."),
+                    TimelineChapter("2030", "Quelqu’un reconnaît ton travail avant même de voir ton nom."),
+                    TimelineChapter("2033", "Tu arrêtes d’attendre l’inspiration et construis une pratique à la place."),
+                    TimelineChapter("2036", "Tes archives deviennent une carte de la personne que tu étais en train de devenir.")
+                )
+            ),
+            Scenario(
+                id = "restart",
+                title = "Et si je recommençais tout ?",
+                subtitle = "Les mêmes souvenirs. Des décisions différentes.",
+                chapters = listOf(
+                    TimelineChapter("Jour 1", "Tu gardes les leçons et retires les obligations qui ne te correspondent plus."),
+                    TimelineChapter("Mois 6", "L’espace vide commence à se remplir de choix délibérés."),
+                    TimelineChapter("Année 2", "Ta nouvelle vie cesse de ressembler à une fuite."),
+                    TimelineChapter("Année 5", "Les décisions qui semblaient autrefois radicales paraissent maintenant évidentes."),
+                    TimelineChapter("Année 10", "Tu reconnais à peine le chemin que tu pensais autrefois immuable.")
+                )
+            )
+        )
+    )
+
+    fun forLanguage(language: String): List<Scenario> =
+        if (language.lowercase().startsWith("fr")) frenchScenarios else scenarios
+
 }
