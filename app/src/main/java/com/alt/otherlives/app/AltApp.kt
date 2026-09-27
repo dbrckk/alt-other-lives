@@ -142,8 +142,8 @@ fun AltApp() {
         }
     }
 
-    LaunchedEffect(history, screen) {
-        if (navigation.screen != AltAltScreen.HISTORY) return@LaunchedEffect
+    LaunchedEffect(history, navigation.screen) {
+        if (navigation.screen != AltScreen.HISTORY) return@LaunchedEffect
         val photoFileNames = history.mapNotNull { it.photoFileName }.distinct()
         val preflight = withContext(Dispatchers.IO) {
             val recentEntries = history.take(HISTORY_PREVIEW_LIMIT)
