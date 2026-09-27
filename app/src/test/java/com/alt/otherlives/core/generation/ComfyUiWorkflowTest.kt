@@ -26,6 +26,9 @@ class ComfyUiWorkflowTest {
         assertTrue(prompt.contains("natural facial asymmetries"))
         assertTrue(prompt.contains("clothing, hairstyle, grooming and environment may evolve"))
         assertTrue(prompt.contains("same facial baseline"))
+        assertTrue(prompt.contains("changes in pose, expression, camera angle and lighting"))
+        assertTrue(prompt.contains("stable facial landmarks and proportions"))
+        assertTrue(prompt.contains("do not beautify, idealize, de-age, reshape or normalize"))
         assertTrue(prompt.contains("vertical 9:16"))
         assertFalse(prompt.contains("__ALT_"))
     }
@@ -38,6 +41,10 @@ class ComfyUiWorkflowTest {
         assertTrue(negative.contains("changed lip shape"))
         assertTrue(negative.contains("changed jawline"))
         assertTrue(negative.contains("genericized face"))
+        assertTrue(negative.contains("beautification drift"))
+        assertTrue(negative.contains("face slimming"))
+        assertTrue(negative.contains("eye enlargement"))
+        assertTrue(negative.contains("de-aging"))
     }
 
     @Test
