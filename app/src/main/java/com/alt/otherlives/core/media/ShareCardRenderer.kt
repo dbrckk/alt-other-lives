@@ -85,13 +85,14 @@ object ShareCardRenderer {
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             }
             var y = drawWrappedText(
-                canvas,
-                scenario.title,
-                title,
-                72f,
-                950f,
-                936f,
-                88f
+                canvas = canvas,
+                text = scenario.title,
+                paint = title,
+                x = 72f,
+                startY = 950f,
+                maxWidth = 936f,
+                lineHeight = 88f,
+                maxLines = 3
             )
 
             val subtitle = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -100,13 +101,14 @@ object ShareCardRenderer {
             }
             y += 18f
             y = drawWrappedText(
-                canvas,
-                scenario.subtitle,
-                subtitle,
-                72f,
-                y,
-                900f,
-                44f
+                canvas = canvas,
+                text = scenario.subtitle,
+                paint = subtitle,
+                x = 72f,
+                startY = y,
+                maxWidth = 900f,
+                lineHeight = 44f,
+                maxLines = 3
             )
 
             val timelineLabel = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -348,13 +350,14 @@ object ShareCardRenderer {
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
         drawWrappedText(
-            canvas,
-            scenario.title,
-            titlePaint,
-            82f,
-            (bottom - 92).toFloat(),
-            870f,
-            56f
+            canvas = canvas,
+            text = scenario.title,
+            paint = titlePaint,
+            x = 82f,
+            startY = (bottom - 92).toFloat(),
+            maxWidth = 870f,
+            lineHeight = 56f,
+            maxLines = 2
         )
     }
 
@@ -480,12 +483,68 @@ object ShareCardRenderer {
         else { val h=(source.width/tr).toInt(); val t=(source.height-h)/2; Rect(0,t,source.width,t+h)}
         canvas.drawBitmap(source,src,target,Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
     }
-    private fun drawWrappedText(canvas: Canvas,text:String,paint:Paint,x:Float,startY:Float,maxWidth:Float,lineHeight:Float):Float {
-        var y=startY; var line=""
-        text.split(" ").forEach { word ->
-            val candidate=if(line.isEmpty()) word else line+" "+word
-            if(paint.measureText(candidate)>maxWidth && line.isNotEmpty()){canvas.drawText(line,x,y,paint);y+=lineHeight;line=word}else line=candidate
+    private fun drawWrappedText(
+        canvas: Canvas,
+        text: String,
+        paint: Paint,
+        x: Float,
+        startY: Float,
+        maxWidth: Float,
+        lineHeight: Float,
+        maxLines: Int = Int.MAX_VALUE
+    ): Float {
+        require(maxLines > 0) { "maxLines must be positive" }
+        val words = text.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
+        if (words.isEmpty()) return startY
+
+        var y = startY
+        var line = ""
+        var lineCount = 0
+        var wordIndex = 0
+
+        while (wordIndex < words.size && lineCount < maxLines) {
+            val word = words[wordIndex]
+            val candidate = if (line.isEmpty()) word else "$line $word"
+            if (paint.measureText(candidate) <= maxWidth || line.isEmpty()) {
+                line = fitToWidth(candidate, paint, maxWidth)
+                wordIndex += 1
+            } else {
+                val hasMore = wordIndex < words.size
+                val output = if (lineCount == maxLines - 1 && hasMore) {
+                    fitToWidth("$line…", paint, maxWidth)
+                } else {
+                    line
+                }
+                canvas.drawText(output, x, y, paint)
+                y += lineHeight
+                lineCount += 1
+                line = ""
+            }
         }
-        if(line.isNotEmpty()){canvas.drawText(line,x,y,paint);y+=lineHeight}; return y
+
+        if (line.isNotEmpty() && lineCount < maxLines) {
+            val hasMore = wordIndex < words.size
+            val output = if (hasMore) {
+                fitToWidth("$line…", paint, maxWidth)
+            } else {
+                line
+            }
+            canvas.drawText(output, x, y, paint)
+            y += lineHeight
+        }
+        return y
+    }
+
+    private fun fitToWidth(
+        text: String,
+        paint: Paint,
+        maxWidth: Float
+    ): String {
+        if (paint.measureText(text) <= maxWidth) return text
+        var value = text
+        while (value.length > 1 && paint.measureText("$value…") > maxWidth) {
+            value = value.dropLast(1)
+        }
+        return if (value == text) value else "$value…"
     }
 }
