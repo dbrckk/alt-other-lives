@@ -43,9 +43,13 @@ object ShareCardRenderer {
             val canvas = Canvas(bitmap)
             canvas.drawColor(Color.rgb(8, 8, 10))
 
-            (photoUri ?: fallbackImageUri)?.let { uri ->
-                val source = BitmapLoader.decodeSampled(context, uri, WIDTH, HEIGHT)
-                    ?: error("Unable to decode ALT share visual")
+            if (photoUri != null || fallbackImageUri != null) {
+                val source = BitmapLoader.decodeFirstAvailable(
+                    context = context,
+                    uris = listOf(photoUri, fallbackImageUri),
+                    targetWidth = WIDTH,
+                    targetHeight = HEIGHT
+                ) ?: error("Unable to decode ALT share visual")
                 try {
                     drawCover(canvas, source, Rect(0, 0, WIDTH, 1180))
                 } finally {
