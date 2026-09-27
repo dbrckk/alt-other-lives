@@ -761,7 +761,7 @@ fun RevealScreen(
                             },
                             dismissButton = {
                                 TextButton(onClick = { showRegenerateAllDialog = false }) {
-                                    Text("Cancel")
+                                    Text(stringResource(R.string.common_cancel))
                                 }
                             }
                         )
