@@ -2,15 +2,15 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Polish ALT into a premium social-first product while preserving the now-stable generation, persistence, cleanup and export reliability baseline.",
-  "lastKnownBlocker": "No active product blocker. Latest confirmed cumulative green runs validate source-photo quality signaling, identity continuity checks, haptics, comparison UI tests and localized social exports; newest cinematic generation-card run is still validating.",
-  "fixApplied": "Reveal/Home/History/Scenario received premium visual passes; social JPEG/MP4 framing was improved; workflow continuity warnings and stronger anti-drift prompts were added; source quality warnings are non-blocking; Remix and Compare flows now create/share distinct viral artifacts.",
+  "currentTask": "Continue premium cinematic polish after completing full EN/FR primary-flow localization, typed ComfyUI validation, tested export text budgets, and stricter generated-scene acceptance.",
+  "lastKnownBlocker": "No active blocker. Cumulative green runs validate localization through final Reveal/history states, shared export text layout and French catalog compatibility. Typed validation and the near-uniform generated-scene gate are still completing CI.",
+  "fixApplied": "ALT now separates localized display copy from canonical English AI prompts, shares one tested text-layout engine across social/video exports, rejects undersized/extreme-ratio/near-uniform AI outputs, and maps settings/continuity failures through typed localized issue codes.",
   "next": [
-    "Verify cumulative CI after cinematic generation-card and comparison-selection polish",
-    "Polish remaining Reveal utility/error copy and secondary states for full EN/FR consistency",
-    "Audit generated-scene visual quality controls beyond prompt-only continuity (workflow capabilities, reference conditioning and output acceptance)",
-    "Refine comparison/share-card typography and overflow behavior for worst-case localized scenario titles",
-    "Keep all premium/growth work gated by unit tests, lint, APK, instrumentation compile and AAB build"
+    "Verify cumulative CI for typed settings validation and near-uniform generated-scene rejection",
+    "Polish Compare/share-card composition and hierarchy without adding new growth mechanics",
+    "Improve cinematic MP4 pacing/transitions only where Media3 support remains reliable",
+    "Audit output selection/reference-conditioning signals available from ComfyUI workflows",
+    "Keep premium changes gated by unit tests, lint, APK, instrumentation compile and AAB build"
   ],
   "updated": "2026-09-27"
 }
