@@ -234,6 +234,14 @@ fun AltApp() {
                                             photoFileName = stored.fileName
                                             activeTimelineKey = null
 
+                                            if (!stored.isLikelyPremiumSource) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "For sharper AI identity, use a portrait at least 720 px on the short edge.",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                            }
+
                                             val keep =
                                                 history.mapNotNull { it.photoFileName }.toSet() +
                                                     stored.fileName
