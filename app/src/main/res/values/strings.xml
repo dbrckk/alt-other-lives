@@ -48,4 +48,16 @@
     <string name="history_clear_title">Clear local history?</string>
     <string name="history_clear_body">This removes your saved alternate lives from this device. This action cannot be undone.</string>
     <string name="history_clear_action">Clear</string>
+    <string name="reveal_alt_original_ai">ALT ORIGINAL • AI GENERATED</string>
+    <string name="reveal_alt_original">ALT ORIGINAL</string>
+    <string name="reveal_one_choice">One choice. Another life.</string>
+    <string name="reveal_chapter_number">CHAPTER %1$d</string>
+    <string name="reveal_generate_chapter">Generate this chapter to unlock its cinematic scene.</string>
+    <string name="reveal_preparing_share">Preparing share image…</string>
+    <string name="reveal_share_life">Share your ALT life</string>
+    <string name="reveal_save_image">Save 9:16 image</string>
+    <string name="reveal_create_video">Create cinematic MP4</string>
+    <string name="reveal_share_video">Share MP4</string>
+    <string name="reveal_create_another">Create another ALT life  →</string>
+    <string name="reveal_social_footer">Made for Reels • Shorts • Stories • 9:16 cinematic export</string>
 </resources>
