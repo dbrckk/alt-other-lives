@@ -268,14 +268,6 @@ fun AltApp() {
                                                 stored.isLikelyPremiumSource
                                             activeTimelineKey = null
 
-                                            if (!stored.isLikelyPremiumSource) {
-                                                Toast.makeText(
-                                                    context,
-                                                    context.getString(R.string.home_low_quality_source_warning),
-                                                    Toast.LENGTH_LONG
-                                                ).show()
-                                            }
-
                                             val keep =
                                                 history.mapNotNull { it.photoFileName }.toSet() +
                                                     stored.fileName
