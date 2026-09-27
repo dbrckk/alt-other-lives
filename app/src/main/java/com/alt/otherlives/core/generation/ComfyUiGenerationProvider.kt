@@ -4,6 +4,8 @@ import android.content.Context
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import java.security.SecureRandom
+import com.alt.otherlives.core.data.ScenarioCatalog
+import com.alt.otherlives.core.model.Scenario
 import com.alt.otherlives.core.model.TimelineConstraints
 
 class ComfyUiGenerationProvider(
@@ -27,6 +29,7 @@ class ComfyUiGenerationProvider(
         }
         val chapters = request.scenario.chapters
         require(chapters.isNotEmpty()) { "Scenario has no chapters" }
+        val promptScenario = canonicalPromptScenario(request.scenario)
 
         val requestedIndexes = validateRequestedChapterIndexes(
             requested = request.chapterIndexes,
@@ -43,11 +46,12 @@ class ComfyUiGenerationProvider(
 
         chapters.forEachIndexed { index, chapter ->
             if (index !in requestedIndexes) return@forEachIndexed
+            val promptChapter = promptScenario.chapters.getOrElse(index) { chapter }
             val prompt = ComfyUiWorkflow.promptFor(
-                scenarioId = request.scenario.id,
-                scenarioTitle = request.scenario.title,
-                chapterLabel = chapter.label,
-                chapterNarrative = chapter.narrative,
+                scenarioId = promptScenario.id,
+                scenarioTitle = promptScenario.title,
+                chapterLabel = promptChapter.label,
+                chapterNarrative = promptChapter.narrative,
                 chapterIndex = index
             )
             try {
@@ -130,6 +134,11 @@ class ComfyUiGenerationProvider(
         const val MAX_CHAPTER_ATTEMPTS = 2
         const val RETRY_DELAY_MS = 750L
         private val seedRandom = SecureRandom()
+
+        fun canonicalPromptScenario(scenario: Scenario): Scenario =
+            ScenarioCatalog.scenarios
+                .firstOrNull { it.id == scenario.id }
+                ?: scenario
 
         fun resolveSessionSeed(seed: Long?): Long {
             if (seed != null) {
