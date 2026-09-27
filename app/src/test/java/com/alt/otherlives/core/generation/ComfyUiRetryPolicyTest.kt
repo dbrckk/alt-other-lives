@@ -34,6 +34,24 @@ class ComfyUiRetryPolicyTest {
     }
 
     @Test
+    fun doesNotRetryGeneratedSceneQualityFailures() {
+        assertFalse(
+            ComfyUiRetryPolicy.shouldRetry(
+                IllegalStateException(
+                    "ComfyUI output is below ALT's minimum scene quality for chapter 2"
+                )
+            )
+        )
+        assertFalse(
+            ComfyUiRetryPolicy.shouldRetry(
+                IllegalStateException(
+                    "ComfyUI returned a visually empty or near-uniform image for chapter 3"
+                )
+            )
+        )
+    }
+
+    @Test
     fun doesNotRetryPermanentClientOrWorkflowFailures() {
         assertFalse(ComfyUiRetryPolicy.shouldRetry(IllegalStateException("ComfyUI HTTP 400")))
         assertFalse(ComfyUiRetryPolicy.shouldRetry(IllegalStateException("Workflow JSON is malformed")))
