@@ -39,14 +39,11 @@ import com.alt.otherlives.feature.scenarios.ScenarioScreen
 import com.alt.otherlives.feature.settings.GenerationSettingsScreen
 import com.alt.otherlives.feature.timeline.RevealScreen
 
-private enum class Screen { HOME, SCENARIOS, REVEAL, HISTORY, SETTINGS }
-
 private const val HISTORY_PREVIEW_LIMIT = 16
 
 @Composable
 fun AltApp() {
-    var screen by remember { mutableStateOf(Screen.HOME) }
-    var settingsReturnScreen by remember { mutableStateOf(Screen.HOME) }
+    var navigation by remember { mutableStateOf(AltNavigationState()) }
     var photoUri by remember { mutableStateOf<Uri?>(null) }
     var photoFileName by remember { mutableStateOf<String?>(null) }
     var selectedScenario by remember { mutableStateOf(ScenarioCatalog.scenarios.first()) }
@@ -146,7 +143,7 @@ fun AltApp() {
     }
 
     LaunchedEffect(history, screen) {
-        if (screen != Screen.HISTORY) return@LaunchedEffect
+        if (navigation.screen != AltAltScreen.HISTORY) return@LaunchedEffect
         val photoFileNames = history.mapNotNull { it.photoFileName }.distinct()
         val preflight = withContext(Dispatchers.IO) {
             val recentEntries = history.take(HISTORY_PREVIEW_LIMIT)
@@ -177,12 +174,12 @@ fun AltApp() {
     AltTheme {
         Surface(modifier = Modifier.fillMaxSize(), color = AltBackground) {
             AnimatedContent(
-                targetState = screen,
+                targetState = navigation.screen,
                 transitionSpec = { fadeIn() togetherWith fadeOut() },
                 label = "screen"
             ) { current ->
                 when (current) {
-                    Screen.HOME -> HomeScreen(
+                    AltScreen.HOME -> HomeScreen(
                         photoUri = photoUri,
                         isImportingPhoto = isImportingPhoto,
                         onPhotoSelected = { selectedUri ->
@@ -229,14 +226,14 @@ fun AltApp() {
                                 }
                             }
                         },
-                        onContinue = { screen = Screen.SCENARIOS },
-                        onHistory = { screen = Screen.HISTORY }
+                        onContinue = { navigation = navigation.goTo(AltScreen.SCENARIOS) },
+                        onHistory = { navigation = navigation.goTo(AltScreen.HISTORY) }
                     )
-                    Screen.SCENARIOS -> ScenarioScreen(
+                    AltScreen.SCENARIOS -> ScenarioScreen(
                         scenarios = ScenarioCatalog.scenarios,
                         onBack = {
                             if (!isCreatingTimeline) {
-                                screen = Screen.HOME
+                                navigation = navigation.goTo(AltScreen.HOME)
                             }
                         },
                         isCreatingTimeline = isCreatingTimeline,
@@ -259,7 +256,7 @@ fun AltApp() {
                                         }
                                         selectedScenario = scenario
                                         activeTimelineKey = recordedEntry.timelineKey
-                                        screen = Screen.REVEAL
+                                        navigation = navigation.goTo(AltScreen.REVEAL)
 
                                         runCatching {
                                             withContext(Dispatchers.IO) {
@@ -290,18 +287,17 @@ fun AltApp() {
                             }
                         }
                     )
-                    Screen.REVEAL -> RevealScreen(
+                    AltScreen.REVEAL -> RevealScreen(
                         photoUri = photoUri,
                         scenario = selectedScenario,
                         generationSettings = generationSettings,
                         timelineKey = activeTimelineKey ?: selectedScenario.id,
-                        onBack = { screen = Screen.SCENARIOS },
+                        onBack = { navigation = navigation.goTo(AltScreen.SCENARIOS) },
                         onAiSettings = {
-                            settingsReturnScreen = Screen.REVEAL
-                            screen = Screen.SETTINGS
+                            navigation = navigation.openSettings()
                         }
                     )
-                    Screen.SETTINGS -> GenerationSettingsScreen(
+                    AltScreen.SETTINGS -> GenerationSettingsScreen(
                         settings = generationSettings,
                         onBack = {
                             connectionTestJob?.cancel()
@@ -325,7 +321,7 @@ fun AltApp() {
                                             remotePhotoUploadConsent
                                         )
                                     }
-                                    if (screen == Screen.SETTINGS) {
+                                    if (navigation.screen == AltAltScreen.SETTINGS) {
                                         result.onSuccess {
                                             generationSettingsMessage = "ComfyUI settings saved"
                                         }.onFailure {
@@ -372,7 +368,7 @@ fun AltApp() {
                                     val result = runCatching {
                                         generationSettingsRepository.clear()
                                     }
-                                    if (screen == Screen.SETTINGS) {
+                                    if (navigation.screen == AltAltScreen.SETTINGS) {
                                         result.onSuccess {
                                             generationSettingsMessage = "AI settings cleared"
                                         }.onFailure {
@@ -389,10 +385,10 @@ fun AltApp() {
                         isSavingSettings = isSavingGenerationSettings,
                         isClearingSettings = isClearingGenerationSettings
                     )
-                    Screen.HISTORY -> HistoryScreen(
+                    AltScreen.HISTORY -> HistoryScreen(
                         entries = history,
                         scenarios = ScenarioCatalog.scenarios,
-                        onBack = { screen = Screen.HOME },
+                        onBack = { navigation = navigation.goTo(AltScreen.HOME) },
                         unavailablePhotoFileNames = unavailablePhotoFileNames,
                         photoUrisByFileName = historyPhotoUris,
                         generatedPreviewUrisByTimelineKey = historyGeneratedPreviewUris,
@@ -420,7 +416,7 @@ fun AltApp() {
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
-                            screen = Screen.REVEAL
+                            navigation = navigation.goTo(AltScreen.REVEAL)
                         },
                         onDelete = { entry ->
                             val entryKey = entry.scenarioId + ":" + entry.createdAt
