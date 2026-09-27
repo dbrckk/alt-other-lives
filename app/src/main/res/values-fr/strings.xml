@@ -122,4 +122,24 @@
     <string name="reveal_video_save_gallery">Enregistrer le MP4 dans la galerie</string>
     <string name="reveal_no_visual">Aucune source visuelle n’est disponible pour cette timeline. Le partage et l’export vidéo sont désactivés.</string>
     <string name="common_unknown_error">erreur inconnue</string>
+    <string name="history_media_ai_preview">Aperçu IA</string>
+    <string name="history_media_no_original">Photo originale absente</string>
+    <string name="history_media_photo_unavailable">Photo indisponible</string>
+    <string name="history_preview_content_description">Aperçu de %1$s</string>
+    <string name="history_compare_preview_content_description">Aperçu comparatif de %1$s</string>
+    <string name="app_photo_cleanup_warning">Photo importée, mais certains anciens fichiers locaux n’ont pas pu être nettoyés.</string>
+    <string name="app_photo_import_failed">Impossible d’importer la photo : %1$s</string>
+    <string name="app_timeline_cleanup_warning">Timeline créée, mais certains anciens médias locaux n’ont pas pu être nettoyés.</string>
+    <string name="app_timeline_create_failed">Impossible de créer la timeline : %1$s</string>
+    <string name="app_remix_cleanup_warning">Remix créé, mais certains anciens médias locaux n’ont pas pu être nettoyés.</string>
+    <string name="app_remix_failed">Impossible de remixer cette vie : %1$s</string>
+    <string name="app_settings_saved">Paramètres ComfyUI enregistrés</string>
+    <string name="app_settings_save_failed">Impossible d’enregistrer les paramètres ComfyUI</string>
+    <string name="app_connection_testing">Test de la connexion ComfyUI…</string>
+    <string name="app_connection_success">Connexion ComfyUI réussie</string>
+    <string name="app_connection_failed">Impossible de se connecter à ComfyUI</string>
+    <string name="app_settings_cleared">Paramètres IA effacés</string>
+    <string name="app_settings_clear_failed">Impossible d’effacer les paramètres IA</string>
+    <string name="app_original_photo_missing_ai">Photo originale indisponible • ouverture de la timeline IA enregistrée</string>
+    <string name="app_original_photo_missing">La photo source de cette timeline n’est plus disponible</string>
 </resources>
