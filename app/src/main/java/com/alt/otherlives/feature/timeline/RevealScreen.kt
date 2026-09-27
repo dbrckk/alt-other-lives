@@ -597,7 +597,10 @@ fun RevealScreen(
                     val startGeneration: (Set<Int>, Boolean) -> Unit = { targetIndexes, resetSeed ->
                         if (!aiUiState.isGenerating) {
                             completedVideoUri = null
-                            aiUiState = aiUiState.start(targetIndexes.size)
+                            aiUiState = aiUiState.start(
+                                total = targetIndexes.size,
+                                targetIndexes = targetIndexes
+                            )
                             aiGenerationJob = scope.launch {
                                 try {
                                     val provider = ComfyUiGenerationProvider(
@@ -626,10 +629,6 @@ fun RevealScreen(
                                             )
                                         }
                                     )
-                                    aiUiState = aiUiState.retainFailures(
-                                        outcome.failedChapterIndexes
-                                    )
-
                                     val expected = scenario.chapters.take(5).size
                                     val completionState = aiGenerationCompletionState(
                                         resetSeed = resetSeed,
