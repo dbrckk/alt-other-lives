@@ -217,4 +217,5 @@
     <string name="settings_validation_missing_prompt">Le workflow doit contenir __ALT_PROMPT__ comme valeur JSON exacte.</string>
     <string name="settings_validation_unknown">La configuration IA est invalide.</string>
     <string name="settings_warning_ambiguous_output">Le workflow possède plusieurs nœuds de sortie image sans marqueur ALT OUTPUT ; ALT peut sélectionner la mauvaise branche.</string>
+    <string name="reveal_ai_scene_badge">SCÈNE IA</string>
 </resources>
