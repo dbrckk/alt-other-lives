@@ -84,7 +84,8 @@ fun RevealScreen(
     generationSettings: GenerationSettings,
     timelineKey: String,
     onBack: () -> Unit,
-    onAiSettings: () -> Unit
+    onAiSettings: () -> Unit,
+    onCreateAnotherLife: () -> Unit
 ) {
     val context = LocalContext.current
     val sceneStore = remember(context) { GeneratedSceneStore(context.applicationContext) }
@@ -977,7 +978,24 @@ fun RevealScreen(
                         fontSize = 12.sp
                     )
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(18.dp))
+                TextButton(
+                    onClick = onCreateAnotherLife,
+                    enabled = !isLoadingStoredScenes &&
+                        !isClearingAi &&
+                        !isSavingVideoToGallery &&
+                        !isRenderingShareImage &&
+                        !aiUiState.isGenerating &&
+                        !isExporting,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        "Create another ALT life  →",
+                        color = AltAccent,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
                 Text(
                     "Made for Reels • Shorts • Stories • 9:16 cinematic export",
                     modifier = Modifier.fillMaxWidth(),
