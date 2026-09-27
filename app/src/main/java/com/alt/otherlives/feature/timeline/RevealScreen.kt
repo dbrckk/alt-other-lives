@@ -87,7 +87,9 @@ fun RevealScreen(
     timelineKey: String,
     onBack: () -> Unit,
     onAiSettings: () -> Unit,
-    onCreateAnotherLife: () -> Unit
+    onCreateAnotherLife: () -> Unit,
+    onRemixThisLife: () -> Unit,
+    isRemixingLife: Boolean = false
 ) {
     val context = LocalContext.current
     val sceneStore = remember(context) { GeneratedSceneStore(context.applicationContext) }
@@ -981,9 +983,40 @@ fun RevealScreen(
                     )
                 }
                 Spacer(Modifier.height(18.dp))
+                Button(
+                    onClick = onRemixThisLife,
+                    enabled = !isRemixingLife &&
+                        !isLoadingStoredScenes &&
+                        !isClearingAi &&
+                        !isSavingVideoToGallery &&
+                        !isRenderingShareImage &&
+                        !aiUiState.isGenerating &&
+                        !isExporting,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(20.dp)
+                ) {
+                    Text(
+                        if (isRemixingLife) {
+                            stringResource(R.string.reveal_remixing)
+                        } else {
+                            stringResource(R.string.reveal_remix)
+                        },
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    stringResource(R.string.reveal_remix_hint),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    color = AltDimmed,
+                    fontSize = 11.sp
+                )
+                Spacer(Modifier.height(8.dp))
                 TextButton(
                     onClick = onCreateAnotherLife,
-                    enabled = !isLoadingStoredScenes &&
+                    enabled = !isRemixingLife &&
+                        !isLoadingStoredScenes &&
                         !isClearingAi &&
                         !isSavingVideoToGallery &&
                         !isRenderingShareImage &&
