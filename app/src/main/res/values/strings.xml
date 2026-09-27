@@ -27,4 +27,25 @@
     <string name="scenario_pick_life">Pick the life you want to see unfold.</string>
     <string name="scenario_chapter_story">%1$d CHAPTER STORY</string>
     <string name="scenario_explore_life">Explore this life  →</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="history_library_label">YOUR ALT LIBRARY</string>
+    <string name="history_title">Your other lives</string>
+    <string name="history_private_device">Stored privately on this device</string>
+    <string name="history_saved_life">%1$d saved life • private to this device</string>
+    <string name="history_saved_lives">%1$d saved lives • private to this device</string>
+    <string name="history_empty_title">No alternate lives yet.</string>
+    <string name="history_empty_body">Create one and it will appear here.</string>
+    <string name="history_ai_life">AI LIFE</string>
+    <string name="history_alt_life">ALT LIFE</string>
+    <string name="history_deleting">Deleting…</string>
+    <string name="history_open">Open  →</string>
+    <string name="history_delete_life">Delete this life</string>
+    <string name="history_clearing">Clearing…</string>
+    <string name="history_clear_local">Clear local history</string>
+    <string name="history_delete_title">Delete this ALT life?</string>
+    <string name="history_delete_body">This removes this saved timeline and any private media no longer used by another timeline.</string>
+    <string name="history_delete_action">Delete</string>
+    <string name="history_clear_title">Clear local history?</string>
+    <string name="history_clear_body">This removes your saved alternate lives from this device. This action cannot be undone.</string>
+    <string name="history_clear_action">Clear</string>
 </resources>
