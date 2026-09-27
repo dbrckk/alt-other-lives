@@ -1031,7 +1031,7 @@ fun RevealScreen(
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     Spacer(Modifier.height(12.dp))
-                    Button(
+                    TextButton(
                         onClick = {
                             if (!isRenderingShareImage) {
                                 isRenderingShareImage = true
@@ -1070,9 +1070,14 @@ fun RevealScreen(
                             }
                         },
                         enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isRenderingShareImage && !aiUiState.isGenerating && !isExporting && hasVisualAsset,
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
-                        shape = RoundedCornerShape(20.dp)
-                    ) { Text(stringResource(R.string.reveal_save_image), fontWeight = FontWeight.Bold) }
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            stringResource(R.string.reveal_save_image),
+                            color = AltMuted,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
                 Spacer(Modifier.height(12.dp))
                 Button(
@@ -1185,7 +1190,11 @@ fun RevealScreen(
                     },
                     enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !isExporting && !aiUiState.isGenerating && !isRenderingShareImage && hasVisualAsset,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AltCard,
+                        contentColor = AltPrimary
+                    )
                 ) {
                     Text(
                         if (isExporting) {
@@ -1249,9 +1258,18 @@ fun RevealScreen(
                             }
                         },
                         enabled = !isLoadingStoredScenes && !isClearingAi && !isSavingVideoToGallery && !aiUiState.isGenerating && !isExporting,
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
-                        shape = RoundedCornerShape(20.dp)
-                    ) { Text(stringResource(R.string.reveal_share_video), fontWeight = FontWeight.Bold) }
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AltPrimary,
+                            contentColor = Color(0xFF16111F)
+                        )
+                    ) {
+                        Text(
+                            stringResource(R.string.reveal_share_video),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         Spacer(Modifier.height(8.dp))
