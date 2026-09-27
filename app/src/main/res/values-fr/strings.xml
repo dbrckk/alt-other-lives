@@ -60,4 +60,5 @@
     <string name="reveal_share_video">Partager le MP4</string>
     <string name="reveal_create_another">Créer une autre vie ALT  →</string>
     <string name="reveal_social_footer">Pensé pour Reels • Shorts • Stories • export cinématique 9:16</string>
+    <string name="home_low_quality_source_warning">Pour une identité IA plus nette, utilise un portrait d’au moins 720 px sur le côté le plus court.</string>
 </resources>
