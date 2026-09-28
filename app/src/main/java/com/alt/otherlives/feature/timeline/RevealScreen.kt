@@ -45,7 +45,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.stringResource
@@ -97,6 +99,12 @@ fun RevealScreen(
     isRemixingLife: Boolean = false
 ) {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val density = LocalDensity.current
+    val revealLayout = RevealResponsiveLayout.resolve(
+        screenHeightDp = configuration.screenHeightDp,
+        fontScale = density.fontScale
+    )
     val haptics = LocalHapticFeedback.current
     val sceneStore = remember(context) { GeneratedSceneStore(context.applicationContext) }
     val aiOrchestrator = remember(context, sceneStore) {
@@ -181,7 +189,7 @@ fun RevealScreen(
     }
     LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 40.dp)) {
         item {
-            Box(modifier = Modifier.fillMaxWidth().height(620.dp)) {
+            Box(modifier = Modifier.fillMaxWidth().height(revealLayout.heroHeightDp.dp)) {
                 if (revealHeroUri != null) {
                     AsyncImage(
                         model = revealHeroUri,
@@ -248,8 +256,8 @@ fun RevealScreen(
                     Spacer(Modifier.height(10.dp))
                     Text(
                         scenario.title,
-                        fontSize = 42.sp,
-                        lineHeight = 44.sp,
+                        fontSize = revealLayout.titleSizeSp.sp,
+                        lineHeight = revealLayout.titleLineHeightSp.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(Modifier.height(10.dp))
