@@ -22,6 +22,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.stringResource
@@ -43,8 +45,18 @@ fun ScenarioScreen(
     onSelect: (Scenario) -> Unit,
     isCreatingTimeline: Boolean = false
 ) {
+    val configuration = LocalConfiguration.current
+    val fontScale = LocalDensity.current.fontScale
+    val scenarioLayout = ScenarioResponsiveLayout.resolve(
+        screenHeightDp = configuration.screenHeightDp,
+        fontScale = fontScale
+    )
     val haptics = LocalHapticFeedback.current
-    Column(modifier = Modifier.fillMaxSize().padding(top = 42.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = scenarioLayout.topPaddingDp.dp)
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -57,7 +69,7 @@ fun ScenarioScreen(
             }
             Column(Modifier.padding(start = 12.dp)) {
                 Text(stringResource(R.string.scenario_choose_path), color = AltAccent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                Text(stringResource(R.string.scenario_what_if), fontSize = 34.sp, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.scenario_what_if), fontSize = scenarioLayout.headingSizeSp.sp, fontWeight = FontWeight.SemiBold)
             }
         }
         if (isCreatingTimeline) {
@@ -87,7 +99,7 @@ fun ScenarioScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(scenarioLayout.cardSpacingDp.dp)
         ) {
             itemsIndexed(
                 items = scenarios,
@@ -107,7 +119,7 @@ fun ScenarioScreen(
                     shape = RoundedCornerShape(28.dp),
                     colors = CardDefaults.cardColors(containerColor = AltCard)
                 ) {
-                    Column(Modifier.padding(22.dp)) {
+                    Column(Modifier.padding(scenarioLayout.cardPaddingDp.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
