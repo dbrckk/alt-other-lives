@@ -33,6 +33,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -53,6 +55,12 @@ fun HomeScreen(
     onContinue: () -> Unit,
     onHistory: () -> Unit
 ) {
+    val configuration = LocalConfiguration.current
+    val fontScale = LocalDensity.current.fontScale
+    val homeLayout = HomeResponsiveLayout.resolve(
+        screenHeightDp = configuration.screenHeightDp,
+        fontScale = fontScale
+    )
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let(onPhotoSelected)
     }
@@ -89,8 +97,8 @@ fun HomeScreen(
             Spacer(Modifier.height(16.dp))
             Text(
                 stringResource(R.string.home_headline),
-                fontSize = 44.sp,
-                lineHeight = 45.sp,
+                fontSize = homeLayout.headlineSizeSp.sp,
+                lineHeight = homeLayout.headlineLineHeightSp.sp,
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(Modifier.height(12.dp))
@@ -107,7 +115,7 @@ fun HomeScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(350.dp)
+                .height(homeLayout.photoHeroHeightDp.dp)
                 .clip(RoundedCornerShape(34.dp))
                 .background(
                     Brush.verticalGradient(
