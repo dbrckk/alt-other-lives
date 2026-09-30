@@ -23,7 +23,9 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -60,6 +62,12 @@ fun HistoryScreen(
     generatedPreviewUrisByTimelineKey: Map<String, Uri> = emptyMap()
 ) {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val fontScale = LocalDensity.current.fontScale
+    val historyLayout = HistoryResponsiveLayout.resolve(
+        screenHeightDp = configuration.screenHeightDp,
+        fontScale = fontScale
+    )
     val haptics = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     var showClearConfirmation by remember { mutableStateOf(false) }
@@ -69,7 +77,7 @@ fun HistoryScreen(
     var showCompareDialog by remember { mutableStateOf(false) }
     var isSharingComparison by remember { mutableStateOf(false) }
 
-    Column(Modifier.fillMaxSize().padding(top = 42.dp)) {
+    Column(Modifier.fillMaxSize().padding(top = historyLayout.topPaddingDp.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -87,7 +95,11 @@ fun HistoryScreen(
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Text(stringResource(R.string.history_title), fontSize = 31.sp, fontWeight = FontWeight.SemiBold)
+                Text(
+                    stringResource(R.string.history_title),
+                    fontSize = historyLayout.titleSizeSp.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
                 Text(
                     if (entries.isEmpty()) {
                         stringResource(R.string.history_private_device)
@@ -174,7 +186,7 @@ fun HistoryScreen(
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(historyLayout.cardSpacingDp.dp)
             ) {
                 items(entries, key = { it.scenarioId + ":" + it.createdAt }) { entry ->
                     val scenario = scenarios.firstOrNull { it.id == entry.scenarioId }
@@ -237,7 +249,7 @@ fun HistoryScreen(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(210.dp)
+                                        .height(historyLayout.previewHeightDp.dp)
                                         .background(AltSurface),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -310,7 +322,7 @@ fun HistoryScreen(
                                     }
                                 }
 
-                                Column(Modifier.padding(18.dp)) {
+                                Column(Modifier.padding(historyLayout.cardPaddingDp.dp)) {
                                     Text(
                                         scenario.title,
                                         fontSize = 21.sp,
