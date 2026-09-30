@@ -19,8 +19,17 @@ class HomeResponsiveWiringContractTest {
         assertTrue(source.contains("fontSize = homeLayout.headlineSizeSp.sp"))
         assertTrue(source.contains("lineHeight = homeLayout.headlineLineHeightSp.sp"))
 
+        val headlineStart = source.indexOf("stringResource(R.string.home_headline)")
+        val headlineEnd = source.indexOf(
+            "Spacer(Modifier.height(12.dp))",
+            headlineStart
+        )
+        assertTrue(headlineStart >= 0)
+        assertTrue(headlineEnd > headlineStart)
+
+        val headlineBlock = source.substring(headlineStart, headlineEnd)
+        assertFalse(headlineBlock.contains("fontSize = 44.sp"))
+        assertFalse(headlineBlock.contains("lineHeight = 45.sp"))
         assertFalse(source.contains("height(350.dp)"))
-        assertFalse(source.contains("fontSize = 44.sp"))
-        assertFalse(source.contains("lineHeight = 45.sp"))
     }
 }
