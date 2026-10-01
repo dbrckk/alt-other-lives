@@ -19,9 +19,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.alt.otherlives.core.designsystem.AltMuted
 import com.alt.otherlives.core.designsystem.AltBackButton
 import com.alt.otherlives.core.generation.ComfyUiWorkflowTemplate
@@ -48,6 +51,13 @@ fun GenerationSettingsScreen(
         mutableStateOf(settings.remotePhotoUploadConsent)
     }
 
+    val configuration = LocalConfiguration.current
+    val fontScale = LocalDensity.current.fontScale
+    val settingsLayout = SettingsResponsiveLayout.resolve(
+        screenHeightDp = configuration.screenHeightDp,
+        fontScale = fontScale
+    )
+
     val continuityIssues = remember(workflow) {
         if (workflow.isBlank()) {
             emptyList()
@@ -62,16 +72,20 @@ fun GenerationSettingsScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(24.dp)
+            .padding(settingsLayout.contentPaddingDp.dp)
     ) {
         AltBackButton(onClick = onBack)
-        Text(stringResource(R.string.settings_title), fontWeight = FontWeight.Bold)
+        Text(
+            stringResource(R.string.settings_title),
+            fontSize = settingsLayout.titleSizeSp.sp,
+            fontWeight = FontWeight.Bold
+        )
         Spacer(Modifier.height(6.dp))
         Text(
             stringResource(R.string.settings_intro),
             color = AltMuted
         )
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(settingsLayout.sectionSpacingDp.dp))
 
         if (settings.hasPersistedValues && !settings.isConfigured) {
             Text(
@@ -117,7 +131,7 @@ fun GenerationSettingsScreen(
                 )
             },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 12
+            minLines = settingsLayout.workflowMinLines
         )
         if (continuityIssues.isNotEmpty()) {
             Text(
