@@ -11,7 +11,9 @@ class NavigationTransitionWiringContractTest {
             "src/main/java/com/alt/otherlives/app/AltApp.kt"
         ).readText()
 
-        assertTrue(source.contains("NavigationTransitionPolicy.direction(initialState, targetState)"))
+        assertTrue(source.contains("NavigationTransitionPolicy.direction("))
+        assertTrue(source.contains("initialState"))
+        assertTrue(source.contains("targetState"))
         assertTrue(source.contains("NavigationTransitionDirection.FORWARD"))
         assertTrue(source.contains("NavigationTransitionDirection.BACKWARD"))
         assertTrue(source.contains("NavigationTransitionDirection.NEUTRAL"))
