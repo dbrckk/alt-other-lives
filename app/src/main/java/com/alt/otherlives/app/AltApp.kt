@@ -7,6 +7,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
@@ -229,19 +231,54 @@ fun AltApp() {
             AnimatedContent(
                 targetState = navigation.screen,
                 transitionSpec = {
-                    (
-                        fadeIn(animationSpec = tween(280)) +
-                            scaleIn(
-                                initialScale = 0.985f,
-                                animationSpec = tween(320)
-                            )
-                        ) togetherWith (
-                        fadeOut(animationSpec = tween(180)) +
-                            scaleOut(
-                                targetScale = 1.01f,
-                                animationSpec = tween(180)
-                            )
+                    when (
+                        NavigationTransitionPolicy.direction(
+                            initialState,
+                            targetState
                         )
+                    ) {
+                        NavigationTransitionDirection.FORWARD -> (
+                            fadeIn(animationSpec = tween(260)) +
+                                slideInHorizontally(
+                                    initialOffsetX = { width -> width / 12 },
+                                    animationSpec = tween(320)
+                                )
+                            ) togetherWith (
+                            fadeOut(animationSpec = tween(180)) +
+                                slideOutHorizontally(
+                                    targetOffsetX = { width -> -width / 16 },
+                                    animationSpec = tween(220)
+                                )
+                            )
+
+                        NavigationTransitionDirection.BACKWARD -> (
+                            fadeIn(animationSpec = tween(260)) +
+                                slideInHorizontally(
+                                    initialOffsetX = { width -> -width / 12 },
+                                    animationSpec = tween(320)
+                                )
+                            ) togetherWith (
+                            fadeOut(animationSpec = tween(180)) +
+                                slideOutHorizontally(
+                                    targetOffsetX = { width -> width / 16 },
+                                    animationSpec = tween(220)
+                                )
+                            )
+
+                        NavigationTransitionDirection.NEUTRAL -> (
+                            fadeIn(animationSpec = tween(280)) +
+                                scaleIn(
+                                    initialScale = 0.985f,
+                                    animationSpec = tween(320)
+                                )
+                            ) togetherWith (
+                            fadeOut(animationSpec = tween(180)) +
+                                scaleOut(
+                                    targetScale = 1.01f,
+                                    animationSpec = tween(180)
+                                )
+                            )
+                    }
                 },
                 label = "screen"
             ) { current ->
