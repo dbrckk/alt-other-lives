@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -43,7 +45,8 @@ fun ScenarioScreen(
     scenarios: List<Scenario>,
     onBack: () -> Unit,
     onSelect: (Scenario) -> Unit,
-    isCreatingTimeline: Boolean = false
+    isCreatingTimeline: Boolean = false,
+    listState: LazyListState = rememberLazyListState()
 ) {
     val configuration = LocalConfiguration.current
     val fontScale = LocalDensity.current.fontScale
@@ -97,6 +100,7 @@ fun ScenarioScreen(
         )
         Spacer(Modifier.height(18.dp))
         LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(scenarioLayout.cardSpacingDp.dp)
