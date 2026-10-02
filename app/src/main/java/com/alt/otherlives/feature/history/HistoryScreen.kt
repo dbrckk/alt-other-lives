@@ -7,7 +7,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -59,7 +61,8 @@ fun HistoryScreen(
     onClear: () -> Unit,
     unavailablePhotoFileNames: Set<String> = emptySet(),
     photoUrisByFileName: Map<String, Uri> = emptyMap(),
-    generatedPreviewUrisByTimelineKey: Map<String, Uri> = emptyMap()
+    generatedPreviewUrisByTimelineKey: Map<String, Uri> = emptyMap(),
+    listState: LazyListState = rememberLazyListState()
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
@@ -184,6 +187,7 @@ fun HistoryScreen(
                 }
             }
             LazyColumn(
+                state = listState,
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(historyLayout.cardSpacingDp.dp)

@@ -13,6 +13,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -98,6 +99,12 @@ fun AltApp() {
     var deletingHistoryEntryKey by remember { mutableStateOf<String?>(null) }
     var isClearingHistory by remember { mutableStateOf(false) }
     var isCreatingTimeline by remember { mutableStateOf(false) }
+    val scenarioListState = rememberSaveable(saver = LazyListState.Saver) {
+        LazyListState()
+    }
+    val historyListState = rememberSaveable(saver = LazyListState.Saver) {
+        LazyListState()
+    }
     val context = LocalContext.current
 
     BackHandler(
@@ -362,6 +369,7 @@ fun AltApp() {
                             }
                         },
                         isCreatingTimeline = isCreatingTimeline,
+                        listState = scenarioListState,
                         onSelect = { scenario ->
                             if (!isCreatingTimeline) {
                                 isCreatingTimeline = true
@@ -598,6 +606,7 @@ fun AltApp() {
                         unavailablePhotoFileNames = unavailablePhotoFileNames,
                         photoUrisByFileName = historyPhotoUris,
                         generatedPreviewUrisByTimelineKey = historyGeneratedPreviewUris,
+                        listState = historyListState,
                         deletingEntryKey = deletingHistoryEntryKey,
                         isClearingHistory = isClearingHistory,
                         onOpen = { scenario, entry ->
