@@ -266,6 +266,7 @@ fun HistoryScreen(
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxSize()
+            .safeDrawingPadding()
                                                 .background(
                                                     androidx.compose.ui.graphics.Brush.verticalGradient(
                                                         listOf(
