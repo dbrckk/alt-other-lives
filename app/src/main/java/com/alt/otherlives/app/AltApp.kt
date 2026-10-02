@@ -2,6 +2,7 @@ package com.alt.otherlives.app
 
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -98,6 +99,18 @@ fun AltApp() {
     var isClearingHistory by remember { mutableStateOf(false) }
     var isCreatingTimeline by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    BackHandler(
+        enabled = navigation.screen != AltScreen.HOME
+    ) {
+        val destination = SystemBackNavigationPolicy.destination(navigation)
+        if (
+            destination != null &&
+            !(navigation.screen == AltScreen.SCENARIOS && isCreatingTimeline)
+        ) {
+            navigation = destination
+        }
+    }
 
     LaunchedEffect(scenarios) {
         selectedScenario = scenarios
