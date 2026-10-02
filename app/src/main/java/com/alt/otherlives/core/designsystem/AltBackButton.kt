@@ -5,9 +5,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.alt.otherlives.R
 
 @Composable
 fun AltBackButton(
@@ -15,13 +17,14 @@ fun AltBackButton(
     enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
+    val backLabel = stringResource(R.string.common_back)
     TextButton(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier
             .heightIn(min = 48.dp)
-            .semantics { contentDescription = "Back" }
+            .semantics { contentDescription = backLabel }
     ) {
-        Text("‹ Back")
+        Text("‹ $backLabel")
     }
 }
