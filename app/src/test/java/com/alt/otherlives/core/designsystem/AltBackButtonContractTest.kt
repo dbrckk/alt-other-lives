@@ -13,7 +13,7 @@ class AltBackButtonContractTest {
         ).readText()
 
         assertTrue(source.contains("stringResource(R.string.common_back)"))
-        assertFalse(source.contains("Text("‹ Back")"))
-        assertFalse(source.contains("contentDescription = "Back""))
+        assertFalse(source.contains("""Text("‹ Back")"""))
+        assertFalse(source.contains("""contentDescription = "Back""""))
     }
 }
