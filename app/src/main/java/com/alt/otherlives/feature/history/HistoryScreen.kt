@@ -80,7 +80,12 @@ fun HistoryScreen(
     var showCompareDialog by remember { mutableStateOf(false) }
     var isSharingComparison by remember { mutableStateOf(false) }
 
-    Column(Modifier.fillMaxSize().padding(top = historyLayout.topPaddingDp.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .safeDrawingPadding()
+            .padding(top = historyLayout.topPaddingDp.dp)
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -270,7 +275,6 @@ fun HistoryScreen(
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxSize()
-            .safeDrawingPadding()
                                                 .background(
                                                     androidx.compose.ui.graphics.Brush.verticalGradient(
                                                         listOf(
