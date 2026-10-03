@@ -32,20 +32,50 @@ jobs:
         run: gradle :app:assembleDebug --stacktrace
       - name: Compile instrumentation tests
         run: gradle :app:assembleDebugAndroidTest --stacktrace
+      - name: Validate release signing configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          configured=0
+          for value in             "$ALT_ANDROID_KEYSTORE_BASE64"             "$ALT_KEYSTORE_PASSWORD"             "$ALT_KEY_ALIAS"             "$ALT_KEY_PASSWORD"; do
+            if [[ -n "$value" ]]; then
+              configured=$((configured + 1))
+            fi
+          done
+          if [[ "$configured" -ne 0 && "$configured" -ne 4 ]]; then
+            echo "::error::Release signing secrets are only partially configured."
+            exit 1
+          fi
+          if [[ "$configured" -eq 4 ]]; then
+            echo "ALT_RELEASE_SIGNED=true" >> "$GITHUB_ENV"
+          else
+            echo "ALT_RELEASE_SIGNED=false" >> "$GITHUB_ENV"
+            echo "::warning::Release AAB will be unsigned because release signing secrets are not configured."
+          fi
       - name: Prepare release keystore
-        if: env.ALT_ANDROID_KEYSTORE_BASE64 != ''
+        if: env.ALT_RELEASE_SIGNED == 'true'
         run: |
           echo "$ALT_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/alt-release.jks"
           echo "ALT_KEYSTORE_PATH=$RUNNER_TEMP/alt-release.jks" >> "$GITHUB_ENV"
       - name: Build release AAB
         run: gradle :app:bundleRelease --stacktrace
+      - name: Verify signed release AAB
+        if: env.ALT_RELEASE_SIGNED == 'true'
+        run: jarsigner -verify -strict app/build/outputs/bundle/release/app-release.aab
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: alt-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
-      - name: Upload release AAB
+      - name: Upload signed release AAB
+        if: env.ALT_RELEASE_SIGNED == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: alt-release-aab
+          name: alt-release-aab-signed
+          path: app/build/outputs/bundle/release/app-release.aab
+      - name: Upload unsigned release AAB
+        if: env.ALT_RELEASE_SIGNED != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: alt-release-aab-unsigned
           path: app/build/outputs/bundle/release/app-release.aab
