@@ -1,9 +1,12 @@
 package com.alt.otherlives.app
 
+import android.animation.ValueAnimator
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -286,7 +289,8 @@ fun AltApp() {
                     when (
                         NavigationTransitionPolicy.direction(
                             initialState,
-                            targetState
+                            targetState,
+                            animationsEnabled = ValueAnimator.areAnimatorsEnabled()
                         )
                     ) {
                         NavigationTransitionDirection.FORWARD -> (
@@ -330,6 +334,8 @@ fun AltApp() {
                                     animationSpec = tween(180)
                                 )
                             )
+                        NavigationTransitionDirection.NONE ->
+                            EnterTransition.None togetherWith ExitTransition.None
                     }
                 },
                 label = "screen"
