@@ -9,6 +9,8 @@ class InstrumentationCiContractTest {
     fun ciExecutesInstrumentationTestsOnPinnedEmulatorRunner() {
         val source = File("../.github/workflows/android.yml").readText()
 
+        assertTrue(source.contains("Enable KVM group permissions"))
+        assertTrue(source.contains("99-kvm4all.rules"))
         assertTrue(source.contains("Run instrumentation tests"))
         assertTrue(
             source.contains(
