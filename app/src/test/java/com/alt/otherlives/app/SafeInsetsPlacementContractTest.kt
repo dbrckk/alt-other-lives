@@ -6,24 +6,28 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SafeInsetsPlacementContractTest {
-    private val roots = mapOf(
-        "src/main/java/com/alt/otherlives/feature/home/HomeScreen.kt" to ".fillMaxSize()\n            .safeDrawingPadding()",
-        "src/main/java/com/alt/otherlives/feature/scenarios/ScenarioScreen.kt" to ".fillMaxSize()\n            .safeDrawingPadding()",
-        "src/main/java/com/alt/otherlives/feature/history/HistoryScreen.kt" to ".fillMaxSize()\n            .safeDrawingPadding()",
-        "src/main/java/com/alt/otherlives/feature/timeline/RevealScreen.kt" to ".fillMaxSize()\n            .safeDrawingPadding()",
-        "src/main/java/com/alt/otherlives/feature/settings/GenerationSettingsScreen.kt" to ".fillMaxSize()\n            .safeDrawingPadding()"
-    )
-
     @Test
     fun safeDrawingInsetsAreAppliedExactlyOnceAtEachScreenRoot() {
-        roots.forEach { (path, rootPattern) ->
+        val rootPatterns = mapOf(
+            "src/main/java/com/alt/otherlives/feature/home/HomeScreen.kt" to
+                ".fillMaxSize()\n            .safeDrawingPadding()\n            .verticalScroll",
+            "src/main/java/com/alt/otherlives/feature/scenarios/ScenarioScreen.kt" to
+                ".fillMaxSize()\n            .safeDrawingPadding()\n            .padding(top = scenarioLayout.topPaddingDp.dp)",
+            "src/main/java/com/alt/otherlives/feature/history/HistoryScreen.kt" to
+                "Column(\n        modifier = Modifier\n            .fillMaxSize()\n            .safeDrawingPadding()\n            .padding(top = historyLayout.topPaddingDp.dp)",
+            "src/main/java/com/alt/otherlives/feature/timeline/RevealScreen.kt" to
+                "LazyColumn(\n        modifier = Modifier\n            .fillMaxSize()\n            .safeDrawingPadding(),",
+            "src/main/java/com/alt/otherlives/feature/settings/GenerationSettingsScreen.kt" to
+                ".fillMaxSize()\n            .safeDrawingPadding()\n            .imePadding()"
+        )
+
+        rootPatterns.forEach { (path, rootPattern) ->
             val source = File(path).readText()
-            assertTrue("$path must apply safeDrawingPadding at its root", source.contains(rootPattern))
+            assertTrue("$path must apply safeDrawingPadding at its screen root", source.contains(rootPattern))
             assertEquals(
                 "$path must not apply safeDrawingPadding to internal overlays",
                 1,
-                source.windowed("safeDrawingPadding()".length)
-                    .count { it == "safeDrawingPadding()" }
+                Regex("""\.safeDrawingPadding\(\)""").findAll(source).count()
             )
         }
     }
