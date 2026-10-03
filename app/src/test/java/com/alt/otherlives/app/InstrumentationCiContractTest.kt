@@ -17,8 +17,10 @@ class InstrumentationCiContractTest {
             )
         )
         assertTrue(source.contains("api-level: 35"))
-        assertTrue(source.contains("gradle :app:connectedDebugAndroidTest --stacktrace"))
-        assertTrue(source.contains("adb logcat -d > app/build/instrumentation-logcat.txt"))
+        assertTrue(source.contains("bash .github/scripts/run-instrumentation-tests.sh"))
+        val script = File("../.github/scripts/run-instrumentation-tests.sh").readText()
+        assertTrue(script.contains("gradle :app:connectedDebugAndroidTest --stacktrace --info"))
+        assertTrue(script.contains("adb logcat -d > app/build/instrumentation-logcat.txt"))
         assertTrue(source.contains("Upload instrumentation diagnostics"))
         assertTrue(source.contains("if: always()"))
     }
