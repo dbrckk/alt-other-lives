@@ -28,7 +28,11 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -56,6 +60,7 @@ fun ScenarioScreen(
         fontScale = fontScale
     )
     val haptics = LocalHapticFeedback.current
+    val creatingTimelineDescription = stringResource(R.string.scenario_creating_timeline)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -83,13 +88,18 @@ fun ScenarioScreen(
                 modifier = Modifier.padding(horizontal = 24.dp)
             ) {
                 Text(
-                    stringResource(R.string.scenario_creating_timeline),
+                    creatingTimelineDescription,
                     color = AltMuted,
                     fontSize = 13.sp
                 )
                 Spacer(Modifier.height(8.dp))
                 LinearProgressIndicator(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            progressBarRangeInfo = ProgressBarRangeInfo.Indeterminate
+                            stateDescription = creatingTimelineDescription
+                        }
                 )
             }
         }
