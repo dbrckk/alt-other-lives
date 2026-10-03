@@ -78,9 +78,9 @@ import com.alt.otherlives.core.media.ShareCardRenderer
 import com.alt.otherlives.core.media.CinematicVideoExporter
 import com.alt.otherlives.core.media.TimelineSceneRenderer
 import com.alt.otherlives.core.media.RenderedTimelineScenes
-import com.alt.otherlives.core.generation.ComfyUiConfig
-import com.alt.otherlives.core.generation.ComfyUiGenerationProvider
 import com.alt.otherlives.core.generation.GenerationSettings
+import com.alt.otherlives.core.generation.GenerationProviderFactory
+import com.alt.otherlives.core.generation.GenerationProviderResolution
 import com.alt.otherlives.core.generation.GeneratedScene
 import com.alt.otherlives.core.generation.GeneratedSceneStore
 import com.alt.otherlives.core.generation.GenerationChapterFailureKind
@@ -611,7 +611,8 @@ fun RevealScreen(
         }
         item {
             Column(Modifier.padding(24.dp)) {
-                if (generationSettings.isReadyForRemoteGeneration && photoUri != null) {
+                val providerConfig = GenerationProviderResolution.resolve(generationSettings)
+                if (providerConfig != null && photoUri != null) {
                     val startGeneration: (Set<Int>, Boolean) -> Unit = { targetIndexes, resetSeed ->
                         if (!aiUiState.isGenerating) {
                             completedVideoUri = null
@@ -621,10 +622,9 @@ fun RevealScreen(
                             )
                             aiGenerationJob = scope.launch {
                                 try {
-                                    val provider = ComfyUiGenerationProvider(
+                                    val provider = GenerationProviderFactory.create(
                                         context = context,
-                                        config = ComfyUiConfig(generationSettings.comfyUiBaseUrl),
-                                        workflowTemplateJson = generationSettings.workflowJson
+                                        config = providerConfig
                                     )
                                     val outcome = aiOrchestrator.generate(
                                         provider = provider,
