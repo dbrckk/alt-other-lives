@@ -13,6 +13,8 @@ jobs:
       ALT_KEYSTORE_PASSWORD: ${{ secrets.ALT_KEYSTORE_PASSWORD }}
       ALT_KEY_ALIAS: ${{ secrets.ALT_KEY_ALIAS }}
       ALT_KEY_PASSWORD: ${{ secrets.ALT_KEY_PASSWORD }}
+      ALT_VERSION_CODE: ${{ vars.ALT_VERSION_CODE }}
+      ALT_VERSION_NAME: ${{ vars.ALT_VERSION_NAME }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-java@v5
@@ -70,6 +72,14 @@ jobs:
             exit 1
           fi
           if [[ "$configured" -eq 4 ]]; then
+            if [[ -z "$ALT_VERSION_CODE" || ! "$ALT_VERSION_CODE" =~ ^[1-9][0-9]*$ ]]; then
+              echo "::error::Signed releases require ALT_VERSION_CODE to be a positive integer repository variable."
+              exit 1
+            fi
+            if [[ -z "${ALT_VERSION_NAME//[[:space:]]/}" ]]; then
+              echo "::error::Signed releases require a non-empty ALT_VERSION_NAME repository variable."
+              exit 1
+            fi
             echo "ALT_RELEASE_SIGNED=true" >> "$GITHUB_ENV"
           else
             echo "ALT_RELEASE_SIGNED=false" >> "$GITHUB_ENV"
