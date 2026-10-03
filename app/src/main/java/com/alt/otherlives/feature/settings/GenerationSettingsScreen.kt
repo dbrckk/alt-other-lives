@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -47,9 +48,9 @@ fun GenerationSettingsScreen(
     isSavingSettings: Boolean = false,
     isClearingSettings: Boolean = false
 ) {
-    var baseUrl by remember(settings.comfyUiBaseUrl) { mutableStateOf(settings.comfyUiBaseUrl) }
-    var workflow by remember(settings.workflowJson) { mutableStateOf(settings.workflowJson) }
-    var remotePhotoUploadConsent by remember(settings.remotePhotoUploadConsent) {
+    var baseUrl by rememberSaveable(settings.comfyUiBaseUrl) { mutableStateOf(settings.comfyUiBaseUrl) }
+    var workflow by rememberSaveable(settings.workflowJson) { mutableStateOf(settings.workflowJson) }
+    var remotePhotoUploadConsent by rememberSaveable(settings.remotePhotoUploadConsent) {
         mutableStateOf(settings.remotePhotoUploadConsent)
     }
 
