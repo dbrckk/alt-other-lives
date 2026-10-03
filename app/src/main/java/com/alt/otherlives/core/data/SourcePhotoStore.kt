@@ -9,11 +9,13 @@ import java.io.File
 import java.util.UUID
 import com.alt.otherlives.core.io.BoundedStreamCopy
 import com.alt.otherlives.core.media.ImageBoundsValidation
+import com.alt.otherlives.core.media.SourcePhotoQualityIssue
 
 data class StoredPhoto(
     val fileName: String,
     val uri: Uri,
-    val isLikelyPremiumSource: Boolean
+    val isLikelyPremiumSource: Boolean,
+    val qualityIssues: Set<SourcePhotoQualityIssue> = emptySet()
 )
 
 class SourcePhotoStore(private val context: Context) {
@@ -31,6 +33,7 @@ class SourcePhotoStore(private val context: Context) {
         val target = File(dir, fileName)
         val temporary = File(dir, ".source-" + id + ".tmp")
         var isLikelyPremiumSource = false
+        var qualityIssues: Set<SourcePhotoQualityIssue> = emptySet()
 
         try {
             context.contentResolver.openInputStream(uri)?.use { input ->
@@ -54,10 +57,12 @@ class SourcePhotoStore(private val context: Context) {
             ) {
                 "Selected image is invalid, unsupported, or too large"
             }
-            isLikelyPremiumSource = ImageBoundsValidation.isLikelyPremiumSource(
+            val qualityAssessment = ImageBoundsValidation.assessSourcePhoto(
                 bounds.outWidth,
                 bounds.outHeight
             )
+            isLikelyPremiumSource = qualityAssessment.isPremiumReady
+            qualityIssues = qualityAssessment.issues
 
             if (!temporary.renameTo(target)) {
                 error("Unable to finalize selected photo import")
@@ -71,7 +76,8 @@ class SourcePhotoStore(private val context: Context) {
         return StoredPhoto(
             fileName = fileName,
             uri = uriFor(fileName),
-            isLikelyPremiumSource = isLikelyPremiumSource
+            isLikelyPremiumSource = isLikelyPremiumSource,
+            qualityIssues = qualityIssues
         )
     }
 
@@ -96,6 +102,20 @@ class SourcePhotoStore(private val context: Context) {
             return false
         }
         return true
+    }
+
+    fun qualityIssues(fileName: String): Set<SourcePhotoQualityIssue>? {
+        val file = runCatching { storedFile(fileName) }.getOrNull() ?: return null
+        if (!isValidImage(file)) {
+            file.delete()
+            return null
+        }
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        return ImageBoundsValidation.assessSourcePhoto(
+            bounds.outWidth,
+            bounds.outHeight
+        ).issues
     }
 
     fun isLikelyPremiumSource(fileName: String): Boolean? {
@@ -139,13 +159,15 @@ class SourcePhotoStore(private val context: Context) {
             } else {
                 val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                 BitmapFactory.decodeFile(file.absolutePath, bounds)
+                val qualityAssessment = ImageBoundsValidation.assessSourcePhoto(
+                    bounds.outWidth,
+                    bounds.outHeight
+                )
                 return StoredPhoto(
                     fileName = file.name,
                     uri = uriFor(file.name),
-                    isLikelyPremiumSource = ImageBoundsValidation.isLikelyPremiumSource(
-                        bounds.outWidth,
-                        bounds.outHeight
-                    )
+                    isLikelyPremiumSource = qualityAssessment.isPremiumReady,
+                    qualityIssues = qualityAssessment.issues
                 )
             }
         }
