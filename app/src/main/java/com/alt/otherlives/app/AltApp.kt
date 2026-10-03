@@ -78,12 +78,15 @@ fun AltApp() {
         ScenarioCatalog.forLanguage(appLanguage)
     }
     var photoUri by remember { mutableStateOf<Uri?>(null) }
-    var photoFileName by remember { mutableStateOf<String?>(null) }
+    var photoFileName by rememberSaveable { mutableStateOf<String?>(null) }
     var photoIsLikelyPremiumSource by remember { mutableStateOf<Boolean?>(null) }
-    var selectedScenario by remember {
-        mutableStateOf(scenarios.first())
+    var selectedScenarioId by rememberSaveable {
+        mutableStateOf(scenarios.first().id)
     }
-    var activeTimelineKey by remember { mutableStateOf<String?>(null) }
+    val selectedScenario = scenarios
+        .firstOrNull { it.id == selectedScenarioId }
+        ?: scenarios.first()
+    var activeTimelineKey by rememberSaveable { mutableStateOf<String?>(null) }
     var generationSettingsMessage by remember { mutableStateOf<String?>(null) }
     var isImportingPhoto by remember { mutableStateOf(false) }
     var isTestingConnection by remember { mutableStateOf(false) }
@@ -120,9 +123,9 @@ fun AltApp() {
     }
 
     LaunchedEffect(scenarios) {
-        selectedScenario = scenarios
-            .firstOrNull { it.id == selectedScenario.id }
-            ?: scenarios.first()
+        if (scenarios.none { it.id == selectedScenarioId }) {
+            selectedScenarioId = scenarios.first().id
+        }
     }
 
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
@@ -144,6 +147,35 @@ fun AltApp() {
             withContext(Dispatchers.IO) {
                 TransientMediaCache.cleanup(context.applicationContext)
             }
+        }
+
+        val restoredIdentity = ActiveTimelineRestoreState.restore(
+            scenarioId = selectedScenarioId,
+            timelineKey = activeTimelineKey,
+            photoFileName = photoFileName
+        )
+        val restoredPhoto = restoredIdentity.photoFileName?.let { fileName ->
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    sourcePhotoStore.uriFor(restoredIdentity.photoFileName)
+                }
+            }.getOrNull()?.let { uri ->
+                Triple(
+                    uri,
+                    fileName,
+                    withContext(Dispatchers.IO) {
+                        sourcePhotoStore.isLikelyPremiumSource(fileName)
+                    }
+                )
+            }
+        }
+        if (restoredPhoto != null) {
+            photoUri = restoredPhoto.first
+            photoFileName = restoredPhoto.second
+            photoIsLikelyPremiumSource = restoredPhoto.third
+        } else if (restoredIdentity.photoFileName != null) {
+            photoFileName = null
+            activeTimelineKey = null
         }
 
         val latestStoredPhoto = if (photoUri == null && !isImportingPhoto) {
@@ -178,7 +210,7 @@ fun AltApp() {
                     scenarios
                         .firstOrNull { it.id == latest.scenarioId }
                         ?.let { scenario ->
-                            selectedScenario = scenario
+                            selectedScenarioId = scenario.id
                             activeTimelineKey = latest.timelineKey
                         }
                 }
@@ -201,7 +233,7 @@ fun AltApp() {
                         scenarios
                             .firstOrNull { it.id == latest.scenarioId }
                             ?.let { scenario ->
-                                selectedScenario = scenario
+                                selectedScenarioId = scenario.id
                                 activeTimelineKey = latest.timelineKey
                             }
                     }
@@ -387,7 +419,7 @@ fun AltApp() {
                                         val recordedEntry = requireNotNull(keep.recordedEntry) {
                                             "Timeline record did not return its persisted entry"
                                         }
-                                        selectedScenario = scenario
+                                        selectedScenarioId = scenario.id
                                         activeTimelineKey = recordedEntry.timelineKey
                                         navigation = navigation.goTo(AltScreen.REVEAL)
 
@@ -610,7 +642,7 @@ fun AltApp() {
                         deletingEntryKey = deletingHistoryEntryKey,
                         isClearingHistory = isClearingHistory,
                         onOpen = { scenario, entry ->
-                            selectedScenario = scenario
+                            selectedScenarioId = scenario.id
                             activeTimelineKey = entry.timelineKey
                             val restored = entry.photoFileName?.let { fileName ->
                                 historyPhotoUris[fileName]
