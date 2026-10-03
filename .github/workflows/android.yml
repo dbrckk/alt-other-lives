@@ -39,13 +39,7 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          script: |
-            adb logcat -c
-            set +e
-            gradle :app:connectedDebugAndroidTest --stacktrace
-            status=$?
-            adb logcat -d > app/build/instrumentation-logcat.txt
-            exit $status
+          script: bash .github/scripts/run-instrumentation-tests.sh
       - name: Upload instrumentation diagnostics
         if: always()
         uses: actions/upload-artifact@v4
