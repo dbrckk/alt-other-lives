@@ -39,7 +39,23 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          script: gradle :app:connectedDebugAndroidTest --stacktrace
+          script: |
+            adb logcat -c
+            set +e
+            gradle :app:connectedDebugAndroidTest --stacktrace
+            status=$?
+            adb logcat -d > app/build/instrumentation-logcat.txt
+            exit $status
+      - name: Upload instrumentation diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alt-instrumentation-diagnostics
+          if-no-files-found: warn
+          path: |
+            app/build/reports/androidTests/connected/
+            app/build/outputs/androidTest-results/connected/
+            app/build/instrumentation-logcat.txt
       - name: Validate release signing configuration
         shell: bash
         run: |
