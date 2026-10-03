@@ -3,14 +3,19 @@ package com.alt.otherlives.app
 enum class NavigationTransitionDirection {
     FORWARD,
     BACKWARD,
-    NEUTRAL
+    NEUTRAL,
+    NONE
 }
 
 object NavigationTransitionPolicy {
     fun direction(
         from: AltScreen,
-        to: AltScreen
-    ): NavigationTransitionDirection = when {
+        to: AltScreen,
+        animationsEnabled: Boolean = true
+    ): NavigationTransitionDirection {
+        if (!animationsEnabled) return NavigationTransitionDirection.NONE
+
+        return when {
         from == AltScreen.HOME && to == AltScreen.SCENARIOS ->
             NavigationTransitionDirection.FORWARD
         from == AltScreen.SCENARIOS && to == AltScreen.REVEAL ->
@@ -21,5 +26,6 @@ object NavigationTransitionPolicy {
             NavigationTransitionDirection.BACKWARD
         else ->
             NavigationTransitionDirection.NEUTRAL
+        }
     }
 }
