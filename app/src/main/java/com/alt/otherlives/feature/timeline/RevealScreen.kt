@@ -57,6 +57,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -954,16 +958,30 @@ fun RevealScreen(
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 Spacer(Modifier.height(10.dp))
+                                val aiProgressFraction =
+                                    if (aiUiState.total == 0) {
+                                        0f
+                                    } else {
+                                        aiUiState.completed.toFloat() /
+                                            aiUiState.total.toFloat()
+                                    }
+                                val aiProgressDescription = stringResource(
+                                    R.string.reveal_generation_progress,
+                                    (aiUiState.completed + 1)
+                                        .coerceAtMost(aiUiState.total.coerceAtLeast(1)),
+                                    aiUiState.total.coerceAtLeast(1)
+                                )
                                 LinearProgressIndicator(
-                                    progress = {
-                                        if (aiUiState.total == 0) {
-                                            0f
-                                        } else {
-                                            aiUiState.completed.toFloat() /
-                                                aiUiState.total.toFloat()
+                                    progress = { aiProgressFraction },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .semantics {
+                                            progressBarRangeInfo = ProgressBarRangeInfo(
+                                                current = aiProgressFraction,
+                                                range = 0f..1f
+                                            )
+                                            stateDescription = aiProgressDescription
                                         }
-                                    },
-                                    modifier = Modifier.fillMaxWidth()
                                 )
                                 Spacer(Modifier.height(10.dp))
                                 Text(
@@ -1275,12 +1293,34 @@ fun RevealScreen(
                 if (isExporting) {
                     Spacer(Modifier.height(10.dp))
                     if (exportProgress != null) {
+                        val safeExportProgress = exportProgress!!.coerceIn(0, 100)
+                        val exportProgressDescription = stringResource(
+                            R.string.reveal_video_creating_progress,
+                            safeExportProgress
+                        )
                         LinearProgressIndicator(
-                            progress = { exportProgress!!.coerceIn(0, 100) / 100f },
-                            modifier = Modifier.fillMaxWidth()
+                            progress = { safeExportProgress / 100f },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics {
+                                    progressBarRangeInfo = ProgressBarRangeInfo(
+                                        current = safeExportProgress.toFloat(),
+                                        range = 0f..100f
+                                    )
+                                    stateDescription = exportProgressDescription
+                                }
                         )
                     } else {
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        val exportProgressDescription =
+                            stringResource(R.string.reveal_video_creating)
+                        LinearProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics {
+                                    progressBarRangeInfo = ProgressBarRangeInfo.Indeterminate
+                                    stateDescription = exportProgressDescription
+                                }
+                        )
                     }
                     Spacer(Modifier.height(8.dp))
                     androidx.compose.material3.TextButton(
