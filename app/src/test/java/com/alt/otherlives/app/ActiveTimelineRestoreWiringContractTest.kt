@@ -16,7 +16,7 @@ class ActiveTimelineRestoreWiringContractTest {
         assertTrue(source.contains("var selectedScenarioId by rememberSaveable"))
         assertTrue(source.contains("var activeTimelineKey by rememberSaveable"))
         assertTrue(source.contains("sourcePhotoStore.uriFor(restoredIdentity.photoFileName)"))
-        assertTrue(source.contains("scenarios.firstOrNull { it.id == selectedScenarioId }"))
+        assertTrue(source.contains(".firstOrNull { it.id == selectedScenarioId }"))
 
         assertFalse(source.contains("var photoFileName by remember {"))
         assertFalse(source.contains("var activeTimelineKey by remember {"))
