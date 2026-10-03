@@ -1,5 +1,6 @@
 package com.alt.otherlives.feature.timeline
 
+import android.animation.ValueAnimator
 import android.net.Uri
 import android.os.Build
 import androidx.compose.animation.animateContentSize
@@ -355,7 +356,15 @@ fun RevealScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 18.dp, vertical = 10.dp)
-                    .animateContentSize(animationSpec = tween(durationMillis = 420)),
+                    .then(
+                        if (ValueAnimator.areAnimatorsEnabled()) {
+                            Modifier.animateContentSize(
+                                animationSpec = tween(durationMillis = 420)
+                            )
+                        } else {
+                            Modifier
+                        }
+                    ),
                 shape = RoundedCornerShape(30.dp),
                 colors = CardDefaults.cardColors(containerColor = AltCard)
             ) {
