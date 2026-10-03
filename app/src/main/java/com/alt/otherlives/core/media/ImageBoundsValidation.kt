@@ -1,11 +1,11 @@
 package com.alt.otherlives.core.media
 
-internal enum class SourcePhotoQualityIssue {
+enum class SourcePhotoQualityIssue {
     TOO_SMALL,
     EXTREME_ASPECT_RATIO
 }
 
-internal data class SourcePhotoQualityAssessment(
+data class SourcePhotoQualityAssessment(
     val isPremiumReady: Boolean,
     val issues: Set<SourcePhotoQualityIssue>
 )
