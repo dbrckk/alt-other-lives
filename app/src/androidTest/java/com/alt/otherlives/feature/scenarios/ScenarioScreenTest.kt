@@ -2,6 +2,7 @@ package com.alt.otherlives.feature.scenarios
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.alt.otherlives.core.data.ScenarioCatalog
@@ -31,7 +32,7 @@ class ScenarioScreenTest {
 
         composeRule.onNodeWithText("What if…")
             .assertIsDisplayed()
-        composeRule.onNodeWithText("2026  →  2036")
+        composeRule.onAllNodesWithText("2026  →  2036")[0]
             .assertIsDisplayed()
         composeRule.onNodeWithText("What if I became wealthy?")
             .assertIsDisplayed()
