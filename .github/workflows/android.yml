@@ -32,6 +32,29 @@ jobs:
         run: gradle :app:assembleDebug --stacktrace
       - name: Compile instrumentation tests
         run: gradle :app:assembleDebugAndroidTest --stacktrace
+      - name: Enable KVM group permissions
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run instrumentation tests
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: bash .github/scripts/run-instrumentation-tests.sh
+      - name: Upload instrumentation diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alt-instrumentation-diagnostics
+          if-no-files-found: warn
+          path: |
+            app/build/reports/androidTests/connected/
+            app/build/outputs/androidTest-results/connected/
+            app/build/instrumentation-logcat.txt
       - name: Validate release signing configuration
         shell: bash
         run: |
