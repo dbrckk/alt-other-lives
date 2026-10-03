@@ -188,7 +188,12 @@ fun RevealScreen(
             activeRenderedScenes?.deleteCacheFiles()
         }
     }
-    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 40.dp)) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .safeDrawingPadding(),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 40.dp)
+    ) {
         item {
             Box(modifier = Modifier.fillMaxWidth().height(revealLayout.heroHeightDp.dp)) {
                 if (revealHeroUri != null) {
@@ -205,7 +210,6 @@ fun RevealScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-            .safeDrawingPadding()
                             .background(
                                 Brush.verticalGradient(
                                     listOf(
