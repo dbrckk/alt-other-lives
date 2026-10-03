@@ -49,6 +49,26 @@ class NavigationTransitionPolicyTest {
     }
 
     @Test
+    fun disabledSystemAnimationsRemoveNavigationMotion() {
+        assertEquals(
+            NavigationTransitionDirection.NONE,
+            NavigationTransitionPolicy.direction(
+                AltScreen.HOME,
+                AltScreen.SCENARIOS,
+                animationsEnabled = false
+            )
+        )
+        assertEquals(
+            NavigationTransitionDirection.NONE,
+            NavigationTransitionPolicy.direction(
+                AltScreen.REVEAL,
+                AltScreen.HISTORY,
+                animationsEnabled = false
+            )
+        )
+    }
+
+    @Test
     fun unexpectedCrossFlowNavigationStaysNeutral() {
         assertEquals(
             NavigationTransitionDirection.NEUTRAL,
