@@ -39,6 +39,7 @@ import com.alt.otherlives.core.generation.GeneratedSceneStore
 import com.alt.otherlives.core.generation.ComfyUiClient
 import com.alt.otherlives.core.generation.ComfyUiConfig
 import com.alt.otherlives.core.media.TransientMediaCache
+import com.alt.otherlives.core.media.SourcePhotoQualityIssue
 import androidx.compose.ui.Modifier
 import com.alt.otherlives.core.data.ScenarioCatalog
 import com.alt.otherlives.core.designsystem.AltBackground
@@ -80,6 +81,7 @@ fun AltApp() {
     var photoUri by remember { mutableStateOf<Uri?>(null) }
     var photoFileName by rememberSaveable { mutableStateOf<String?>(null) }
     var photoIsLikelyPremiumSource by remember { mutableStateOf<Boolean?>(null) }
+    var photoQualityIssues by remember { mutableStateOf<Set<SourcePhotoQualityIssue>>(emptySet()) }
     var selectedScenarioId by rememberSaveable {
         mutableStateOf(scenarios.first().id)
     }
@@ -173,6 +175,9 @@ fun AltApp() {
             photoUri = restoredPhoto.first
             photoFileName = restoredPhoto.second
             photoIsLikelyPremiumSource = restoredPhoto.third
+            photoQualityIssues = withContext(Dispatchers.IO) {
+                sourcePhotoStore.qualityIssues(restoredPhoto.second)
+            }.orEmpty()
         } else if (restoredIdentity.photoFileName != null) {
             photoFileName = null
             activeTimelineKey = null
@@ -192,6 +197,7 @@ fun AltApp() {
             photoUri = stored.uri
             photoFileName = stored.fileName
             photoIsLikelyPremiumSource = stored.isLikelyPremiumSource
+            photoQualityIssues = stored.qualityIssues
         }
 
         val startupHistory = runCatching {
@@ -230,6 +236,11 @@ fun AltApp() {
                                 requireNotNull(latest.photoFileName)
                             )
                         }
+                        photoQualityIssues = withContext(Dispatchers.IO) {
+                            sourcePhotoStore.qualityIssues(
+                                requireNotNull(latest.photoFileName)
+                            )
+                        }.orEmpty()
                         scenarios
                             .firstOrNull { it.id == latest.scenarioId }
                             ?.let { scenario ->
@@ -338,6 +349,7 @@ fun AltApp() {
                     AltScreen.HOME -> HomeScreen(
                         photoUri = photoUri,
                         photoIsLikelyPremiumSource = photoIsLikelyPremiumSource,
+                        photoQualityIssues = photoQualityIssues,
                         isImportingPhoto = isImportingPhoto,
                         onPhotoSelected = { selectedUri ->
                             if (!isImportingPhoto) {
@@ -355,6 +367,7 @@ fun AltApp() {
                                             photoFileName = stored.fileName
                                             photoIsLikelyPremiumSource =
                                                 stored.isLikelyPremiumSource
+                                            photoQualityIssues = stored.qualityIssues
                                             activeTimelineKey = null
 
                                             val keep =
@@ -694,6 +707,7 @@ fun AltApp() {
                                                     photoUri = null
                                                     photoFileName = null
                                                     photoIsLikelyPremiumSource = null
+                                                    photoQualityIssues = emptySet()
                                                 }
                                             }
                                         }
@@ -752,6 +766,7 @@ fun AltApp() {
                                         photoUri = null
                                         photoFileName = null
                                         photoIsLikelyPremiumSource = null
+                                        photoQualityIssues = emptySet()
                                         activeTimelineKey = null
                                         historyPhotoUris = emptyMap()
                                         historyPhotoPremiumByFileName = emptyMap()
