@@ -7,6 +7,7 @@ import java.security.SecureRandom
 import com.alt.otherlives.core.data.ScenarioCatalog
 import com.alt.otherlives.core.model.Scenario
 import com.alt.otherlives.core.model.TimelineConstraints
+import com.alt.otherlives.core.media.SourcePhotoCropRenderer
 
 class ComfyUiGenerationProvider(
     context: Context,
@@ -16,7 +17,8 @@ class ComfyUiGenerationProvider(
     override val id: String = "comfyui"
     override val displayName: String = "ComfyUI"
 
-    private val client = ComfyUiClient(context.applicationContext, config)
+    private val appContext = context.applicationContext
+    private val client = ComfyUiClient(appContext, config)
 
     override suspend fun generate(
         request: GenerationRequest,
@@ -42,7 +44,16 @@ class ComfyUiGenerationProvider(
         ComfyUiWorkflowTemplate.validateTemplate(workflowTemplateJson)
 
         val sessionSeed = resolveSessionSeed(request.seed)
-        val uploaded = client.uploadImage(request.sourcePhoto)
+        val preparedSource = SourcePhotoCropRenderer.prepare(
+            context = appContext,
+            sourceUri = request.sourcePhoto,
+            crop = request.sourceCrop
+        )
+        val uploaded = try {
+            client.uploadImage(preparedSource.uri)
+        } finally {
+            preparedSource.cleanup()
+        }
         val result = mutableListOf<GeneratedScene>()
 
         val failures = mutableListOf<String>()

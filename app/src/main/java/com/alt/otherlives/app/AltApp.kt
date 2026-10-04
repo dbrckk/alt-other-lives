@@ -43,6 +43,7 @@ import com.alt.otherlives.core.generation.ComfyUiClient
 import com.alt.otherlives.core.generation.ComfyUiConfig
 import com.alt.otherlives.core.media.TransientMediaCache
 import com.alt.otherlives.core.media.SourcePhotoQualityIssue
+import com.alt.otherlives.core.media.NormalizedCropRect
 import androidx.compose.ui.Modifier
 import com.alt.otherlives.core.data.ScenarioCatalog
 import com.alt.otherlives.core.designsystem.AltBackground
@@ -86,6 +87,23 @@ fun AltApp() {
     var photoFileName by rememberSaveable { mutableStateOf<String?>(null) }
     var photoIsLikelyPremiumSource by remember { mutableStateOf<Boolean?>(null) }
     var photoQualityIssues by remember { mutableStateOf<Set<SourcePhotoQualityIssue>>(emptySet()) }
+    var sourceCrop by rememberSaveable(
+        stateSaver = Saver(
+            save = { crop ->
+                listOf(crop.left, crop.top, crop.right, crop.bottom)
+            },
+            restore = { saved ->
+                NormalizedCropRect(
+                    left = saved[0],
+                    top = saved[1],
+                    right = saved[2],
+                    bottom = saved[3]
+                )
+            }
+        )
+    ) {
+        mutableStateOf(NormalizedCropRect.Full)
+    }
     var selectedScenarioId by rememberSaveable {
         mutableStateOf(scenarios.first().id)
     }
@@ -217,6 +235,7 @@ fun AltApp() {
                 )
             ) {
                 StartupRestoreDecision.USE_CURRENT_HISTORY_CONTEXT -> {
+                    sourceCrop = latest.sourceCrop
                     scenarios
                         .firstOrNull { it.id == latest.scenarioId }
                         ?.let { scenario ->
@@ -245,6 +264,7 @@ fun AltApp() {
                                 requireNotNull(latest.photoFileName)
                             )
                         }.orEmpty()
+                        sourceCrop = latest.sourceCrop
                         scenarios
                             .firstOrNull { it.id == latest.scenarioId }
                             ?.let { scenario ->
@@ -375,6 +395,7 @@ fun AltApp() {
                                             photoIsLikelyPremiumSource =
                                                 stored.isLikelyPremiumSource
                                             photoQualityIssues = stored.qualityIssues
+                                            sourceCrop = NormalizedCropRect.Full
                                             activeTimelineKey = null
 
                                             val keep =
@@ -423,6 +444,8 @@ fun AltApp() {
                             PhotoFramingScreen(
                                 photoUri = framingPhotoUri,
                                 qualityIssues = photoQualityIssues,
+                                crop = sourceCrop,
+                                onCropChange = { sourceCrop = it },
                                 onBack = {
                                     navigation = navigation.goTo(AltScreen.HOME)
                                 },
@@ -450,6 +473,7 @@ fun AltApp() {
                                         historyRepository.record(
                                             scenarioId = scenario.id,
                                             photoFileName = photoFileName,
+                                            sourceCrop = sourceCrop,
                                             createdAt = createdAt
                                         )
                                     }
@@ -503,6 +527,7 @@ fun AltApp() {
                     )
                     AltScreen.REVEAL -> RevealScreen(
                         photoUri = photoUri,
+                        sourceCrop = sourceCrop,
                         scenario = selectedScenario,
                         generationSettings = generationSettings,
                         timelineKey = activeTimelineKey ?: selectedScenario.id,
@@ -522,6 +547,7 @@ fun AltApp() {
                                         historyRepository.record(
                                             scenarioId = selectedScenario.id,
                                             photoFileName = photoFileName,
+                                            sourceCrop = sourceCrop,
                                             createdAt = createdAt
                                         )
                                     }
@@ -692,6 +718,11 @@ fun AltApp() {
                             photoIsLikelyPremiumSource = restored?.second?.let {
                                 historyPhotoPremiumByFileName[it]
                             }
+                            sourceCrop = if (restored != null) {
+                                entry.sourceCrop
+                            } else {
+                                NormalizedCropRect.Full
+                            }
                             if (entry.photoFileName != null && restored == null) {
                                 val hasAiPreview = entry.timelineKey in historyGeneratedPreviewUris
                                 Toast.makeText(
@@ -734,6 +765,7 @@ fun AltApp() {
                                                     photoFileName = null
                                                     photoIsLikelyPremiumSource = null
                                                     photoQualityIssues = emptySet()
+                                                    sourceCrop = NormalizedCropRect.Full
                                                 }
                                             }
                                         }
@@ -793,6 +825,7 @@ fun AltApp() {
                                         photoFileName = null
                                         photoIsLikelyPremiumSource = null
                                         photoQualityIssues = emptySet()
+                                        sourceCrop = NormalizedCropRect.Full
                                         activeTimelineKey = null
                                         historyPhotoUris = emptyMap()
                                         historyPhotoPremiumByFileName = emptyMap()

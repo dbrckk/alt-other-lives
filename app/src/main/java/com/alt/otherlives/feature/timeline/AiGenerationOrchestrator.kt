@@ -10,6 +10,7 @@ import com.alt.otherlives.core.generation.GenerationProvider
 import com.alt.otherlives.core.generation.GenerationChapterFailureKind
 import com.alt.otherlives.core.generation.GenerationRequest
 import com.alt.otherlives.core.model.Scenario
+import com.alt.otherlives.core.media.NormalizedCropRect
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -31,6 +32,7 @@ class AiGenerationOrchestrator(
     suspend fun generate(
         provider: GenerationProvider,
         sourcePhoto: Uri,
+        sourceCrop: NormalizedCropRect = NormalizedCropRect.Full,
         scenario: Scenario,
         timelineKey: String,
         targetIndexes: Set<Int>,
@@ -64,7 +66,8 @@ class AiGenerationOrchestrator(
                     sourcePhoto = sourcePhoto,
                     scenario = scenario,
                     chapterIndexes = targetIndexes,
-                    seed = generationSeed
+                    seed = generationSeed,
+                    sourceCrop = sourceCrop
                 ),
                 onProgress = onProgress,
                 onSceneGenerated = { generated ->

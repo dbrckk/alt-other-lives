@@ -2,12 +2,14 @@ package com.alt.otherlives.core.generation
 
 import android.net.Uri
 import com.alt.otherlives.core.model.Scenario
+import com.alt.otherlives.core.media.NormalizedCropRect
 
 data class GenerationRequest(
     val sourcePhoto: Uri,
     val scenario: Scenario,
     val chapterIndexes: Set<Int>? = null,
-    val seed: Long? = null
+    val seed: Long? = null,
+    val sourceCrop: NormalizedCropRect = NormalizedCropRect.Full
 )
 
 data class GeneratedScene(
