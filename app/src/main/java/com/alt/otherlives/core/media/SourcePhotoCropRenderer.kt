@@ -22,7 +22,7 @@ data class PreparedSourcePhoto(
 }
 
 object SourcePhotoCropRenderer {
-    private const val MAX_DECODE_EDGE = 4096
+    private const val MAX_DECODE_EDGE = 2560
     private const val JPEG_QUALITY = 95
 
     fun prepare(
@@ -62,11 +62,16 @@ object SourcePhotoCropRenderer {
             cropped.recycle()
         }
 
-        val uri = FileProvider.getUriForFile(
-            context,
-            context.packageName + ".fileprovider",
-            output
-        )
+        val uri = try {
+            FileProvider.getUriForFile(
+                context,
+                context.packageName + ".fileprovider",
+                output
+            )
+        } catch (error: Throwable) {
+            output.delete()
+            throw error
+        }
         return PreparedSourcePhoto(uri = uri, temporaryFile = output)
     }
 
@@ -96,12 +101,14 @@ object SourcePhotoCropRenderer {
             )
         } ?: error("Unable to decode source photo")
 
-        val orientation = context.contentResolver.openFileDescriptor(uri, "r")?.use { descriptor ->
-            ExifInterface(descriptor.fileDescriptor).getAttributeInt(
-                ExifInterface.TAG_ORIENTATION,
-                ExifInterface.ORIENTATION_NORMAL
-            )
-        } ?: ExifInterface.ORIENTATION_NORMAL
+        val orientation = runCatching {
+            context.contentResolver.openFileDescriptor(uri, "r")?.use { descriptor ->
+                ExifInterface(descriptor.fileDescriptor).getAttributeInt(
+                    ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_NORMAL
+                )
+            } ?: ExifInterface.ORIENTATION_NORMAL
+        }.getOrDefault(ExifInterface.ORIENTATION_NORMAL)
 
         val matrix = orientationMatrix(orientation)
         if (matrix.isIdentity) return bitmap
