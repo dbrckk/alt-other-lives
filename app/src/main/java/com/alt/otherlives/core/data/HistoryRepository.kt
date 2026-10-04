@@ -145,7 +145,7 @@ class HistoryRepository(private val context: Context) {
         var referencedPhotoFileNames = emptySet<String>()
         var referencedTimelineKeys = emptySet<String>()
         context.altDataStore.edit { prefs ->
-            val current = decode(prefs[historyKey].orEmpty())
+            val current = HistoryEntryCodec.decode(prefs[historyKey].orEmpty())
             val updated = current.filterNot {
                 it.scenarioId == entry.scenarioId &&
                     it.createdAt == entry.createdAt
