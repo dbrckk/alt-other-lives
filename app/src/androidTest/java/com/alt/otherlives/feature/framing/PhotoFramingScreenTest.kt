@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import com.alt.otherlives.core.designsystem.AltTheme
 import com.alt.otherlives.core.media.SourcePhotoQualityIssue
 import com.alt.otherlives.core.media.NormalizedCropRect
@@ -35,6 +36,7 @@ class PhotoFramingScreenTest {
         }
 
         composeRule.onNodeWithText("Reset framing")
+            .performScrollTo()
             .performClick()
 
         composeRule.runOnIdle {
@@ -63,8 +65,11 @@ class PhotoFramingScreenTest {
             .assertIsDisplayed()
         composeRule.onNodeWithText(
             "This source is very wide. A closer portrait will usually preserve your identity more reliably."
-        ).assertIsDisplayed()
+        )
+            .performScrollTo()
+            .assertIsDisplayed()
         composeRule.onNodeWithText("Looks good")
+            .performScrollTo()
             .assertIsDisplayed()
             .performClick()
 
