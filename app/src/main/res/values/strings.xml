@@ -140,7 +140,6 @@
     <string name="app_connection_failed">Could not connect to ComfyUI</string>
     <string name="app_settings_cleared">AI settings cleared</string>
     <string name="app_settings_clear_failed">Could not clear AI settings</string>
-    <string name="app_crop_save_failed">Couldn’t save this framing. Try again.</string>
     <string name="app_original_photo_missing_ai">Original photo unavailable • opening saved AI timeline</string>
     <string name="app_original_photo_missing">This timeline’s source photo is no longer available</string>
     <string name="settings_title">Advanced AI setup</string>
