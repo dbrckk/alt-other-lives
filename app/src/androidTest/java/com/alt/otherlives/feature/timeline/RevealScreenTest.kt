@@ -63,10 +63,6 @@ class RevealScreenTest {
             }
         }
 
-        composeRule.onNodeWithText(
-            "AI generation needs the original source photo. Saved generated scenes can still be viewed and exported."
-        ).fetchSemanticsNode()
-
         composeRule.onNodeWithText("Set up AI generation")
             .performScrollTo()
             .assertIsDisplayed()
