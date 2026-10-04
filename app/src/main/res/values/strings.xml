@@ -232,6 +232,10 @@
     <string name="framing_resolution_warning">This source is small. A higher-resolution portrait will usually produce stronger results.</string>
     <string name="framing_change_photo">Change photo</string>
     <string name="framing_confirm">Looks good</string>
+    <string name="framing_zoom">Zoom</string>
+    <string name="framing_horizontal">Horizontal position</string>
+    <string name="framing_vertical">Vertical position</string>
+    <string name="framing_reset">Reset framing</string>
     <string name="reveal_scene_quality_rejected">AI scene rejected by quality checks • create a new variation</string>
     <string name="reveal_completion_partial_quality">Partial result: %1$d/%2$d scenes ready • new variation needed for chapters %3$s</string>
     <string name="reveal_completion_partial_mixed">Partial result: %1$d/%2$d scenes ready • retry chapters %3$s • new variation needed for %4$s</string>
