@@ -6,13 +6,15 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import com.alt.otherlives.core.media.NormalizedCropRect
 
 private val Context.altDataStore by preferencesDataStore(name = "alt_local")
 
 data class HistoryEntry(
     val scenarioId: String,
     val createdAt: Long,
-    val photoFileName: String? = null
+    val photoFileName: String? = null,
+    val sourceCrop: NormalizedCropRect = NormalizedCropRect.Full
 ) {
     val timelineKey: String
         get() = scenarioId + "-" + createdAt
@@ -49,6 +51,7 @@ class HistoryRepository(private val context: Context) {
     suspend fun record(
         scenarioId: String,
         photoFileName: String? = null,
+        sourceCrop: NormalizedCropRect = NormalizedCropRect.Full,
         createdAt: Long = System.currentTimeMillis()
     ): RecordResult {
         require(HistoryEntryValidation.isValid(scenarioId, createdAt, photoFileName)) {
@@ -64,7 +67,12 @@ class HistoryRepository(private val context: Context) {
                 requestedCreatedAt = createdAt,
                 existingEntries = current
             )
-            val entry = HistoryEntry(scenarioId, uniqueCreatedAt, photoFileName)
+            val entry = HistoryEntry(
+                scenarioId = scenarioId,
+                createdAt = uniqueCreatedAt,
+                photoFileName = photoFileName,
+                sourceCrop = sourceCrop
+            )
             val updated = (listOf(entry) + current).take(HistoryEntryListPolicy.MAX_ENTRIES)
             recordedEntry = entry
             prefs[historyKey] = encode(updated)
@@ -107,23 +115,48 @@ class HistoryRepository(private val context: Context) {
 
     private fun encode(entries: List<HistoryEntry>): String =
         entries.joinToString(SEPARATOR) {
-            it.scenarioId + FIELD_SEPARATOR + it.createdAt + FIELD_SEPARATOR + (it.photoFileName ?: "")
+            listOf(
+                it.scenarioId,
+                it.createdAt,
+                it.photoFileName ?: "",
+                it.sourceCrop.left,
+                it.sourceCrop.top,
+                it.sourceCrop.right,
+                it.sourceCrop.bottom
+            ).joinToString(FIELD_SEPARATOR)
         }
 
     private fun decode(value: String): List<HistoryEntry> =
         HistoryEntryListPolicy.sanitize(
             value.lineSequence()
                 .mapNotNull { row ->
-                    val parts = row.split(FIELD_SEPARATOR, limit = 3)
+                    val parts = row.split(FIELD_SEPARATOR, limit = 7)
                     val time = parts.getOrNull(1)?.toLongOrNull()
                     val id = parts.firstOrNull()?.takeIf { it.isNotBlank() }
                     val photoFileName = parts.getOrNull(2)?.takeIf { it.isNotBlank() }
+                    val sourceCrop = if (parts.size >= 7) {
+                        runCatching {
+                            NormalizedCropRect(
+                                left = requireNotNull(parts[3].toFloatOrNull()),
+                                top = requireNotNull(parts[4].toFloatOrNull()),
+                                right = requireNotNull(parts[5].toFloatOrNull()),
+                                bottom = requireNotNull(parts[6].toFloatOrNull())
+                            )
+                        }.getOrNull() ?: return@mapNotNull null
+                    } else {
+                        NormalizedCropRect.Full
+                    }
                     if (
                         id != null &&
                         time != null &&
                         HistoryEntryValidation.isValid(id, time, photoFileName)
                     ) {
-                        HistoryEntry(id, time, photoFileName)
+                        HistoryEntry(
+                            scenarioId = id,
+                            createdAt = time,
+                            photoFileName = photoFileName,
+                            sourceCrop = sourceCrop
+                        )
                     } else {
                         null
                     }
