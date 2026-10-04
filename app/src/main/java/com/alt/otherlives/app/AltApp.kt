@@ -48,6 +48,7 @@ import com.alt.otherlives.core.data.ScenarioCatalog
 import com.alt.otherlives.core.designsystem.AltBackground
 import com.alt.otherlives.core.designsystem.AltTheme
 import com.alt.otherlives.feature.home.HomeScreen
+import com.alt.otherlives.feature.framing.PhotoFramingScreen
 import com.alt.otherlives.feature.history.HistoryScreen
 import com.alt.otherlives.feature.scenarios.ScenarioScreen
 import com.alt.otherlives.feature.settings.GenerationSettingsScreen
@@ -409,9 +410,28 @@ fun AltApp() {
                                 }
                             }
                         },
-                        onContinue = { navigation = navigation.goTo(AltScreen.SCENARIOS) },
+                        onContinue = { navigation = navigation.goTo(AltScreen.FRAMING) },
                         onHistory = { navigation = navigation.goTo(AltScreen.HISTORY) }
                     )
+                    AltScreen.FRAMING -> {
+                        val framingPhotoUri = photoUri
+                        if (framingPhotoUri == null) {
+                            LaunchedEffect(Unit) {
+                                navigation = navigation.goTo(AltScreen.FRAMING)
+                            }
+                        } else {
+                            PhotoFramingScreen(
+                                photoUri = framingPhotoUri,
+                                qualityIssues = photoQualityIssues,
+                                onBack = {
+                                    navigation = navigation.goTo(AltScreen.HOME)
+                                },
+                                onConfirm = {
+                                    navigation = navigation.goTo(AltScreen.SCENARIOS)
+                                }
+                            )
+                        }
+                    }
                     AltScreen.SCENARIOS -> ScenarioScreen(
                         scenarios = scenarios,
                         onBack = {
