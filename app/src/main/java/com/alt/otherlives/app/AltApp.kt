@@ -122,6 +122,9 @@ fun AltApp() {
     var historyPhotoPremiumByFileName by remember {
         mutableStateOf<Map<String, Boolean>>(emptyMap())
     }
+    var historyPhotoCropByFileName by remember {
+        mutableStateOf<Map<String, NormalizedCropRect>>(emptyMap())
+    }
     var historyGeneratedPreviewUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
     var deletingHistoryEntryKey by remember { mutableStateOf<String?>(null) }
     var isClearingHistory by remember { mutableStateOf(false) }
@@ -200,6 +203,9 @@ fun AltApp() {
             photoQualityIssues = withContext(Dispatchers.IO) {
                 sourcePhotoStore.qualityIssues(restoredPhoto.second)
             }.orEmpty()
+            sourceCrop = withContext(Dispatchers.IO) {
+                sourcePhotoStore.cropFor(restoredPhoto.second)
+            }
         } else if (restoredIdentity.photoFileName != null) {
             photoFileName = null
             activeTimelineKey = null
@@ -220,6 +226,9 @@ fun AltApp() {
             photoFileName = stored.fileName
             photoIsLikelyPremiumSource = stored.isLikelyPremiumSource
             photoQualityIssues = stored.qualityIssues
+            sourceCrop = withContext(Dispatchers.IO) {
+                sourcePhotoStore.cropFor(stored.fileName)
+            }
         }
 
         val startupHistory = runCatching {
@@ -263,6 +272,11 @@ fun AltApp() {
                                 requireNotNull(latest.photoFileName)
                             )
                         }.orEmpty()
+                        sourceCrop = withContext(Dispatchers.IO) {
+                            sourcePhotoStore.cropFor(
+                                requireNotNull(latest.photoFileName)
+                            )
+                        }
                         scenarios
                             .firstOrNull { it.id == latest.scenarioId }
                             ?.let { scenario ->
@@ -304,6 +318,11 @@ fun AltApp() {
         }
         historyPhotoUris = preflight.first
         historyPhotoPremiumByFileName = preflight.second
+        historyPhotoCropByFileName = withContext(Dispatchers.IO) {
+            preflight.first.keys.associateWith { fileName ->
+                sourcePhotoStore.cropFor(fileName)
+            }
+        }
         historyGeneratedPreviewUris = preflight.third
         unavailablePhotoFileNames = photoFileNames
             .filterNot { it in preflight.first }
@@ -448,7 +467,35 @@ fun AltApp() {
                                     navigation = navigation.goTo(AltScreen.HOME)
                                 },
                                 onConfirm = {
-                                    navigation = navigation.goTo(AltScreen.SCENARIOS)
+                                    val currentFileName = photoFileName
+                                    if (currentFileName == null) {
+                                        navigation = navigation.goTo(AltScreen.HOME)
+                                    } else {
+                                        scope.launch {
+                                            val saved = runCatching {
+                                                withContext(Dispatchers.IO) {
+                                                    sourcePhotoStore.saveCrop(
+                                                        currentFileName,
+                                                        sourceCrop
+                                                    )
+                                                }
+                                            }
+                                            saved.onSuccess {
+                                                if (navigation.screen == AltScreen.FRAMING) {
+                                                    navigation =
+                                                        navigation.goTo(AltScreen.SCENARIOS)
+                                                }
+                                            }.onFailure {
+                                                Toast.makeText(
+                                                    context,
+                                                    context.getString(
+                                                        R.string.app_crop_save_failed
+                                                    ),
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+                                    }
                                 }
                             )
                         }
@@ -714,6 +761,9 @@ fun AltApp() {
                             photoIsLikelyPremiumSource = restored?.second?.let {
                                 historyPhotoPremiumByFileName[it]
                             }
+                            sourceCrop = restored?.second?.let {
+                                historyPhotoCropByFileName[it]
+                            } ?: NormalizedCropRect.Full
                             if (entry.photoFileName != null && restored == null) {
                                 val hasAiPreview = entry.timelineKey in historyGeneratedPreviewUris
                                 Toast.makeText(
@@ -756,6 +806,7 @@ fun AltApp() {
                                                     photoFileName = null
                                                     photoIsLikelyPremiumSource = null
                                                     photoQualityIssues = emptySet()
+                                                    sourceCrop = NormalizedCropRect.Full
                                                 }
                                             }
                                         }
@@ -815,9 +866,11 @@ fun AltApp() {
                                         photoFileName = null
                                         photoIsLikelyPremiumSource = null
                                         photoQualityIssues = emptySet()
+                                        sourceCrop = NormalizedCropRect.Full
                                         activeTimelineKey = null
                                         historyPhotoUris = emptyMap()
                                         historyPhotoPremiumByFileName = emptyMap()
+                                        historyPhotoCropByFileName = emptyMap()
                                         historyGeneratedPreviewUris = emptyMap()
                                         unavailablePhotoFileNames = emptySet()
                                         deletingHistoryEntryKey = null
