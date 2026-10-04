@@ -1,0 +1,160 @@
+package com.alt.otherlives.feature.framing
+
+import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import com.alt.otherlives.R
+import com.alt.otherlives.core.designsystem.AltAccent
+import com.alt.otherlives.core.designsystem.AltMuted
+import com.alt.otherlives.core.designsystem.AltPrimary
+import com.alt.otherlives.core.media.SourcePhotoQualityIssue
+
+@Composable
+fun PhotoFramingScreen(
+    photoUri: Uri,
+    qualityIssues: Set<SourcePhotoQualityIssue>,
+    onBack: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .safeDrawingPadding()
+            .padding(horizontal = 20.dp, vertical = 24.dp)
+    ) {
+        TextButton(onClick = onBack) {
+            Text("‹ " + stringResource(R.string.common_back))
+        }
+
+        Spacer(Modifier.height(8.dp))
+        Text(
+            stringResource(R.string.framing_title),
+            fontSize = 30.sp,
+            lineHeight = 34.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            stringResource(R.string.framing_subtitle),
+            color = AltMuted,
+            fontSize = 14.sp,
+            lineHeight = 20.sp
+        )
+
+        Spacer(Modifier.height(22.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .clip(RoundedCornerShape(30.dp))
+                .background(Color(0xFF121116)),
+            contentAlignment = Alignment.Center
+        ) {
+            AsyncImage(
+                model = photoUri,
+                contentDescription = stringResource(R.string.framing_photo_content_description),
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+
+            Box(
+                modifier = Modifier
+                    .size(width = 190.dp, height = 250.dp)
+                    .border(
+                        width = 2.dp,
+                        color = AltAccent.copy(alpha = 0.9f),
+                        shape = RoundedCornerShape(95.dp)
+                    )
+            )
+
+            Text(
+                stringResource(R.string.framing_center_face),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(18.dp)
+                    .background(
+                        Color.Black.copy(alpha = 0.68f),
+                        RoundedCornerShape(18.dp)
+                    )
+                    .padding(horizontal = 14.dp, vertical = 9.dp),
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        if (SourcePhotoQualityIssue.EXTREME_ASPECT_RATIO in qualityIssues) {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                stringResource(R.string.framing_panorama_warning),
+                color = AltMuted,
+                fontSize = 12.sp,
+                lineHeight = 17.sp
+            )
+        }
+        if (SourcePhotoQualityIssue.TOO_SMALL in qualityIssues) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                stringResource(R.string.framing_resolution_warning),
+                color = AltMuted,
+                fontSize = 12.sp,
+                lineHeight = 17.sp
+            )
+        }
+
+        Spacer(Modifier.height(18.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            TextButton(
+                onClick = onBack,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(stringResource(R.string.framing_change_photo))
+            }
+            Button(
+                onClick = onConfirm,
+                modifier = Modifier.weight(1f).height(54.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AltPrimary,
+                    contentColor = Color(0xFF16111F)
+                )
+            ) {
+                Text(
+                    stringResource(R.string.framing_confirm),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}

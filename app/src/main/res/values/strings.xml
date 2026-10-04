@@ -224,6 +224,14 @@
     <string name="home_source_low_quality">SOURCE COULD BE SHARPER</string>
     <string name="home_source_low_quality_hint">For stronger identity continuity, use a portrait at least 720 px on the short edge.</string>
     <string name="home_source_framing_hint">For better face framing, use a less panoramic photo with your face closer to the center.</string>
+    <string name="framing_title">Frame your face</string>
+    <string name="framing_subtitle">ALT works best when your face is clear, centered, and large enough to preserve your identity across every chapter.</string>
+    <string name="framing_photo_content_description">Selected source photo framing preview</string>
+    <string name="framing_center_face">Keep your face inside this guide</string>
+    <string name="framing_panorama_warning">This source is very wide. A closer portrait will usually preserve your identity more reliably.</string>
+    <string name="framing_resolution_warning">This source is small. A higher-resolution portrait will usually produce stronger results.</string>
+    <string name="framing_change_photo">Change photo</string>
+    <string name="framing_confirm">Looks good</string>
     <string name="reveal_scene_quality_rejected">AI scene rejected by quality checks • create a new variation</string>
     <string name="reveal_completion_partial_quality">Partial result: %1$d/%2$d scenes ready • new variation needed for chapters %3$s</string>
     <string name="reveal_completion_partial_mixed">Partial result: %1$d/%2$d scenes ready • retry chapters %3$s • new variation needed for %4$s</string>

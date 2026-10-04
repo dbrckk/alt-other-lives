@@ -224,6 +224,14 @@
     <string name="home_source_low_quality">SOURCE À AMÉLIORER</string>
     <string name="home_source_low_quality_hint">Pour une meilleure continuité d’identité, utilise un portrait d’au moins 720 px sur le côté le plus court.</string>
     <string name="home_source_framing_hint">Pour un meilleur cadrage du visage, utilise une photo moins panoramique avec ton visage plus proche du centre.</string>
+    <string name="framing_title">Cadre ton visage</string>
+    <string name="framing_subtitle">ALT fonctionne mieux quand ton visage est net, centré et assez grand pour préserver ton identité dans chaque chapitre.</string>
+    <string name="framing_photo_content_description">Aperçu du cadrage de la photo source sélectionnée</string>
+    <string name="framing_center_face">Garde ton visage dans ce guide</string>
+    <string name="framing_panorama_warning">Cette source est très large. Un portrait plus rapproché préservera généralement mieux ton identité.</string>
+    <string name="framing_resolution_warning">Cette source est petite. Un portrait en meilleure résolution donnera généralement de meilleurs résultats.</string>
+    <string name="framing_change_photo">Changer de photo</string>
+    <string name="framing_confirm">Le cadrage me convient</string>
     <string name="reveal_scene_quality_rejected">Scène IA rejetée par les contrôles qualité • crée une nouvelle variation</string>
     <string name="reveal_completion_partial_quality">Résultat partiel : %1$d/%2$d scènes prêtes • nouvelle variation nécessaire pour les chapitres %3$s</string>
     <string name="reveal_completion_partial_mixed">Résultat partiel : %1$d/%2$d scènes prêtes • réessayer les chapitres %3$s • nouvelle variation nécessaire pour %4$s</string>

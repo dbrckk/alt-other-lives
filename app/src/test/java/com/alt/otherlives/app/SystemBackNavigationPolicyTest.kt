@@ -15,9 +15,19 @@ class SystemBackNavigationPolicyTest {
     }
 
     @Test
-    fun scenariosReturnsHome() {
+    fun framingReturnsHome() {
         assertEquals(
             AltScreen.HOME,
+            SystemBackNavigationPolicy.destination(
+                AltNavigationState(screen = AltScreen.FRAMING)
+            )?.screen
+        )
+    }
+
+    @Test
+    fun scenariosReturnsFraming() {
+        assertEquals(
+            AltScreen.FRAMING,
             SystemBackNavigationPolicy.destination(
                 AltNavigationState(screen = AltScreen.SCENARIOS)
             )?.screen

@@ -8,7 +8,11 @@ class NavigationTransitionPolicyTest {
     fun creationFlowMovesForward() {
         assertEquals(
             NavigationTransitionDirection.FORWARD,
-            NavigationTransitionPolicy.direction(AltScreen.HOME, AltScreen.SCENARIOS)
+            NavigationTransitionPolicy.direction(AltScreen.HOME, AltScreen.FRAMING)
+        )
+        assertEquals(
+            NavigationTransitionDirection.FORWARD,
+            NavigationTransitionPolicy.direction(AltScreen.FRAMING, AltScreen.SCENARIOS)
         )
         assertEquals(
             NavigationTransitionDirection.FORWARD,
@@ -24,7 +28,11 @@ class NavigationTransitionPolicyTest {
         )
         assertEquals(
             NavigationTransitionDirection.BACKWARD,
-            NavigationTransitionPolicy.direction(AltScreen.SCENARIOS, AltScreen.HOME)
+            NavigationTransitionPolicy.direction(AltScreen.SCENARIOS, AltScreen.FRAMING)
+        )
+        assertEquals(
+            NavigationTransitionDirection.BACKWARD,
+            NavigationTransitionPolicy.direction(AltScreen.FRAMING, AltScreen.HOME)
         )
     }
 
