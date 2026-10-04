@@ -153,7 +153,12 @@ fun PhotoFramingScreen(
             onValueChange = { requestedCenter ->
                 onCropChange(crop.movedBy(requestedCenter - cropCenterX, 0f))
             },
-            valueRange = halfWidth..(1f - halfWidth)
+            valueRange = if (halfWidth < 0.5f) {
+                halfWidth..(1f - halfWidth)
+            } else {
+                0f..1f
+            },
+            enabled = halfWidth < 0.5f
         )
 
         val halfHeight = crop.height / 2f
@@ -167,7 +172,12 @@ fun PhotoFramingScreen(
             onValueChange = { requestedCenter ->
                 onCropChange(crop.movedBy(0f, requestedCenter - cropCenterY))
             },
-            valueRange = halfHeight..(1f - halfHeight)
+            valueRange = if (halfHeight < 0.5f) {
+                halfHeight..(1f - halfHeight)
+            } else {
+                0f..1f
+            },
+            enabled = halfHeight < 0.5f
         )
 
         TextButton(
