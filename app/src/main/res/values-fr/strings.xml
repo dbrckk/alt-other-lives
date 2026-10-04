@@ -223,6 +223,7 @@
     <string name="home_source_premium">SOURCE PRÊTE</string>
     <string name="home_source_low_quality">SOURCE À AMÉLIORER</string>
     <string name="home_source_low_quality_hint">Pour une meilleure continuité d’identité, utilise un portrait d’au moins 720 px sur le côté le plus court.</string>
+    <string name="home_source_framing_hint">Pour un meilleur cadrage du visage, utilise une photo moins panoramique avec ton visage plus proche du centre.</string>
     <string name="reveal_scene_quality_rejected">Scène IA rejetée par les contrôles qualité • crée une nouvelle variation</string>
     <string name="reveal_completion_partial_quality">Résultat partiel : %1$d/%2$d scènes prêtes • nouvelle variation nécessaire pour les chapitres %3$s</string>
     <string name="reveal_completion_partial_mixed">Résultat partiel : %1$d/%2$d scènes prêtes • réessayer les chapitres %3$s • nouvelle variation nécessaire pour %4$s</string>

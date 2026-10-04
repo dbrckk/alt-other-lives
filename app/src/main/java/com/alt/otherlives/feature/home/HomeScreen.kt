@@ -45,12 +45,14 @@ import com.alt.otherlives.core.designsystem.AltDimmed
 import com.alt.otherlives.core.designsystem.AltMuted
 import com.alt.otherlives.core.designsystem.AltPrimary
 import com.alt.otherlives.core.designsystem.AltAccent
+import com.alt.otherlives.core.media.SourcePhotoQualityIssue
 import com.alt.otherlives.R
 
 @Composable
 fun HomeScreen(
     photoUri: Uri?,
     photoIsLikelyPremiumSource: Boolean?,
+    photoQualityIssues: Set<SourcePhotoQualityIssue> = emptySet(),
     isImportingPhoto: Boolean,
     onPhotoSelected: (Uri) -> Unit,
     onContinue: () -> Unit,
@@ -194,8 +196,16 @@ fun HomeScreen(
                     )
                     if (photoIsLikelyPremiumSource == false) {
                         Spacer(Modifier.height(7.dp))
+                        val qualityHint = when {
+                            SourcePhotoQualityIssue.EXTREME_ASPECT_RATIO in photoQualityIssues ->
+                                R.string.home_source_framing_hint
+                            SourcePhotoQualityIssue.TOO_SMALL in photoQualityIssues ->
+                                R.string.home_source_low_quality_hint
+                            else ->
+                                R.string.home_source_low_quality_hint
+                        }
                         Text(
-                            stringResource(R.string.home_source_low_quality_hint),
+                            stringResource(qualityHint),
                             color = AltMuted,
                             fontSize = 11.sp,
                             lineHeight = 16.sp

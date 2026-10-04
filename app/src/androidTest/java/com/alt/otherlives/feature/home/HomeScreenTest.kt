@@ -7,6 +7,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import android.net.Uri
 import com.alt.otherlives.core.designsystem.AltTheme
+import com.alt.otherlives.core.media.SourcePhotoQualityIssue
 import org.junit.Rule
 import org.junit.Test
 
@@ -36,6 +37,27 @@ class HomeScreenTest {
         ).assertIsDisplayed()
         composeRule.onNodeWithText("Choose another life")
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun homeShowsFramingGuidanceForExtremeAspectRatio() {
+        composeRule.setContent {
+            AltTheme {
+                HomeScreen(
+                    photoUri = Uri.parse("content://alt/panoramic-photo"),
+                    photoIsLikelyPremiumSource = false,
+                    photoQualityIssues = setOf(SourcePhotoQualityIssue.EXTREME_ASPECT_RATIO),
+                    isImportingPhoto = false,
+                    onPhotoSelected = {},
+                    onContinue = {},
+                    onHistory = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithText(
+            "For better face framing, use a less panoramic photo with your face closer to the center."
+        ).assertIsDisplayed()
     }
 
     @Test
