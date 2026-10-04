@@ -90,11 +90,13 @@ import com.alt.otherlives.core.generation.AiGenerationReportReason
 import com.alt.otherlives.core.generation.AiGenerationReportStore
 import com.alt.otherlives.core.generation.messageRes
 import com.alt.otherlives.R
+import com.alt.otherlives.core.media.NormalizedCropRect
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun RevealScreen(
     photoUri: Uri?,
+    sourceCrop: NormalizedCropRect = NormalizedCropRect.Full,
     scenario: Scenario,
     generationSettings: GenerationSettings,
     timelineKey: String,
@@ -638,6 +640,7 @@ fun RevealScreen(
                                     val outcome = aiOrchestrator.generate(
                                         provider = provider,
                                         sourcePhoto = photoUri,
+                                        sourceCrop = sourceCrop,
                                         scenario = scenario,
                                         timelineKey = timelineKey,
                                         targetIndexes = targetIndexes,
