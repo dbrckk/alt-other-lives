@@ -1,6 +1,5 @@
 package com.alt.otherlives.feature.timeline
 
-import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -66,8 +65,7 @@ class RevealScreenTest {
 
         composeRule.onNodeWithText(
             "AI generation needs the original source photo. Saved generated scenes can still be viewed and exported."
-        )
-            .assertExists()
+        ).fetchSemanticsNode()
 
         composeRule.onNodeWithText("Set up AI generation")
             .performScrollTo()
