@@ -43,6 +43,7 @@ import com.alt.otherlives.core.generation.ComfyUiClient
 import com.alt.otherlives.core.generation.ComfyUiConfig
 import com.alt.otherlives.core.media.TransientMediaCache
 import com.alt.otherlives.core.media.SourcePhotoQualityIssue
+import com.alt.otherlives.core.media.NormalizedCropRect
 import androidx.compose.ui.Modifier
 import com.alt.otherlives.core.data.ScenarioCatalog
 import com.alt.otherlives.core.designsystem.AltBackground
@@ -86,6 +87,23 @@ fun AltApp() {
     var photoFileName by rememberSaveable { mutableStateOf<String?>(null) }
     var photoIsLikelyPremiumSource by remember { mutableStateOf<Boolean?>(null) }
     var photoQualityIssues by remember { mutableStateOf<Set<SourcePhotoQualityIssue>>(emptySet()) }
+    var sourceCrop by rememberSaveable(
+        stateSaver = Saver(
+            save = { crop ->
+                listOf(crop.left, crop.top, crop.right, crop.bottom)
+            },
+            restore = { saved ->
+                NormalizedCropRect(
+                    left = saved[0],
+                    top = saved[1],
+                    right = saved[2],
+                    bottom = saved[3]
+                )
+            }
+        )
+    ) {
+        mutableStateOf(NormalizedCropRect.Full)
+    }
     var selectedScenarioId by rememberSaveable {
         mutableStateOf(scenarios.first().id)
     }
@@ -375,6 +393,7 @@ fun AltApp() {
                                             photoIsLikelyPremiumSource =
                                                 stored.isLikelyPremiumSource
                                             photoQualityIssues = stored.qualityIssues
+                                            sourceCrop = NormalizedCropRect.Full
                                             activeTimelineKey = null
 
                                             val keep =
@@ -423,6 +442,8 @@ fun AltApp() {
                             PhotoFramingScreen(
                                 photoUri = framingPhotoUri,
                                 qualityIssues = photoQualityIssues,
+                                crop = sourceCrop,
+                                onCropChange = { sourceCrop = it },
                                 onBack = {
                                     navigation = navigation.goTo(AltScreen.HOME)
                                 },
@@ -503,6 +524,7 @@ fun AltApp() {
                     )
                     AltScreen.REVEAL -> RevealScreen(
                         photoUri = photoUri,
+                        sourceCrop = sourceCrop,
                         scenario = selectedScenario,
                         generationSettings = generationSettings,
                         timelineKey = activeTimelineKey ?: selectedScenario.id,
