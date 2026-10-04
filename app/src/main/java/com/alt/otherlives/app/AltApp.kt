@@ -417,7 +417,7 @@ fun AltApp() {
                         val framingPhotoUri = photoUri
                         if (framingPhotoUri == null) {
                             LaunchedEffect(Unit) {
-                                navigation = navigation.goTo(AltScreen.FRAMING)
+                                navigation = navigation.goTo(AltScreen.HOME)
                             }
                         } else {
                             PhotoFramingScreen(
@@ -436,7 +436,7 @@ fun AltApp() {
                         scenarios = scenarios,
                         onBack = {
                             if (!isCreatingTimeline) {
-                                navigation = navigation.goTo(AltScreen.HOME)
+                                navigation = navigation.goTo(AltScreen.FRAMING)
                             }
                         },
                         isCreatingTimeline = isCreatingTimeline,
