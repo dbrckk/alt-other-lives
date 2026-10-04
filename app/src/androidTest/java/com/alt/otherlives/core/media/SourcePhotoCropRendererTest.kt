@@ -31,6 +31,12 @@ class SourcePhotoCropRendererTest {
             context.packageName + ".fileprovider",
             source
         )
+        val cropDir = File(context.cacheDir, "generation/crops")
+        val existingCropNames = cropDir.listFiles()
+            .orEmpty()
+            .map { it.name }
+            .toSet()
+
         val prepared = SourcePhotoCropRenderer.prepare(
             context = context,
             sourceUri = sourceUri,
@@ -51,12 +57,14 @@ class SourcePhotoCropRendererTest {
         assertEquals(200, bounds.outWidth)
         assertEquals(200, bounds.outHeight)
 
-        val cropDir = File(context.cacheDir, "generation/crops")
-        assertTrue(cropDir.listFiles().orEmpty().isNotEmpty())
+        val createdCropFiles = cropDir.listFiles()
+            .orEmpty()
+            .filter { it.name !in existingCropNames }
+        assertEquals(1, createdCropFiles.size)
 
         prepared.cleanup()
 
-        assertFalse(cropDir.listFiles().orEmpty().any { it.exists() })
+        assertFalse(createdCropFiles.single().exists())
         source.delete()
     }
 }
