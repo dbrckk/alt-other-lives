@@ -2,6 +2,7 @@ package com.alt.otherlives.app
 
 enum class AltScreen {
     HOME,
+    FRAMING,
     SCENARIOS,
     REVEAL,
     HISTORY,
