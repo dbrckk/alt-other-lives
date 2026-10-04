@@ -140,6 +140,7 @@
     <string name="app_connection_failed">Impossible de se connecter à ComfyUI</string>
     <string name="app_settings_cleared">Paramètres IA effacés</string>
     <string name="app_settings_clear_failed">Impossible d’effacer les paramètres IA</string>
+    <string name="app_crop_save_failed">Impossible d’enregistrer ce cadrage. Réessaie.</string>
     <string name="app_original_photo_missing_ai">Photo originale indisponible • ouverture de la timeline IA enregistrée</string>
     <string name="app_original_photo_missing">La photo source de cette timeline n’est plus disponible</string>
     <string name="settings_title">Configuration IA avancée</string>
