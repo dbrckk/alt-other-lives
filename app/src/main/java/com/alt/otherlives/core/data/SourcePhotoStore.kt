@@ -10,6 +10,7 @@ import java.util.UUID
 import com.alt.otherlives.core.io.BoundedStreamCopy
 import com.alt.otherlives.core.media.ImageBoundsValidation
 import com.alt.otherlives.core.media.SourcePhotoQualityIssue
+import com.alt.otherlives.core.media.NormalizedCropRect
 
 data class StoredPhoto(
     val fileName: String,
@@ -118,6 +119,49 @@ class SourcePhotoStore(private val context: Context) {
         ).issues
     }
 
+    fun saveCrop(fileName: String, crop: NormalizedCropRect) {
+        val target = cropFile(fileName)
+        val temporary = File(target.parentFile, target.name + ".tmp")
+        target.parentFile?.mkdirs()
+        try {
+            temporary.writeText(
+                listOf(crop.left, crop.top, crop.right, crop.bottom)
+                    .joinToString(",")
+            )
+            if (target.exists() && !target.delete()) {
+                error("Unable to replace stored photo crop")
+            }
+            if (!temporary.renameTo(target)) {
+                error("Unable to finalize stored photo crop")
+            }
+        } catch (error: Throwable) {
+            temporary.delete()
+            throw error
+        }
+    }
+
+    fun cropFor(fileName: String): NormalizedCropRect {
+        val file = cropFile(fileName)
+        if (!file.exists()) return NormalizedCropRect.Full
+        val crop = runCatching {
+            val values = file.readText()
+                .split(",")
+                .map { it.toFloat() }
+            require(values.size == 4)
+            NormalizedCropRect(
+                left = values[0],
+                top = values[1],
+                right = values[2],
+                bottom = values[3]
+            )
+        }.getOrNull()
+        if (crop == null) {
+            file.delete()
+            return NormalizedCropRect.Full
+        }
+        return crop
+    }
+
     fun isLikelyPremiumSource(fileName: String): Boolean? {
         val file = runCatching { storedFile(fileName) }.getOrNull() ?: return null
         if (!isValidImage(file)) {
@@ -130,6 +174,14 @@ class SourcePhotoStore(private val context: Context) {
             bounds.outWidth,
             bounds.outHeight
         )
+    }
+
+    private fun cropFile(fileName: String): File {
+        require(SourcePhotoFileName.isValid(fileName)) {
+            "Invalid stored photo filename"
+        }
+        val dir = File(context.filesDir, "source-photo-crops")
+        return File(dir, fileName + ".crop")
     }
 
     private fun storedFile(fileName: String): File {
@@ -199,13 +251,27 @@ class SourcePhotoStore(private val context: Context) {
                 }
             }
         }
+        val cropDir = File(context.filesDir, "source-photo-crops")
+        cropDir.listFiles()?.forEach { crop ->
+            val sourceFileName = crop.name.removeSuffix(".crop")
+            if (crop.isFile && sourceFileName !in keepFileNames) {
+                check(crop.delete()) {
+                    "Unable to delete unreferenced source photo crop"
+                }
+            }
+        }
     }
 
     fun clearAll() {
-        val root = File(context.filesDir, "source-photos")
-        if (root.exists()) {
-            check(root.deleteRecursively()) {
-                "Unable to clear private source photos"
+        val roots = listOf(
+            File(context.filesDir, "source-photos"),
+            File(context.filesDir, "source-photo-crops")
+        )
+        roots.forEach { root ->
+            if (root.exists()) {
+                check(root.deleteRecursively()) {
+                    "Unable to clear private source photo data"
+                }
             }
         }
     }
