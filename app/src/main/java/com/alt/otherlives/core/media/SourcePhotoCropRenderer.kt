@@ -77,9 +77,13 @@ object SourcePhotoCropRenderer {
 
     private fun decodeOriented(context: Context, uri: Uri): Bitmap {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        context.contentResolver.openFileDescriptor(uri, "r")?.use { descriptor ->
+        val inspected = context.contentResolver.openFileDescriptor(uri, "r")?.use { descriptor ->
             BitmapFactory.decodeFileDescriptor(descriptor.fileDescriptor, null, bounds)
-        } ?: error("Unable to inspect source photo")
+            true
+        } ?: false
+        check(inspected) {
+            "Unable to inspect source photo"
+        }
 
         require(bounds.outWidth > 0 && bounds.outHeight > 0) {
             "Unable to decode source photo"
