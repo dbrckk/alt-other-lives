@@ -5,15 +5,22 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import android.webkit.MimeTypeMap
 import android.graphics.BitmapFactory
+import android.media.ExifInterface
 import java.io.File
 import java.util.UUID
 import com.alt.otherlives.core.io.BoundedStreamCopy
 import com.alt.otherlives.core.media.ImageBoundsValidation
 import com.alt.otherlives.core.media.SourcePhotoQualityIssue
 
+data class SourcePhotoDimensions(
+    val width: Int,
+    val height: Int
+)
+
 data class StoredPhoto(
     val fileName: String,
     val uri: Uri,
+    val dimensions: SourcePhotoDimensions,
     val isLikelyPremiumSource: Boolean,
     val qualityIssues: Set<SourcePhotoQualityIssue> = emptySet()
 )
@@ -32,6 +39,7 @@ class SourcePhotoStore(private val context: Context) {
         val fileName = "source-" + id + "." + extension
         val target = File(dir, fileName)
         val temporary = File(dir, ".source-" + id + ".tmp")
+        var dimensions: SourcePhotoDimensions? = null
         var isLikelyPremiumSource = false
         var qualityIssues: Set<SourcePhotoQualityIssue> = emptySet()
 
@@ -47,19 +55,13 @@ class SourcePhotoStore(private val context: Context) {
             } ?: error("Unable to read selected photo")
 
             require(temporary.length() > 0L) { "Selected image copy is empty" }
-            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            BitmapFactory.decodeFile(temporary.absolutePath, bounds)
-            require(
-                ImageBoundsValidation.isReasonable(
-                    bounds.outWidth,
-                    bounds.outHeight
-                )
-            ) {
+            val importedDimensions = requireNotNull(readDimensions(temporary)) {
                 "Selected image is invalid, unsupported, or too large"
             }
+            dimensions = importedDimensions
             val qualityAssessment = ImageBoundsValidation.assessSourcePhoto(
-                bounds.outWidth,
-                bounds.outHeight
+                importedDimensions.width,
+                importedDimensions.height
             )
             isLikelyPremiumSource = qualityAssessment.isPremiumReady
             qualityIssues = qualityAssessment.issues
@@ -76,6 +78,7 @@ class SourcePhotoStore(private val context: Context) {
         return StoredPhoto(
             fileName = fileName,
             uri = uriFor(fileName),
+            dimensions = requireNotNull(dimensions),
             isLikelyPremiumSource = isLikelyPremiumSource,
             qualityIssues = qualityIssues
         )
@@ -104,31 +107,28 @@ class SourcePhotoStore(private val context: Context) {
         return true
     }
 
-    fun qualityIssues(fileName: String): Set<SourcePhotoQualityIssue>? {
+    fun dimensions(fileName: String): SourcePhotoDimensions? {
         val file = runCatching { storedFile(fileName) }.getOrNull() ?: return null
-        if (!isValidImage(file)) {
+        val dimensions = readDimensions(file)
+        if (dimensions == null) {
             file.delete()
-            return null
         }
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        return dimensions
+    }
+
+    fun qualityIssues(fileName: String): Set<SourcePhotoQualityIssue>? {
+        val dimensions = dimensions(fileName) ?: return null
         return ImageBoundsValidation.assessSourcePhoto(
-            bounds.outWidth,
-            bounds.outHeight
+            dimensions.width,
+            dimensions.height
         ).issues
     }
 
     fun isLikelyPremiumSource(fileName: String): Boolean? {
-        val file = runCatching { storedFile(fileName) }.getOrNull() ?: return null
-        if (!isValidImage(file)) {
-            file.delete()
-            return null
-        }
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        val dimensions = dimensions(fileName) ?: return null
         return ImageBoundsValidation.isLikelyPremiumSource(
-            bounds.outWidth,
-            bounds.outHeight
+            dimensions.width,
+            dimensions.height
         )
     }
 
@@ -157,15 +157,15 @@ class SourcePhotoStore(private val context: Context) {
             if (!isValidImage(file)) {
                 file.delete()
             } else {
-                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeFile(file.absolutePath, bounds)
+                val dimensions = requireNotNull(readDimensions(file))
                 val qualityAssessment = ImageBoundsValidation.assessSourcePhoto(
-                    bounds.outWidth,
-                    bounds.outHeight
+                    dimensions.width,
+                    dimensions.height
                 )
                 return StoredPhoto(
                     fileName = file.name,
                     uri = uriFor(file.name),
+                    dimensions = dimensions,
                     isLikelyPremiumSource = qualityAssessment.isPremiumReady,
                     qualityIssues = qualityAssessment.issues
                 )
@@ -174,14 +174,37 @@ class SourcePhotoStore(private val context: Context) {
         return null
     }
 
-    private fun isValidImage(file: File): Boolean {
-        if (!file.exists() || file.length() <= 0L) return false
+    private fun isValidImage(file: File): Boolean = readDimensions(file) != null
+
+    private fun readDimensions(file: File): SourcePhotoDimensions? {
+        if (!file.exists() || file.length() <= 0L) return null
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.absolutePath, bounds)
-        return ImageBoundsValidation.isReasonable(
-            bounds.outWidth,
-            bounds.outHeight
-        )
+        if (!ImageBoundsValidation.isReasonable(bounds.outWidth, bounds.outHeight)) {
+            return null
+        }
+
+        val orientation = runCatching {
+            ExifInterface(file.absolutePath).getAttributeInt(
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
+            )
+        }.getOrDefault(ExifInterface.ORIENTATION_NORMAL)
+        val swapsAxes = orientation == ExifInterface.ORIENTATION_TRANSPOSE ||
+            orientation == ExifInterface.ORIENTATION_ROTATE_90 ||
+            orientation == ExifInterface.ORIENTATION_TRANSVERSE ||
+            orientation == ExifInterface.ORIENTATION_ROTATE_270
+        return if (swapsAxes) {
+            SourcePhotoDimensions(
+                width = bounds.outHeight,
+                height = bounds.outWidth
+            )
+        } else {
+            SourcePhotoDimensions(
+                width = bounds.outWidth,
+                height = bounds.outHeight
+            )
+        }
     }
 
     private fun cleanupInterruptedImports(dir: File) {
