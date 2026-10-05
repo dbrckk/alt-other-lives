@@ -66,6 +66,9 @@ class PhotoFramingScreenTest {
             .assertIsDisplayed()
         composeRule.onNodeWithText("Keep your face inside this guide")
             .assertIsDisplayed()
+        composeRule.onNodeWithText("Pinch to zoom • drag to reposition")
+            .performScrollTo()
+            .assertIsDisplayed()
         composeRule.onNodeWithText(
             "This source is very wide. A closer portrait will usually preserve your identity more reliably."
         )
