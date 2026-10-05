@@ -36,6 +36,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.first
 import com.alt.otherlives.core.data.HistoryRepository
+import com.alt.otherlives.core.data.SourcePhotoDimensions
 import com.alt.otherlives.core.data.SourcePhotoStore
 import com.alt.otherlives.core.generation.GenerationSettingsRepository
 import com.alt.otherlives.core.generation.GeneratedSceneStore
@@ -57,6 +58,13 @@ import com.alt.otherlives.feature.timeline.RevealScreen
 import com.alt.otherlives.R
 
 private const val HISTORY_PREVIEW_LIMIT = 16
+
+private data class HistoryPhotoPreflight(
+    val uris: Map<String, Uri>,
+    val premiumByFileName: Map<String, Boolean>,
+    val dimensionsByFileName: Map<String, SourcePhotoDimensions>,
+    val generatedPreviewUris: Map<String, Uri>
+)
 
 @Composable
 fun AltApp() {
@@ -87,6 +95,7 @@ fun AltApp() {
     var photoFileName by rememberSaveable { mutableStateOf<String?>(null) }
     var photoIsLikelyPremiumSource by remember { mutableStateOf<Boolean?>(null) }
     var photoQualityIssues by remember { mutableStateOf<Set<SourcePhotoQualityIssue>>(emptySet()) }
+    var photoDimensions by remember { mutableStateOf<SourcePhotoDimensions?>(null) }
     var sourceCrop by rememberSaveable(
         stateSaver = Saver(
             save = { crop ->
@@ -121,6 +130,9 @@ fun AltApp() {
     var historyPhotoUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
     var historyPhotoPremiumByFileName by remember {
         mutableStateOf<Map<String, Boolean>>(emptyMap())
+    }
+    var historyPhotoDimensionsByFileName by remember {
+        mutableStateOf<Map<String, SourcePhotoDimensions>>(emptyMap())
     }
     var historyGeneratedPreviewUris by remember { mutableStateOf<Map<String, Uri>>(emptyMap()) }
     var deletingHistoryEntryKey by remember { mutableStateOf<String?>(null) }
@@ -200,6 +212,9 @@ fun AltApp() {
             photoQualityIssues = withContext(Dispatchers.IO) {
                 sourcePhotoStore.qualityIssues(restoredPhoto.second)
             }.orEmpty()
+            photoDimensions = withContext(Dispatchers.IO) {
+                sourcePhotoStore.dimensions(restoredPhoto.second)
+            }
         } else if (restoredIdentity.photoFileName != null) {
             photoFileName = null
             activeTimelineKey = null
@@ -220,6 +235,11 @@ fun AltApp() {
             photoFileName = stored.fileName
             photoIsLikelyPremiumSource = stored.isLikelyPremiumSource
             photoQualityIssues = stored.qualityIssues
+            photoDimensions = stored.dimensions
+            sourceCrop = NormalizedCropRect.centeredAspect(
+                sourceWidth = stored.dimensions.width,
+                sourceHeight = stored.dimensions.height
+            )
         }
 
         val startupHistory = runCatching {
@@ -264,6 +284,11 @@ fun AltApp() {
                                 requireNotNull(latest.photoFileName)
                             )
                         }.orEmpty()
+                        photoDimensions = withContext(Dispatchers.IO) {
+                            sourcePhotoStore.dimensions(
+                                requireNotNull(latest.photoFileName)
+                            )
+                        }
                         sourceCrop = latest.sourceCrop
                         scenarios
                             .firstOrNull { it.id == latest.scenarioId }
@@ -293,6 +318,10 @@ fun AltApp() {
                 sourcePhotoStore.isLikelyPremiumSource(fileName)
                     ?.let { fileName to it }
             }.toMap()
+            val photoDimensions = availablePhotos.keys.mapNotNull { fileName ->
+                sourcePhotoStore.dimensions(fileName)
+                    ?.let { fileName to it }
+            }.toMap()
             val generatedPreviews = recentEntries.mapNotNull { entry ->
                 val timelineKey = entry.timelineKey
                 runCatching {
@@ -302,13 +331,19 @@ fun AltApp() {
                 }.getOrNull()
                     ?.let { timelineKey to it }
             }.toMap()
-            Triple(availablePhotos, photoQuality, generatedPreviews)
+            HistoryPhotoPreflight(
+                uris = availablePhotos,
+                premiumByFileName = photoQuality,
+                dimensionsByFileName = photoDimensions,
+                generatedPreviewUris = generatedPreviews
+            )
         }
-        historyPhotoUris = preflight.first
-        historyPhotoPremiumByFileName = preflight.second
-        historyGeneratedPreviewUris = preflight.third
+        historyPhotoUris = preflight.uris
+        historyPhotoPremiumByFileName = preflight.premiumByFileName
+        historyPhotoDimensionsByFileName = preflight.dimensionsByFileName
+        historyGeneratedPreviewUris = preflight.generatedPreviewUris
         unavailablePhotoFileNames = photoFileNames
-            .filterNot { it in preflight.first }
+            .filterNot { it in preflight.uris }
             .toSet()
     }
 
@@ -395,7 +430,11 @@ fun AltApp() {
                                             photoIsLikelyPremiumSource =
                                                 stored.isLikelyPremiumSource
                                             photoQualityIssues = stored.qualityIssues
-                                            sourceCrop = NormalizedCropRect.Full
+                                            photoDimensions = stored.dimensions
+                                            sourceCrop = NormalizedCropRect.centeredAspect(
+                                                sourceWidth = stored.dimensions.width,
+                                                sourceHeight = stored.dimensions.height
+                                            )
                                             activeTimelineKey = null
 
                                             val keep =
@@ -441,10 +480,17 @@ fun AltApp() {
                                 navigation = navigation.goTo(AltScreen.HOME)
                             }
                         } else {
+                            val baseCrop = photoDimensions?.let { dimensions ->
+                                NormalizedCropRect.centeredAspect(
+                                    sourceWidth = dimensions.width,
+                                    sourceHeight = dimensions.height
+                                )
+                            } ?: NormalizedCropRect.Full
                             PhotoFramingScreen(
                                 photoUri = framingPhotoUri,
                                 qualityIssues = photoQualityIssues,
                                 crop = sourceCrop,
+                                baseCrop = baseCrop,
                                 onCropChange = { sourceCrop = it },
                                 onBack = {
                                     navigation = navigation.goTo(AltScreen.HOME)
@@ -718,6 +764,9 @@ fun AltApp() {
                             photoIsLikelyPremiumSource = restored?.second?.let {
                                 historyPhotoPremiumByFileName[it]
                             }
+                            photoDimensions = restored?.second?.let {
+                                historyPhotoDimensionsByFileName[it]
+                            }
                             sourceCrop = if (restored != null) {
                                 entry.sourceCrop
                             } else {
@@ -758,6 +807,9 @@ fun AltApp() {
                                                 historyPhotoPremiumByFileName =
                                                     historyPhotoPremiumByFileName -
                                                         deletedPhotoFileName
+                                                historyPhotoDimensionsByFileName =
+                                                    historyPhotoDimensionsByFileName -
+                                                        deletedPhotoFileName
                                                 unavailablePhotoFileNames =
                                                     unavailablePhotoFileNames - deletedPhotoFileName
                                                 if (photoFileName == deletedPhotoFileName) {
@@ -765,6 +817,7 @@ fun AltApp() {
                                                     photoFileName = null
                                                     photoIsLikelyPremiumSource = null
                                                     photoQualityIssues = emptySet()
+                                                    photoDimensions = null
                                                     sourceCrop = NormalizedCropRect.Full
                                                 }
                                             }
@@ -825,10 +878,12 @@ fun AltApp() {
                                         photoFileName = null
                                         photoIsLikelyPremiumSource = null
                                         photoQualityIssues = emptySet()
+                                        photoDimensions = null
                                         sourceCrop = NormalizedCropRect.Full
                                         activeTimelineKey = null
                                         historyPhotoUris = emptyMap()
                                         historyPhotoPremiumByFileName = emptyMap()
+                                        historyPhotoDimensionsByFileName = emptyMap()
                                         historyGeneratedPreviewUris = emptyMap()
                                         unavailablePhotoFileNames = emptySet()
                                         deletingHistoryEntryKey = null
