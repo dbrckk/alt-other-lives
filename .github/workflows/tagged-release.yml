@@ -18,7 +18,6 @@ jobs:
       ALT_KEY_PASSWORD: ${{ secrets.ALT_KEY_PASSWORD }}
       ALT_VERSION_CODE: ${{ vars.ALT_VERSION_CODE }}
       ALT_VERSION_NAME: ${{ vars.ALT_VERSION_NAME }}
-      ALT_KEYSTORE_PATH: ${{ runner.temp }}/alt-release.jks
     steps:
       - uses: actions/checkout@v5
 
@@ -68,8 +67,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          printf '%s' "$ALT_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$ALT_KEYSTORE_PATH"
-          chmod 600 "$ALT_KEYSTORE_PATH"
+          keystore_path="$RUNNER_TEMP/alt-release.jks"
+          printf '%s' "$ALT_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore_path"
+          chmod 600 "$keystore_path"
+          echo "ALT_KEYSTORE_PATH=$keystore_path" >> "$GITHUB_ENV"
 
       - name: Build signed release AAB
         run: gradle :app:bundleRelease --stacktrace
