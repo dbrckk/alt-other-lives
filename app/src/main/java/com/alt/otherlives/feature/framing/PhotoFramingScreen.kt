@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -47,13 +48,17 @@ fun PhotoFramingScreen(
     photoUri: Uri,
     qualityIssues: Set<SourcePhotoQualityIssue>,
     crop: NormalizedCropRect = NormalizedCropRect.Full,
+    baseCrop: NormalizedCropRect = NormalizedCropRect.Full,
     onCropChange: (NormalizedCropRect) -> Unit = {},
     onBack: () -> Unit,
     onConfirm: () -> Unit
 ) {
     val cropCenterX = (crop.left + crop.right) / 2f
     val cropCenterY = (crop.top + crop.bottom) / 2f
-    val cropZoom = (1f / crop.width).coerceIn(1f, 2.85f)
+    val cropZoom = maxOf(
+        baseCrop.width / crop.width,
+        baseCrop.height / crop.height
+    ).coerceIn(1f, 2.85f)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -84,7 +89,7 @@ fun PhotoFramingScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(420.dp)
+                .aspectRatio(4f / 5f)
                 .clip(RoundedCornerShape(30.dp))
                 .background(Color(0xFF121116)),
             contentAlignment = Alignment.Center
@@ -97,8 +102,10 @@ fun PhotoFramingScreen(
                     .graphicsLayer {
                         scaleX = cropZoom
                         scaleY = cropZoom
-                        translationX = (0.5f - cropCenterX) * size.width * cropZoom
-                        translationY = (0.5f - cropCenterY) * size.height * cropZoom
+                        translationX =
+                            ((0.5f - cropCenterX) / baseCrop.width) * size.width * cropZoom
+                        translationY =
+                            ((0.5f - cropCenterY) / baseCrop.height) * size.height * cropZoom
                     },
                 contentScale = ContentScale.Crop
             )
@@ -139,8 +146,12 @@ fun PhotoFramingScreen(
         Slider(
             value = cropZoom,
             onValueChange = { requestedZoom ->
-                val factor = requestedZoom / cropZoom
-                onCropChange(crop.scaledAroundCenter(factor))
+                onCropChange(
+                    crop.resizedAroundCenter(
+                        targetWidth = baseCrop.width / requestedZoom,
+                        targetHeight = baseCrop.height / requestedZoom
+                    )
+                )
             },
             valueRange = 1f..2.85f
         )
@@ -184,7 +195,7 @@ fun PhotoFramingScreen(
         )
 
         TextButton(
-            onClick = { onCropChange(NormalizedCropRect.Full) },
+            onClick = { onCropChange(baseCrop) },
             modifier = Modifier.align(Alignment.End)
         ) {
             Text(stringResource(R.string.framing_reset))

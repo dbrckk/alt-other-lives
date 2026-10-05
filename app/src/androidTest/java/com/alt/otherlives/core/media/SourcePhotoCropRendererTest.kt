@@ -40,11 +40,9 @@ class SourcePhotoCropRendererTest {
         val prepared = SourcePhotoCropRenderer.prepare(
             context = context,
             sourceUri = sourceUri,
-            crop = NormalizedCropRect(
-                left = 0.5f,
-                top = 0f,
-                right = 1f,
-                bottom = 1f
+            crop = NormalizedCropRect.centeredAspect(
+                sourceWidth = 400,
+                sourceHeight = 200
             )
         )
 
@@ -54,7 +52,7 @@ class SourcePhotoCropRendererTest {
         context.contentResolver.openInputStream(prepared.uri)?.use { input ->
             BitmapFactory.decodeStream(input, null, bounds)
         }
-        assertEquals(200, bounds.outWidth)
+        assertEquals(160, bounds.outWidth)
         assertEquals(200, bounds.outHeight)
 
         val createdCropFiles = cropDir.listFiles()

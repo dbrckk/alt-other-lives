@@ -19,15 +19,18 @@ class PhotoFramingScreenTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun resetFramingEmitsFullCrop() {
+    fun resetFramingEmitsPortraitBaseCrop() {
         var changedCrop: NormalizedCropRect? = null
+
+        val baseCrop = NormalizedCropRect.centered(width = 0.4f, height = 1f)
 
         composeRule.setContent {
             AltTheme {
                 PhotoFramingScreen(
                     photoUri = Uri.parse("content://alt/framing-photo"),
                     qualityIssues = emptySet(),
-                    crop = NormalizedCropRect.centered(0.5f, 0.5f),
+                    crop = NormalizedCropRect.centered(0.2f, 0.5f),
+                    baseCrop = baseCrop,
                     onCropChange = { changedCrop = it },
                     onBack = {},
                     onConfirm = {}
@@ -40,7 +43,7 @@ class PhotoFramingScreenTest {
             .performClick()
 
         composeRule.runOnIdle {
-            assertEquals(NormalizedCropRect.Full, changedCrop)
+            assertEquals(baseCrop, changedCrop)
         }
     }
 
