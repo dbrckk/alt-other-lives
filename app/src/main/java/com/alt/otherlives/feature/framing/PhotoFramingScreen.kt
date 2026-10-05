@@ -2,6 +2,7 @@ package com.alt.otherlives.feature.framing
 
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
@@ -24,11 +25,13 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -58,7 +61,9 @@ fun PhotoFramingScreen(
     val cropZoom = maxOf(
         baseCrop.width / crop.width,
         baseCrop.height / crop.height
-    ).coerceIn(1f, 2.85f)
+    ).coerceIn(1f, PhotoFramingGesture.MAX_ZOOM)
+    val currentCrop = rememberUpdatedState(crop)
+    val currentOnCropChange = rememberUpdatedState(onCropChange)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -91,7 +96,22 @@ fun PhotoFramingScreen(
                 .fillMaxWidth()
                 .aspectRatio(4f / 5f)
                 .clip(RoundedCornerShape(30.dp))
-                .background(Color(0xFF121116)),
+                .background(Color(0xFF121116))
+                .pointerInput(baseCrop) {
+                    detectTransformGestures { _, pan, zoom, _ ->
+                        currentOnCropChange.value(
+                            PhotoFramingGesture.apply(
+                                crop = currentCrop.value,
+                                baseCrop = baseCrop,
+                                zoomChange = zoom,
+                                panX = pan.x,
+                                panY = pan.y,
+                                viewportWidth = size.width.toFloat(),
+                                viewportHeight = size.height.toFloat()
+                            )
+                        )
+                    }
+                },
             contentAlignment = Alignment.Center
         ) {
             AsyncImage(
@@ -137,6 +157,14 @@ fun PhotoFramingScreen(
             )
         }
 
+        Spacer(Modifier.height(10.dp))
+        Text(
+            stringResource(R.string.framing_gesture_hint),
+            color = AltMuted,
+            fontSize = 12.sp,
+            lineHeight = 17.sp
+        )
+
         Spacer(Modifier.height(12.dp))
         Text(
             stringResource(R.string.framing_zoom),
@@ -153,7 +181,7 @@ fun PhotoFramingScreen(
                     )
                 )
             },
-            valueRange = 1f..2.85f
+            valueRange = 1f..PhotoFramingGesture.MAX_ZOOM
         )
 
         val halfWidth = crop.width / 2f
