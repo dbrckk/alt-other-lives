@@ -12,7 +12,7 @@ class TaggedReleaseWorkflowContractTest {
 
     @Test
     fun releaseIsRestrictedToSemanticVersionTags() {
-        assertTrue(source.contains('- "v*.*.*"'))
+        assertTrue(source.contains("- \\"v*.*.*\\""))
         assertTrue(source.contains("^v([0-9]+)\\.([0-9]+)\\.([0-9]+)$"))
         assertTrue(source.contains("expected_version_name=\"\${tag#v}\""))
         assertTrue(source.contains(
