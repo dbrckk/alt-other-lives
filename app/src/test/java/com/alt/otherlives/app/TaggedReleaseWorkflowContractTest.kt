@@ -37,6 +37,8 @@ class TaggedReleaseWorkflowContractTest {
         assertTrue(source.contains("gradle :app:bundleRelease --stacktrace"))
         assertTrue(source.contains("jarsigner -verify -strict"))
         assertTrue(source.contains("signed-aab"))
+        assertTrue(source.contains("keystore_path=\"\$RUNNER_TEMP/alt-release.jks\""))
+        assertFalse(source.contains("\${{ runner.temp }}"))
         assertFalse(source.contains("unsigned-aab"))
     }
 }
