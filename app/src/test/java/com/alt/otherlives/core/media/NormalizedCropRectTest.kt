@@ -5,6 +5,32 @@ import org.junit.Test
 
 class NormalizedCropRectTest {
     @Test
+    fun panoramaGetsCenteredFourByFiveCrop() {
+        val crop = NormalizedCropRect.centeredAspect(
+            sourceWidth = 2000,
+            sourceHeight = 1000
+        )
+
+        assertEquals(0.4f, crop.width, 0.0001f)
+        assertEquals(1f, crop.height, 0.0001f)
+        assertEquals(0.3f, crop.left, 0.0001f)
+        assertEquals(0.7f, crop.right, 0.0001f)
+    }
+
+    @Test
+    fun tallSourceGetsCenteredFourByFiveCrop() {
+        val crop = NormalizedCropRect.centeredAspect(
+            sourceWidth = 500,
+            sourceHeight = 1000
+        )
+
+        assertEquals(1f, crop.width, 0.0001f)
+        assertEquals(0.625f, crop.height, 0.0001f)
+        assertEquals(0.1875f, crop.top, 0.0001f)
+        assertEquals(0.8125f, crop.bottom, 0.0001f)
+    }
+
+    @Test
     fun movementClampsInsideSourceBounds() {
         val crop = NormalizedCropRect.centered(width = 0.6f, height = 0.6f)
 
