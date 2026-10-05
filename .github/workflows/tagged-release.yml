@@ -1,0 +1,94 @@
+name: Tagged Android Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      ALT_ANDROID_KEYSTORE_BASE64: ${{ secrets.ALT_ANDROID_KEYSTORE_BASE64 }}
+      ALT_KEYSTORE_PASSWORD: ${{ secrets.ALT_KEYSTORE_PASSWORD }}
+      ALT_KEY_ALIAS: ${{ secrets.ALT_KEY_ALIAS }}
+      ALT_KEY_PASSWORD: ${{ secrets.ALT_KEY_PASSWORD }}
+      ALT_VERSION_CODE: ${{ vars.ALT_VERSION_CODE }}
+      ALT_VERSION_NAME: ${{ vars.ALT_VERSION_NAME }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Validate release metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          if [[ ! "$tag" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "::error::Release tag must use vMAJOR.MINOR.PATCH."
+            exit 1
+          fi
+          expected_version_name="${tag#v}"
+          if [[ -z "$ALT_VERSION_NAME" || "$ALT_VERSION_NAME" != "$expected_version_name" ]]; then
+            echo "::error::ALT_VERSION_NAME must exactly match the release tag without the v prefix."
+            exit 1
+          fi
+          if [[ -z "$ALT_VERSION_CODE" || ! "$ALT_VERSION_CODE" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::ALT_VERSION_CODE must be an explicit positive integer for a tagged release."
+            exit 1
+          fi
+
+      - name: Validate signing secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in             ALT_ANDROID_KEYSTORE_BASE64             ALT_KEYSTORE_PASSWORD             ALT_KEY_ALIAS             ALT_KEY_PASSWORD
+          do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::$name is required for a tagged release."
+              missing=1
+            fi
+          done
+          if [[ "$missing" -ne 0 ]]; then
+            exit 1
+          fi
+
+      - name: Prepare release keystore
+        shell: bash
+        run: |
+          set -euo pipefail
+          keystore_path="$RUNNER_TEMP/alt-release.jks"
+          printf '%s' "$ALT_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore_path"
+          chmod 600 "$keystore_path"
+          echo "ALT_KEYSTORE_PATH=$keystore_path" >> "$GITHUB_ENV"
+
+      - name: Build signed release AAB
+        run: gradle :app:bundleRelease --stacktrace
+
+      - name: Verify signed release AAB
+        shell: bash
+        run: |
+          set -euo pipefail
+          aab="$(find app/build/outputs/bundle/release -maxdepth 1 -name '*.aab' -print -quit)"
+          if [[ -z "$aab" ]]; then
+            echo "::error::Release AAB was not produced."
+            exit 1
+          fi
+          jarsigner -verify -strict "$aab"
+
+      - name: Upload signed release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: alt-${{ env.ALT_VERSION_NAME }}-signed-aab
+          path: app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
