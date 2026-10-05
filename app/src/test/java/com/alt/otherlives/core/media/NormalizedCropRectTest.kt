@@ -31,7 +31,7 @@ class NormalizedCropRectTest {
     }
 
     @Test
-    fun resizeKeepsPortraitRatioAndClampsCenter() {
+    fun resizeKeepsPortraitRatioAroundCurrentCenter() {
         val base = NormalizedCropRect.centeredAspect(
             sourceWidth = 2000,
             sourceHeight = 1000
@@ -44,7 +44,8 @@ class NormalizedCropRectTest {
 
         assertEquals(0.2f, resized.width, 0.0001f)
         assertEquals(0.5f, resized.height, 0.0001f)
-        assertEquals(1f, resized.right, 0.0001f)
+        assertEquals(0.7f, resized.left, 0.0001f)
+        assertEquals(0.9f, resized.right, 0.0001f)
     }
 
     @Test
