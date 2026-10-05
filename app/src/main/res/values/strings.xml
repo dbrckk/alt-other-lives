@@ -232,6 +232,7 @@
     <string name="framing_resolution_warning">This source is small. A higher-resolution portrait will usually produce stronger results.</string>
     <string name="framing_change_photo">Change photo</string>
     <string name="framing_confirm">Looks good</string>
+    <string name="framing_gesture_hint">Pinch to zoom • drag to reposition</string>
     <string name="framing_zoom">Zoom</string>
     <string name="framing_horizontal">Horizontal position</string>
     <string name="framing_vertical">Vertical position</string>

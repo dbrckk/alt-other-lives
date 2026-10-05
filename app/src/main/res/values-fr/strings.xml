@@ -232,6 +232,7 @@
     <string name="framing_resolution_warning">Cette source est petite. Un portrait en meilleure résolution donnera généralement de meilleurs résultats.</string>
     <string name="framing_change_photo">Changer de photo</string>
     <string name="framing_confirm">Le cadrage me convient</string>
+    <string name="framing_gesture_hint">Pince pour zoomer • fais glisser pour recadrer</string>
     <string name="framing_zoom">Zoom</string>
     <string name="framing_horizontal">Position horizontale</string>
     <string name="framing_vertical">Position verticale</string>
