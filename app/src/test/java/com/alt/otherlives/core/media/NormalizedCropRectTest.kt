@@ -31,6 +31,23 @@ class NormalizedCropRectTest {
     }
 
     @Test
+    fun resizeKeepsPortraitRatioAndClampsCenter() {
+        val base = NormalizedCropRect.centeredAspect(
+            sourceWidth = 2000,
+            sourceHeight = 1000
+        ).movedBy(deltaX = 0.3f, deltaY = 0f)
+
+        val resized = base.resizedAroundCenter(
+            targetWidth = 0.2f,
+            targetHeight = 0.5f
+        )
+
+        assertEquals(0.2f, resized.width, 0.0001f)
+        assertEquals(0.5f, resized.height, 0.0001f)
+        assertEquals(1f, resized.right, 0.0001f)
+    }
+
+    @Test
     fun movementClampsInsideSourceBounds() {
         val crop = NormalizedCropRect.centered(width = 0.6f, height = 0.6f)
 
