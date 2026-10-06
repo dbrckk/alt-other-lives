@@ -7,7 +7,7 @@ instrumentation_status=$?
 
 baseline_status=0
 if [[ "$instrumentation_status" -eq 0 ]]; then
-  gradle :app:generateBaselineProfile --stacktrace --info
+  gradle :app:generateBaselineProfile -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile --stacktrace --info
   baseline_status=$?
 fi
 
