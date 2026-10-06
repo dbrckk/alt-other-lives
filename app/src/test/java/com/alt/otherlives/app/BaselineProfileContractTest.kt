@@ -14,7 +14,7 @@ class BaselineProfileContractTest {
 
         assertTrue(settings.contains("include(\":baselineprofile\")"))
         assertTrue(rootBuild.contains("id(\"com.android.test\") version \"8.10.1\" apply false"))
-        assertTrue(rootBuild.contains("id(\"androidx.baselineprofile\") version \"1.4.1\" apply false"))
+        assertTrue(rootBuild.contains("id(\"androidx.baselineprofile\") version \"1.5.0\" apply false"))
         assertTrue(appBuild.contains("id(\"androidx.baselineprofile\")"))
         assertTrue(appBuild.contains("androidx.profileinstaller:profileinstaller:1.4.1"))
         assertTrue(appBuild.contains("baselineProfile(project(\":baselineprofile\"))"))
@@ -22,7 +22,7 @@ class BaselineProfileContractTest {
         assertTrue(appBuild.contains("saveInSrc = true"))
         assertTrue(appBuild.contains("automaticGenerationDuringBuild = false"))
         assertTrue(producerBuild.contains("targetProjectPath = \":app\""))
-        assertTrue(producerBuild.contains("benchmark-macro-junit4:1.4.1"))
+        assertTrue(producerBuild.contains("benchmark-macro-junit4:1.5.0"))
         assertTrue(producerBuild.contains("useConnectedDevices = true"))
     }
 
@@ -45,10 +45,11 @@ class BaselineProfileContractTest {
         assertTrue(benchmark.contains("StartupTimingMetric()"))
         assertTrue(benchmark.contains("StartupMode.COLD"))
         assertTrue(instrumentationScript.contains(":app:generateBaselineProfile"))
-        assertTrue(androidWorkflow.contains("Compile baseline profile tests"))
+        assertTrue(instrumentationScript.contains("androidx.benchmark.enabledRules=BaselineProfile"))
         assertTrue(androidWorkflow.contains("alt-baseline-profile"))
         assertTrue(releaseWorkflow.contains("Generate baseline profile"))
         assertTrue(releaseWorkflow.contains(":app:generateBaselineProfile"))
+        assertTrue(releaseWorkflow.contains("androidx.benchmark.enabledRules=BaselineProfile"))
         assertTrue(
             releaseWorkflow.contains(
                 "reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d"
