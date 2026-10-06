@@ -76,7 +76,7 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          script: gradle :app:generateBaselineProfile --stacktrace --info
+          script: gradle :app:generateBaselineProfile -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile --stacktrace --info
 
       - name: Prepare release keystore
         shell: bash
