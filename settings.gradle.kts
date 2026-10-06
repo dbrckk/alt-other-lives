@@ -14,3 +14,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "AltOtherLives"
 include(":app")
+include(":baselineprofile")
