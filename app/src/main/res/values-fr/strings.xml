@@ -249,4 +249,7 @@
     <string name="settings_diagnostics_copied">Diagnostics copiés</string>
     <string name="settings_diagnostics_cleared">Diagnostics effacés</string>
 
+    <string name="settings_privacy_policy">Lire la politique de confidentialité</string>
+    <string name="settings_privacy_policy_open_failed">Impossible d’ouvrir la politique de confidentialité</string>
+
 </resources>
