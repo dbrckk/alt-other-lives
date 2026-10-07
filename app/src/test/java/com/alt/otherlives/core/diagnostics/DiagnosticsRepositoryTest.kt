@@ -12,7 +12,7 @@ class DiagnosticsRepositoryTest {
         val directory = createTempDir(prefix = "alt-diagnostics-")
         var now = 0L
         try {
-            val repository = DiagnosticsRepository(
+            val repository = DiagnosticsRepository.forTest(
                 directory = directory,
                 clock = { ++now }
             )
@@ -34,7 +34,7 @@ class DiagnosticsRepositoryTest {
     fun exportNeverIncludesExceptionMessageOrExternalData() {
         val directory = createTempDir(prefix = "alt-diagnostics-")
         try {
-            val repository = DiagnosticsRepository(
+            val repository = DiagnosticsRepository.forTest(
                 directory = directory,
                 clock = { 1234L }
             )
@@ -73,7 +73,7 @@ class DiagnosticsRepositoryTest {
     fun clearRemovesAllRecordedEntries() {
         val directory = createTempDir(prefix = "alt-diagnostics-")
         try {
-            val repository = DiagnosticsRepository(
+            val repository = DiagnosticsRepository.forTest(
                 directory = directory,
                 clock = { 1L }
             )
