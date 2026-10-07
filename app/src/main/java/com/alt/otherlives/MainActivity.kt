@@ -9,8 +9,8 @@ import com.alt.otherlives.core.diagnostics.AppCrashDiagnostics
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        AppCrashDiagnostics.install(applicationContext)
         super.onCreate(savedInstanceState)
+        AppCrashDiagnostics.install(applicationContext)
         enableEdgeToEdge()
         setContent { AltApp() }
     }
