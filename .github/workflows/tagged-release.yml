@@ -53,13 +53,39 @@ jobs:
 
           previous_tag="$(
             git tag --merged origin/main --list 'v*.*.*' |
-              grep -E '^v[0-9]+\.[0-9]+\.[0-9]+
+              grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' |
+              grep -Fxv "$tag" |
+              sort -V |
+              tail -n 1 || true
+          )"
+
+          if [[ -n "$previous_tag" ]]; then
+            highest_tag="$(printf '%s\n%s\n' "$previous_tag" "$tag" | sort -V | tail -n 1)"
+            if [[ "$highest_tag" != "$tag" || "$previous_tag" == "$tag" ]]; then
+              echo "::error::Release tag must be newer than the latest semantic release tag ($previous_tag)."
+              exit 1
+            fi
+
+            previous_code="$(git rev-list --count "$previous_tag")"
+            if (( version_code <= previous_code )); then
+              echo "::error::Derived versionCode must increase beyond the previous release."
+              exit 1
+            fi
+          fi
+
+          echo "ALT_VERSION_NAME=$version_name" >> "$GITHUB_ENV"
+          echo "ALT_VERSION_CODE=$version_code" >> "$GITHUB_ENV"
+
       - name: Validate signing secrets
         shell: bash
         run: |
           set -euo pipefail
           missing=0
-          for name in             ALT_ANDROID_KEYSTORE_BASE64             ALT_KEYSTORE_PASSWORD             ALT_KEY_ALIAS             ALT_KEY_PASSWORD
+          for name in \
+            ALT_ANDROID_KEYSTORE_BASE64 \
+            ALT_KEYSTORE_PASSWORD \
+            ALT_KEY_ALIAS \
+            ALT_KEY_PASSWORD
           do
             if [[ -z "${!name}" ]]; then
               echo "::error::$name is required for a tagged release."
@@ -112,88 +138,5 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: alt-${{ github.ref_name }}-signed-aab
-          path: app/build/outputs/bundle/release/*.aab
-          if-no-files-found: error
- |
-              grep -Fxv "$tag" |
-              sort -V |
-              tail -n 1 || true
-          )"
-
-          if [[ -n "$previous_tag" ]]; then
-            highest_tag="$(printf '%s\n%s\n' "$previous_tag" "$tag" | sort -V | tail -n 1)"
-            if [[ "$highest_tag" != "$tag" || "$previous_tag" == "$tag" ]]; then
-              echo "::error::Release tag must be newer than the latest semantic release tag ($previous_tag)."
-              exit 1
-            fi
-
-            previous_code="$(git rev-list --count "$previous_tag")"
-            if (( version_code <= previous_code )); then
-              echo "::error::Derived versionCode must increase beyond the previous release."
-              exit 1
-            fi
-          fi
-
-          echo "ALT_VERSION_NAME=$version_name" >> "$GITHUB_ENV"
-          echo "ALT_VERSION_CODE=$version_code" >> "$GITHUB_ENV"
-
-      - name: Validate signing secrets
-        shell: bash
-        run: |
-          set -euo pipefail
-          missing=0
-          for name in             ALT_ANDROID_KEYSTORE_BASE64             ALT_KEYSTORE_PASSWORD             ALT_KEY_ALIAS             ALT_KEY_PASSWORD
-          do
-            if [[ -z "${!name}" ]]; then
-              echo "::error::$name is required for a tagged release."
-              missing=1
-            fi
-          done
-          if [[ "$missing" -ne 0 ]]; then
-            exit 1
-          fi
-
-      - name: Enable KVM group permissions
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
-      - name: Generate baseline profile
-        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
-        with:
-          api-level: 35
-          arch: x86_64
-          profile: pixel_6
-          disable-animations: true
-          script: gradle :app:generateBaselineProfile -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile --stacktrace --info
-
-      - name: Prepare release keystore
-        shell: bash
-        run: |
-          set -euo pipefail
-          keystore_path="$RUNNER_TEMP/alt-release.jks"
-          printf '%s' "$ALT_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore_path"
-          chmod 600 "$keystore_path"
-          echo "ALT_KEYSTORE_PATH=$keystore_path" >> "$GITHUB_ENV"
-
-      - name: Build signed release AAB
-        run: gradle :app:bundleRelease --stacktrace
-
-      - name: Verify signed release AAB
-        shell: bash
-        run: |
-          set -euo pipefail
-          aab="$(find app/build/outputs/bundle/release -maxdepth 1 -name '*.aab' -print -quit)"
-          if [[ -z "$aab" ]]; then
-            echo "::error::Release AAB was not produced."
-            exit 1
-          fi
-          jarsigner -verify -strict "$aab"
-
-      - name: Upload signed release AAB
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: alt-${{ env.ALT_VERSION_NAME }}-signed-aab
           path: app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
