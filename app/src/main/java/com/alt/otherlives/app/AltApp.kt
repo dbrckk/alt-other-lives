@@ -1,6 +1,8 @@
 package com.alt.otherlives.app
 
 import android.animation.ValueAnimator
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -38,6 +40,8 @@ import kotlinx.coroutines.flow.first
 import com.alt.otherlives.core.data.HistoryRepository
 import com.alt.otherlives.core.data.SourcePhotoDimensions
 import com.alt.otherlives.core.data.SourcePhotoStore
+import com.alt.otherlives.core.diagnostics.DiagnosticEvent
+import com.alt.otherlives.core.diagnostics.DiagnosticsRepository
 import com.alt.otherlives.core.generation.GenerationSettingsRepository
 import com.alt.otherlives.core.generation.GeneratedSceneStore
 import com.alt.otherlives.core.generation.ComfyUiClient
@@ -166,6 +170,9 @@ fun AltApp() {
 
     val historyRepository = remember(context) { HistoryRepository(context.applicationContext) }
     val sourcePhotoStore = remember(context) { SourcePhotoStore(context.applicationContext) }
+    val diagnosticsRepository = remember(context) {
+        DiagnosticsRepository(context.applicationContext)
+    }
     val generationSettingsRepository = remember(context) {
         GenerationSettingsRepository(context.applicationContext)
     }
@@ -672,6 +679,10 @@ fun AltApp() {
                                             generationSettingsMessage =
                                                 context.getString(R.string.app_settings_saved)
                                         }.onFailure {
+                                            diagnosticsRepository.record(
+                                                DiagnosticEvent.SETTINGS_SAVE_FAILED,
+                                                it
+                                            )
                                             generationSettingsMessage =
                                                 it.message
                                                     ?: context.getString(
@@ -702,6 +713,10 @@ fun AltApp() {
                                         generationSettingsMessage =
                                             context.getString(R.string.app_connection_success)
                                     }.onFailure {
+                                        diagnosticsRepository.record(
+                                            DiagnosticEvent.SETTINGS_CONNECTION_FAILED,
+                                            it
+                                        )
                                         generationSettingsMessage = it.message
                                             ?: context.getString(R.string.app_connection_failed)
                                     }
@@ -726,6 +741,10 @@ fun AltApp() {
                                             generationSettingsMessage =
                                             context.getString(R.string.app_settings_cleared)
                                         }.onFailure {
+                                            diagnosticsRepository.record(
+                                                DiagnosticEvent.SETTINGS_CLEAR_FAILED,
+                                                it
+                                            )
                                             generationSettingsMessage =
                                                 it.message
                                                     ?: context.getString(
@@ -736,6 +755,22 @@ fun AltApp() {
                                     isClearingGenerationSettings = false
                                 }
                             }
+                        },
+                        onCopyDiagnostics = {
+                            val clipboard = context.getSystemService(ClipboardManager::class.java)
+                            clipboard?.setPrimaryClip(
+                                ClipData.newPlainText(
+                                    context.getString(R.string.settings_diagnostics_clip_label),
+                                    diagnosticsRepository.exportText()
+                                )
+                            )
+                            generationSettingsMessage =
+                                context.getString(R.string.settings_diagnostics_copied)
+                        },
+                        onClearDiagnostics = {
+                            diagnosticsRepository.clear()
+                            generationSettingsMessage =
+                                context.getString(R.string.settings_diagnostics_cleared)
                         },
                         statusMessage = generationSettingsMessage,
                         isTestingConnection = isTestingConnection,

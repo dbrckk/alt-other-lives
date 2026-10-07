@@ -43,6 +43,8 @@ fun GenerationSettingsScreen(
     onSave: (String, String, Boolean) -> Unit,
     onTestConnection: (String) -> Unit,
     onClear: () -> Unit,
+    onCopyDiagnostics: () -> Unit = {},
+    onClearDiagnostics: () -> Unit = {},
     statusMessage: String? = null,
     isTestingConnection: Boolean = false,
     isSavingSettings: Boolean = false,
@@ -239,6 +241,32 @@ fun GenerationSettingsScreen(
                     }
                 )
             }
+        }
+
+        Spacer(Modifier.height(settingsLayout.sectionSpacingDp.dp))
+        Text(
+            stringResource(R.string.settings_diagnostics_title),
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            stringResource(R.string.settings_diagnostics_privacy),
+            color = AltMuted
+        )
+        Spacer(Modifier.height(10.dp))
+        TextButton(
+            onClick = onCopyDiagnostics,
+            enabled = !isTestingConnection && !isSavingSettings && !isClearingSettings,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(R.string.settings_diagnostics_copy))
+        }
+        TextButton(
+            onClick = onClearDiagnostics,
+            enabled = !isTestingConnection && !isSavingSettings && !isClearingSettings,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(R.string.settings_diagnostics_clear))
         }
     }
 }

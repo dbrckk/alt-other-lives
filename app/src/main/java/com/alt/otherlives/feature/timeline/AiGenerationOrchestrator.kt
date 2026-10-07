@@ -3,6 +3,8 @@ package com.alt.otherlives.feature.timeline
 import android.content.Context
 import android.net.Uri
 import com.alt.otherlives.core.generation.GeneratedScene
+import com.alt.otherlives.core.diagnostics.DiagnosticEvent
+import com.alt.otherlives.core.diagnostics.DiagnosticsRepository
 import com.alt.otherlives.core.generation.GeneratedSceneStore
 import com.alt.otherlives.core.generation.GenerationDownloadCache
 import com.alt.otherlives.core.generation.GenerationDownloadLifecycle
@@ -28,6 +30,7 @@ class AiGenerationOrchestrator(
     private val sceneStore: GeneratedSceneStore
 ) {
     private val appContext = context.applicationContext
+    private val diagnostics = DiagnosticsRepository(appContext)
 
     suspend fun generate(
         provider: GenerationProvider,
@@ -99,6 +102,13 @@ class AiGenerationOrchestrator(
                 onChapterFailure = { chapterIndex, message, kind ->
                     failedIndexes += chapterIndex
                     failureKinds[chapterIndex] = kind
+                    diagnostics.record(
+                        event = if (kind == GenerationChapterFailureKind.QUALITY_REJECTED) {
+                            DiagnosticEvent.AI_QUALITY_REJECTED
+                        } else {
+                            DiagnosticEvent.AI_CHAPTER_FAILED
+                        }
+                    )
                     onChapterFailure(chapterIndex, message, kind)
                 }
             )
@@ -146,6 +156,10 @@ class AiGenerationOrchestrator(
             }
             throw cancelled
         } catch (error: Throwable) {
+            diagnostics.record(
+                event = DiagnosticEvent.AI_GENERATION_FAILED,
+                error = error
+            )
             if (pendingResetDownloads.isNotEmpty()) {
                 withContext(Dispatchers.IO) {
                     releasePendingDownloads(pendingResetDownloads)

@@ -9,6 +9,8 @@ import android.media.ExifInterface
 import java.io.File
 import java.util.UUID
 import com.alt.otherlives.core.io.BoundedStreamCopy
+import com.alt.otherlives.core.diagnostics.DiagnosticEvent
+import com.alt.otherlives.core.diagnostics.DiagnosticsRepository
 import com.alt.otherlives.core.media.ImageBoundsValidation
 import com.alt.otherlives.core.media.SourcePhotoQualityIssue
 
@@ -26,6 +28,7 @@ data class StoredPhoto(
 )
 
 class SourcePhotoStore(private val context: Context) {
+    private val diagnostics = DiagnosticsRepository(context.applicationContext)
     fun import(uri: Uri): StoredPhoto {
         val dir = File(context.filesDir, "source-photos").apply { mkdirs() }
         val mimeType = context.contentResolver.getType(uri)
@@ -72,6 +75,10 @@ class SourcePhotoStore(private val context: Context) {
         } catch (error: Throwable) {
             temporary.delete()
             target.delete()
+            diagnostics.record(
+                event = DiagnosticEvent.PHOTO_IMPORT_FAILED,
+                error = error
+            )
             throw error
         }
 

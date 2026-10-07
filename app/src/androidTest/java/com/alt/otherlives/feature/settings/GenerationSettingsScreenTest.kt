@@ -65,4 +65,37 @@ class GenerationSettingsScreenTest {
             assertFalse(savedConsent ?: true)
         }
     }
+    @Test
+    fun diagnosticsControlsAreAccessible() {
+        var copyCalled = false
+        var clearCalled = false
+
+        composeRule.setContent {
+            AltTheme {
+                GenerationSettingsScreen(
+                    settings = GenerationSettings(),
+                    onBack = {},
+                    onSave = { _, _, _ -> },
+                    onTestConnection = {},
+                    onClear = {},
+                    onCopyDiagnostics = { copyCalled = true },
+                    onClearDiagnostics = { clearCalled = true }
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Copy diagnostics")
+            .performScrollTo()
+            .assertIsDisplayed()
+            .performClick()
+        composeRule.onNodeWithText("Clear diagnostics")
+            .performScrollTo()
+            .assertIsDisplayed()
+            .performClick()
+
+        composeRule.runOnIdle {
+            assertTrue(copyCalled)
+            assertTrue(clearCalled)
+        }
+    }
 }
