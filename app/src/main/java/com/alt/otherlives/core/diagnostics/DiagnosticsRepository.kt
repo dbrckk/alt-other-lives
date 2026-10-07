@@ -22,11 +22,25 @@ data class DiagnosticEntry(
     val appLocation: String? = null
 )
 
-class DiagnosticsRepository(
-    context: Context,
-    private val clock: () -> Long = { System.currentTimeMillis() }
+class DiagnosticsRepository private constructor(
+    private val file: File,
+    private val clock: () -> Long
 ) {
-    private val file = File(context.filesDir, "diagnostics/events.log")
+    constructor(
+        context: Context,
+        clock: () -> Long = { System.currentTimeMillis() }
+    ) : this(
+        file = File(context.filesDir, "diagnostics/events.log"),
+        clock = clock
+    )
+
+    internal constructor(
+        directory: File,
+        clock: () -> Long
+    ) : this(
+        file = File(directory, "events.log"),
+        clock = clock
+    )
 
     fun record(
         event: DiagnosticEvent,
