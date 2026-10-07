@@ -66,6 +66,33 @@ class GenerationSettingsScreenTest {
         }
     }
     @Test
+    fun privacyPolicyCanBeOpenedFromSettings() {
+        var opened = false
+
+        composeRule.setContent {
+            AltTheme {
+                GenerationSettingsScreen(
+                    settings = GenerationSettings(),
+                    onBack = {},
+                    onSave = { _, _, _ -> },
+                    onTestConnection = {},
+                    onClear = {},
+                    onOpenPrivacyPolicy = { opened = true }
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Read privacy policy")
+            .performScrollTo()
+            .assertIsDisplayed()
+            .performClick()
+
+        composeRule.runOnIdle {
+            assertTrue(opened)
+        }
+    }
+
+    @Test
     fun diagnosticsControlsAreAccessible() {
         var copyCalled = false
         var clearCalled = false
