@@ -152,7 +152,7 @@ class DiagnosticsRepository private constructor(
 
     private fun String.sanitized(maxLength: Int): String =
         filter { character ->
-            character.isLetterOrDigit() || character in "._$#"
+            character.isLetterOrDigit() || character in "._\$#"
         }.take(maxLength)
 
     private companion object {
