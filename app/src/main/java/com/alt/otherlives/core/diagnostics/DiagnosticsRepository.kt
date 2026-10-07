@@ -34,14 +34,6 @@ class DiagnosticsRepository private constructor(
         clock = clock
     )
 
-    internal constructor(
-        directory: File,
-        clock: () -> Long
-    ) : this(
-        file = File(directory, "events.log"),
-        clock = clock
-    )
-
     fun record(
         event: DiagnosticEvent,
         error: Throwable? = null
@@ -162,6 +154,14 @@ class DiagnosticsRepository private constructor(
         const val APP_PACKAGE_PREFIX = "com.alt.otherlives."
         const val DIAGNOSTICS_PACKAGE_PREFIX = "com.alt.otherlives.core.diagnostics."
         val FILE_LOCK = Any()
+
+        internal fun forTest(
+            directory: File,
+            clock: () -> Long
+        ): DiagnosticsRepository = DiagnosticsRepository(
+            file = File(directory, "events.log"),
+            clock = clock
+        )
     }
 }
 
