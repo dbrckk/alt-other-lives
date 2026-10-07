@@ -3,6 +3,7 @@ package com.alt.otherlives.app
 import android.animation.ValueAnimator
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -49,6 +50,7 @@ import com.alt.otherlives.core.generation.ComfyUiConfig
 import com.alt.otherlives.core.media.TransientMediaCache
 import com.alt.otherlives.core.media.SourcePhotoQualityIssue
 import com.alt.otherlives.core.media.NormalizedCropRect
+import com.alt.otherlives.core.privacy.PrivacyPolicy
 import androidx.compose.ui.Modifier
 import com.alt.otherlives.core.data.ScenarioCatalog
 import com.alt.otherlives.core.designsystem.AltBackground
@@ -754,6 +756,19 @@ fun AltApp() {
                                     }
                                     isClearingGenerationSettings = false
                                 }
+                            }
+                        },
+                        onOpenPrivacyPolicy = {
+                            runCatching {
+                                context.startActivity(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse(PrivacyPolicy.URL)
+                                    )
+                                )
+                            }.onFailure {
+                                generationSettingsMessage =
+                                    context.getString(R.string.settings_privacy_policy_open_failed)
                             }
                         },
                         onCopyDiagnostics = {
