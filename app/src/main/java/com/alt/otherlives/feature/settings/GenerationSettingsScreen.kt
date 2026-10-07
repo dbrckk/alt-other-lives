@@ -43,6 +43,7 @@ fun GenerationSettingsScreen(
     onSave: (String, String, Boolean) -> Unit,
     onTestConnection: (String) -> Unit,
     onClear: () -> Unit,
+    onOpenPrivacyPolicy: () -> Unit = {},
     onCopyDiagnostics: () -> Unit = {},
     onClearDiagnostics: () -> Unit = {},
     statusMessage: String? = null,
@@ -184,6 +185,13 @@ fun GenerationSettingsScreen(
             stringResource(R.string.settings_privacy_note),
             color = AltMuted
         )
+        Spacer(Modifier.height(6.dp))
+        TextButton(
+            onClick = onOpenPrivacyPolicy,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(R.string.settings_privacy_policy))
+        }
         Spacer(Modifier.height(18.dp))
         Button(
             onClick = { onSave(baseUrl, workflow, remotePhotoUploadConsent) },
