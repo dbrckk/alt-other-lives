@@ -241,4 +241,12 @@
     <string name="reveal_completion_partial_quality">Résultat partiel : %1$d/%2$d scènes prêtes • nouvelle variation nécessaire pour les chapitres %3$s</string>
     <string name="reveal_completion_partial_mixed">Résultat partiel : %1$d/%2$d scènes prêtes • réessayer les chapitres %3$s • nouvelle variation nécessaire pour %4$s</string>
     <string name="reveal_button_new_variation">Créer une nouvelle variation IA</string>
+    <string name="settings_diagnostics_title">Diagnostics locales</string>
+    <string name="settings_diagnostics_privacy">ALT stocke uniquement des codes d’événement techniques, les types d’exception et des emplacements internes du code sur cet appareil. Aucune photo, prompt, URL, URI, chemin de fichier ou message d’exception n’est inclus.</string>
+    <string name="settings_diagnostics_copy">Copier les diagnostics</string>
+    <string name="settings_diagnostics_clear">Effacer les diagnostics</string>
+    <string name="settings_diagnostics_clip_label">Diagnostics ALT</string>
+    <string name="settings_diagnostics_copied">Diagnostics copiés</string>
+    <string name="settings_diagnostics_cleared">Diagnostics effacés</string>
+
 </resources>
