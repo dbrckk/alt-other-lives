@@ -11,20 +11,24 @@ class TaggedReleaseWorkflowContractTest {
     }
 
     @Test
-    fun releaseIsRestrictedToSemanticVersionTags() {
+    fun releaseDerivesVersionMetadataFromTagAndGitHistory() {
         assertTrue(source.contains("- \"v*.*.*\""))
         assertTrue(source.contains("^v([0-9]+)\\.([0-9]+)\\.([0-9]+)$"))
-        assertTrue(source.contains("expected_version_name=\"\${tag#v}\""))
-        assertTrue(source.contains(
-            "ALT_VERSION_NAME must exactly match the release tag without the v prefix."
-        ))
+        assertTrue(source.contains("fetch-depth: 0"))
+        assertTrue(source.contains("git fetch --force origin main --tags"))
+        assertTrue(source.contains("git merge-base --is-ancestor \"\$GITHUB_SHA\" origin/main"))
+        assertTrue(source.contains("version_name=\"\${tag#v}\""))
+        assertTrue(source.contains("version_code=\"\$(git rev-list --count \"\$GITHUB_SHA\")\""))
+        assertTrue(source.contains("sort -V"))
+        assertTrue(source.contains("ALT_VERSION_NAME=\$version_name"))
+        assertTrue(source.contains("ALT_VERSION_CODE=\$version_code"))
+        assertTrue(source.contains("Derived versionCode must increase beyond the previous release."))
+        assertFalse(source.contains("ALT_VERSION_CODE: \${{ vars.ALT_VERSION_CODE }}"))
+        assertFalse(source.contains("ALT_VERSION_NAME: \${{ vars.ALT_VERSION_NAME }}"))
     }
 
     @Test
-    fun releaseRequiresExplicitVersionCodeAndAllSigningSecrets() {
-        assertTrue(source.contains(
-            "ALT_VERSION_CODE must be an explicit positive integer for a tagged release."
-        ))
+    fun releaseRequiresAllSigningSecrets() {
         assertTrue(source.contains("ALT_ANDROID_KEYSTORE_BASE64"))
         assertTrue(source.contains("ALT_KEYSTORE_PASSWORD"))
         assertTrue(source.contains("ALT_KEY_ALIAS"))
@@ -36,6 +40,7 @@ class TaggedReleaseWorkflowContractTest {
     fun releaseBuildMustBeSignedAndStrictlyVerified() {
         assertTrue(source.contains("gradle :app:bundleRelease --stacktrace"))
         assertTrue(source.contains("jarsigner -verify -strict"))
+        assertTrue(source.contains("github.ref_name"))
         assertTrue(source.contains("signed-aab"))
         assertTrue(source.contains("keystore_path=\"\$RUNNER_TEMP/alt-release.jks\""))
         assertFalse(source.contains("\${{ runner.temp }}"))
