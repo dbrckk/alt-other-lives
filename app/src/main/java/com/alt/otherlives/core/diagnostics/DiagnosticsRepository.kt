@@ -147,13 +147,13 @@ class DiagnosticsRepository private constructor(
             character.isLetterOrDigit() || character in "._\$#"
         }.take(maxLength)
 
-    private companion object {
-        const val MAX_ENTRIES = 50
-        const val MAX_ERROR_TYPE_LENGTH = 80
-        const val MAX_LOCATION_LENGTH = 160
-        const val APP_PACKAGE_PREFIX = "com.alt.otherlives."
-        const val DIAGNOSTICS_PACKAGE_PREFIX = "com.alt.otherlives.core.diagnostics."
-        val FILE_LOCK = Any()
+    companion object {
+        private const val MAX_ENTRIES = 50
+        private const val MAX_ERROR_TYPE_LENGTH = 80
+        private const val MAX_LOCATION_LENGTH = 160
+        private const val APP_PACKAGE_PREFIX = "com.alt.otherlives."
+        private const val DIAGNOSTICS_PACKAGE_PREFIX = "com.alt.otherlives.core.diagnostics."
+        private val FILE_LOCK = Any()
 
         internal fun forTest(
             directory: File,
