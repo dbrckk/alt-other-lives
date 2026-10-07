@@ -19,14 +19,14 @@ jobs:
       ALT_VERSION_CODE: ${{ vars.ALT_VERSION_CODE }}
       ALT_VERSION_NAME: ${{ vars.ALT_VERSION_NAME }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: "17"
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
 
       - name: Validate release metadata
         shell: bash
@@ -102,7 +102,7 @@ jobs:
           jarsigner -verify -strict "$aab"
 
       - name: Upload signed release AAB
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: alt-${{ env.ALT_VERSION_NAME }}-signed-aab
           path: app/build/outputs/bundle/release/*.aab
