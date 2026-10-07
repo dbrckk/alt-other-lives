@@ -241,4 +241,12 @@
     <string name="reveal_completion_partial_quality">Partial result: %1$d/%2$d scenes ready • new variation needed for chapters %3$s</string>
     <string name="reveal_completion_partial_mixed">Partial result: %1$d/%2$d scenes ready • retry chapters %3$s • new variation needed for %4$s</string>
     <string name="reveal_button_new_variation">Create a new AI variation</string>
+    <string name="settings_diagnostics_title">Local diagnostics</string>
+    <string name="settings_diagnostics_privacy">ALT stores only technical event codes, exception types and internal code locations on this device. It never includes photos, prompts, URLs, URIs, file paths or exception messages.</string>
+    <string name="settings_diagnostics_copy">Copy diagnostics</string>
+    <string name="settings_diagnostics_clear">Clear diagnostics</string>
+    <string name="settings_diagnostics_clip_label">ALT diagnostics</string>
+    <string name="settings_diagnostics_copied">Diagnostics copied</string>
+    <string name="settings_diagnostics_cleared">Diagnostics cleared</string>
+
 </resources>
