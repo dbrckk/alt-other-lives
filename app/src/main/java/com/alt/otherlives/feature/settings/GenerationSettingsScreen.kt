@@ -54,7 +54,12 @@ fun GenerationSettingsScreen(
 ) {
     var baseUrl by rememberSaveable(settings.comfyUiBaseUrl) { mutableStateOf(settings.comfyUiBaseUrl) }
     var workflow by rememberSaveable(settings.workflowJson) { mutableStateOf(settings.workflowJson) }
-    var remotePhotoUploadConsent by rememberSaveable(settings.remotePhotoUploadConsent) {
+    var remotePhotoUploadConsent by rememberSaveable(
+        settings.comfyUiBaseUrl,
+        settings.remotePhotoUploadConsent
+    ) {
+        // Reinitialize when the saved endpoint changes, even if consent
+        // remains false, so an unsaved checkbox does not reappear checked.
         mutableStateOf(settings.remotePhotoUploadConsent)
     }
 
