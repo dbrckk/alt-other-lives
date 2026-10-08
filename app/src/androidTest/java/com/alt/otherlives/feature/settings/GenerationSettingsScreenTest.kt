@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextReplacement
 import com.alt.otherlives.core.designsystem.AltTheme
 import com.alt.otherlives.core.generation.GenerationSettings
 import org.junit.Assert.assertEquals
@@ -65,6 +66,39 @@ class GenerationSettingsScreenTest {
             assertFalse(savedConsent ?: true)
         }
     }
+    @Test
+    fun changingTheComfyUiServerRequiresFreshUploadConsent() {
+        var savedConsent: Boolean? = null
+        composeRule.setContent {
+            AltTheme {
+                GenerationSettingsScreen(
+                    settings = GenerationSettings(
+                        comfyUiBaseUrl = "https://previous.example",
+                        workflowJson = """{"1":{"inputs":{"image":"__ALT_SOURCE_IMAGE__"}}}""",
+                        isConfigured = true,
+                        remotePhotoUploadConsent = true
+                    ),
+                    onBack = {},
+                    onSave = { _, _, consent -> savedConsent = consent },
+                    onTestConnection = {},
+                    onClear = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("https://previous.example")
+            .performTextReplacement("https://next.example")
+        composeRule.onNodeWithText(
+            "The ComfyUI server has changed. Save this server first, then explicitly enable photo upload for it."
+        ).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Save ComfyUI settings")
+            .performScrollTo().performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(false, savedConsent)
+        }
+    }
+
     @Test
     fun privacyPolicyCanBeOpenedFromSettings() {
         var opened = false
