@@ -82,7 +82,10 @@ class SourcePhotoCropRendererTest {
 
             ExifInterface(source.absolutePath).apply {
                 setAttribute(ExifInterface.TAG_MAKE, "ALT_TEST_CAMERA")
-                setLatLong(48.8566, 2.3522)
+                setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, "N")
+                setAttribute(ExifInterface.TAG_GPS_LATITUDE, "48/1,51/1,24/1")
+                setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, "E")
+                setAttribute(ExifInterface.TAG_GPS_LONGITUDE, "2/1,21/1,8/1")
                 saveAttributes()
             }
 
