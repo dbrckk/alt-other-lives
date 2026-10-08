@@ -61,8 +61,7 @@ class ComfyUiClient(
             connectTimeoutMs = 15_000,
             readTimeoutMs = 60_000
         ).apply {
-            setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
-            doOutput = true
+            ComfyUiHttpConnectionFactory.configureMultipartUpload(this, boundary)
         }
 
         try {
