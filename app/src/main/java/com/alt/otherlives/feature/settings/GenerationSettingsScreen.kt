@@ -32,6 +32,7 @@ import com.alt.otherlives.core.designsystem.AltMuted
 import com.alt.otherlives.core.designsystem.AltBackButton
 import com.alt.otherlives.core.generation.ComfyUiWorkflowTemplate
 import com.alt.otherlives.core.generation.GenerationSettings
+import com.alt.otherlives.core.generation.RemotePhotoUploadConsentPolicy
 import com.alt.otherlives.core.generation.GenerationSettingsValidation
 import com.alt.otherlives.core.generation.messageRes
 import com.alt.otherlives.R
@@ -56,6 +57,12 @@ fun GenerationSettingsScreen(
     var remotePhotoUploadConsent by rememberSaveable(settings.remotePhotoUploadConsent) {
         mutableStateOf(settings.remotePhotoUploadConsent)
     }
+
+    val endpointChanged = RemotePhotoUploadConsentPolicy.endpointChanged(
+        previousBaseUrl = settings.comfyUiBaseUrl,
+        nextBaseUrl = baseUrl
+    )
+    val effectiveUploadConsent = remotePhotoUploadConsent && !endpointChanged
 
     val configuration = LocalConfiguration.current
     val fontScale = LocalDensity.current.fontScale
@@ -171,12 +178,21 @@ fun GenerationSettingsScreen(
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
         ) {
             Checkbox(
-                checked = remotePhotoUploadConsent,
+                checked = effectiveUploadConsent,
+                enabled = !endpointChanged &&
+                    !isSavingSettings && !isClearingSettings,
                 onCheckedChange = { remotePhotoUploadConsent = it }
             )
             Text(
                 stringResource(R.string.settings_upload_consent),
                 modifier = Modifier.padding(start = 8.dp),
+                color = AltMuted
+            )
+        }
+        if (endpointChanged) {
+            Spacer(Modifier.height(6.dp))
+            Text(
+                stringResource(R.string.settings_upload_consent_endpoint_changed),
                 color = AltMuted
             )
         }
@@ -194,7 +210,7 @@ fun GenerationSettingsScreen(
         }
         Spacer(Modifier.height(18.dp))
         Button(
-            onClick = { onSave(baseUrl, workflow, remotePhotoUploadConsent) },
+            onClick = { onSave(baseUrl, workflow, effectiveUploadConsent) },
             enabled = baseUrl.isNotBlank() &&
                 workflow.isNotBlank() &&
                 !isTestingConnection &&
