@@ -16,6 +16,7 @@ import com.alt.otherlives.core.io.BoundedTextRead
 import com.alt.otherlives.core.media.ImageBoundsValidation
 import com.alt.otherlives.core.media.BitmapSampling
 import com.alt.otherlives.core.media.GeneratedSceneVisualQuality
+import com.alt.otherlives.core.media.TransientMediaCache
 import java.net.HttpURLConnection
 import java.net.URLEncoder
 import java.util.UUID
@@ -214,11 +215,14 @@ class ComfyUiClient(
             readTimeoutMs = 60_000
         )
 
-        val dir = File(context.cacheDir, "generation").apply { mkdirs() }
-        cleanupGenerationCache(dir)
+        val dir = File(context.cacheDir, "generation")
         var file: File? = null
 
         try {
+            check(dir.isDirectory || dir.mkdirs()) {
+                "Unable to prepare private generation cache"
+            }
+            TransientMediaCache.cleanupGenerationFiles(dir)
             ensureSuccess(connection)
             val contentType = connection.contentType
                 ?.substringBefore(";")
@@ -412,20 +416,11 @@ class ComfyUiClient(
         }
     }
 
-    private fun cleanupGenerationCache(dir: File) {
-        val cutoff = System.currentTimeMillis() - CACHE_MAX_AGE_MS
-        dir.listFiles()?.forEach { file ->
-            if (file.isFile && file.lastModified() < cutoff) {
-                file.delete()
-            }
-        }
-    }
-
     private fun encode(value: String): String =
         URLEncoder.encode(value, Charsets.UTF_8.name())
 
     internal companion object {
-        const val CACHE_MAX_AGE_MS = 24L * 60L * 60L * 1000L
+        const val CACHE_MAX_AGE_MS = TransientMediaCache.MAX_AGE_MS
 
         fun requireImageMimeType(mimeType: String?): String {
             val normalized = mimeType

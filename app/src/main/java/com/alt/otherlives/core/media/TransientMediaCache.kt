@@ -17,16 +17,28 @@ internal object TransientMediaCache {
         return nowMs - lastModifiedMs > maxAgeMs
     }
 
+    /**
+     * Only delete expired generated downloads and interrupted temporary files.
+     * Never remove unrelated cache files or recently downloaded scenes that
+     * another coroutine might still be persisting.
+     */
+    internal fun cleanupGenerationFiles(
+        directory: File,
+        nowMs: Long = System.currentTimeMillis()
+    ) {
+        cleanupFiles(directory = directory, nowMs = nowMs) { file ->
+            file.name.startsWith("scene-") || file.name.endsWith(".tmp")
+        }
+    }
+
     fun cleanup(
         context: Context,
         nowMs: Long = System.currentTimeMillis()
     ) {
-        cleanupFiles(
+        cleanupGenerationFiles(
             directory = File(context.cacheDir, "generation"),
             nowMs = nowMs
-        ) { file ->
-            file.name.startsWith("scene-") || file.name.endsWith(".tmp")
-        }
+        )
 
         cleanupFiles(
             directory = File(context.cacheDir, "shares"),
