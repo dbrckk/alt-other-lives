@@ -125,8 +125,12 @@ class TransientMediaCacheTest {
             writeText("temporary")
             assertTrue(setLastModified(expired))
         }
-        val interruptedCopy = File(directory, "copy.tmp").apply {
+        val interruptedCopy = File(directory, "crop-interrupted.tmp").apply {
             writeText("unfinished")
+            assertTrue(setLastModified(expired))
+        }
+        val unrelatedTemporary = File(directory, "unrelated.tmp").apply {
+            writeText("not from photo preparation")
             assertTrue(setLastModified(expired))
         }
         val recentCrop = File(directory, "crop-recent.jpg").apply {
@@ -142,6 +146,7 @@ class TransientMediaCacheTest {
 
         assertFalse(staleCrop.exists())
         assertFalse(interruptedCopy.exists())
+        assertTrue(unrelatedTemporary.exists())
         assertTrue(recentCrop.exists())
         assertTrue(unrelated.exists())
     }
