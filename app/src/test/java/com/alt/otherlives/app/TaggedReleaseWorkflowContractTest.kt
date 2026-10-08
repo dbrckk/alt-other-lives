@@ -51,6 +51,36 @@ class TaggedReleaseWorkflowContractTest {
     }
 
     @Test
+    fun signingSecretsAreNotExposedToTestOrEmulatorSteps() {
+        val jobDefinition = source.substringBefore("    steps:")
+        assertFalse(jobDefinition.contains("secrets."))
+
+        val validateStep = source.substringAfter("- name: Validate signing secrets")
+            .substringBefore("- name: Verify unit tests before signing")
+        assertTrue(validateStep.contains("ALT_ANDROID_KEYSTORE_BASE64:"))
+        assertTrue(validateStep.contains("ALT_KEYSTORE_PASSWORD:"))
+        assertTrue(validateStep.contains("ALT_KEY_ALIAS:"))
+        assertTrue(validateStep.contains("ALT_KEY_PASSWORD:"))
+
+        val qualityAndEmulatorSteps = source.substringAfter(
+            "- name: Verify unit tests before signing"
+        ).substringBefore("- name: Prepare release keystore")
+        assertFalse(qualityAndEmulatorSteps.contains("secrets."))
+
+        val prepareStep = source.substringAfter("- name: Prepare release keystore")
+            .substringBefore("- name: Build signed release AAB")
+        assertTrue(prepareStep.contains("ALT_ANDROID_KEYSTORE_BASE64:"))
+        assertFalse(prepareStep.contains("ALT_KEYSTORE_PASSWORD:"))
+
+        val bundleStep = source.substringAfter("- name: Build signed release AAB")
+            .substringBefore("- name: Verify signed release AAB")
+        assertTrue(bundleStep.contains("ALT_KEYSTORE_PASSWORD:"))
+        assertTrue(bundleStep.contains("ALT_KEY_ALIAS:"))
+        assertTrue(bundleStep.contains("ALT_KEY_PASSWORD:"))
+        assertFalse(bundleStep.contains("ALT_ANDROID_KEYSTORE_BASE64:"))
+    }
+
+    @Test
     fun releaseBuildMustBeSignedAndStrictlyVerified() {
         assertTrue(source.contains("gradle :app:bundleRelease --stacktrace"))
         assertTrue(source.contains("jarsigner -verify -strict"))
