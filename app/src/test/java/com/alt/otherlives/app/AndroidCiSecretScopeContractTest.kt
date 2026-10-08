@@ -50,6 +50,12 @@ class AndroidCiSecretScopeContractTest {
     }
 
     @Test
+    fun workflowUsesReadOnlyGithubToken() {
+        assertTrue(workflow.contains("permissions:\\n  contents: read"))
+        assertFalse(workflow.contains("contents: write"))
+    }
+
+    @Test
     fun stalePullRequestChecksAreCancelledByNewCommits() {
         assertTrue(workflow.contains("concurrency:"))
         assertTrue(workflow.contains("cancel-in-progress: true"))
