@@ -772,20 +772,34 @@ fun AltApp() {
                             }
                         },
                         onCopyDiagnostics = {
-                            val clipboard = context.getSystemService(ClipboardManager::class.java)
-                            clipboard?.setPrimaryClip(
-                                ClipData.newPlainText(
-                                    context.getString(R.string.settings_diagnostics_clip_label),
-                                    diagnosticsRepository.exportText()
+                            runCatching {
+                                val clipboard = checkNotNull(
+                                    context.getSystemService(ClipboardManager::class.java)
+                                ) { "Clipboard service unavailable" }
+                                clipboard.setPrimaryClip(
+                                    ClipData.newPlainText(
+                                        context.getString(R.string.settings_diagnostics_clip_label),
+                                        diagnosticsRepository.exportText()
+                                    )
                                 )
-                            )
-                            generationSettingsMessage =
-                                context.getString(R.string.settings_diagnostics_copied)
+                            }.onSuccess {
+                                generationSettingsMessage =
+                                    context.getString(R.string.settings_diagnostics_copied)
+                            }.onFailure {
+                                generationSettingsMessage =
+                                    context.getString(R.string.settings_diagnostics_copy_failed)
+                            }
                         },
                         onClearDiagnostics = {
-                            diagnosticsRepository.clear()
-                            generationSettingsMessage =
-                                context.getString(R.string.settings_diagnostics_cleared)
+                            runCatching {
+                                diagnosticsRepository.clear()
+                            }.onSuccess {
+                                generationSettingsMessage =
+                                    context.getString(R.string.settings_diagnostics_cleared)
+                            }.onFailure {
+                                generationSettingsMessage =
+                                    context.getString(R.string.settings_diagnostics_clear_failed)
+                            }
                         },
                         statusMessage = generationSettingsMessage,
                         isTestingConnection = isTestingConnection,
