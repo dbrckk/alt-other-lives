@@ -28,6 +28,20 @@ class TaggedReleaseWorkflowContractTest {
     }
 
     @Test
+    fun taggedReleaseRunsQualityChecksWithTheSameGradleVersionAsCi() {
+        assertTrue(source.contains("gradle-version: \"8.11.1\""))
+        val unitTests = source.indexOf("gradle :app:testDebugUnitTest --stacktrace")
+        val releaseLint = source.indexOf("gradle :app:lintRelease --stacktrace")
+        val signing = source.indexOf("- name: Prepare release keystore")
+        val bundle = source.indexOf("gradle :app:bundleRelease --stacktrace")
+
+        assertTrue(unitTests >= 0)
+        assertTrue(releaseLint > unitTests)
+        assertTrue(signing > releaseLint)
+        assertTrue(bundle > signing)
+    }
+
+    @Test
     fun releaseRequiresAllSigningSecrets() {
         assertTrue(source.contains("ALT_ANDROID_KEYSTORE_BASE64"))
         assertTrue(source.contains("ALT_KEYSTORE_PASSWORD"))
