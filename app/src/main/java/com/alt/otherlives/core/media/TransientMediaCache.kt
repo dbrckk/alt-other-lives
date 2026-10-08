@@ -40,9 +40,9 @@ internal object TransientMediaCache {
         nowMs: Long = System.currentTimeMillis()
     ) {
         cleanupFiles(directory = directory, nowMs = nowMs) { file ->
-            (file.name.startsWith("crop-") &&
-                file.extension.equals("jpg", ignoreCase = true)) ||
-                file.name.endsWith(".tmp")
+            file.name.startsWith("crop-") &&
+                (file.extension.equals("jpg", ignoreCase = true) ||
+                    file.extension.equals("tmp", ignoreCase = true))
         }
     }
 
