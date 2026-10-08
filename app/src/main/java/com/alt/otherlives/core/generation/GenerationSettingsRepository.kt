@@ -79,9 +79,17 @@ class GenerationSettingsRepository(private val context: Context) {
         }
 
         context.generationDataStore.edit { prefs ->
+            // Compare inside the same DataStore transaction to prevent stale
+            // UI state from carrying consent to a different remote endpoint.
+            val priorUrl = prefs[baseUrlKey].orEmpty()
+            val grantedConsent = RemotePhotoUploadConsentPolicy.consentForSave(
+                previousBaseUrl = priorUrl,
+                nextBaseUrl = validated.first,
+                requestedConsent = remotePhotoUploadConsent
+            )
             prefs[baseUrlKey] = validated.first
             prefs[workflowKey] = validated.second
-            prefs[remotePhotoUploadConsentKey] = remotePhotoUploadConsent
+            prefs[remotePhotoUploadConsentKey] = grantedConsent
         }
     }
 
