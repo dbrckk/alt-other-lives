@@ -18,7 +18,6 @@ import com.alt.otherlives.core.media.BitmapSampling
 import com.alt.otherlives.core.media.GeneratedSceneVisualQuality
 import java.net.HttpURLConnection
 import java.net.URLEncoder
-import java.net.URL
 import java.util.UUID
 import java.security.MessageDigest
 import android.webkit.MimeTypeMap
@@ -378,13 +377,13 @@ class ComfyUiClient(
         method: String,
         connectTimeoutMs: Int = 15_000,
         readTimeoutMs: Int = 180_000
-    ): HttpURLConnection =
-        (URL(config.normalizedBaseUrl + path).openConnection() as HttpURLConnection).apply {
-            requestMethod = method
-            connectTimeout = connectTimeoutMs
-            readTimeout = readTimeoutMs
-            useCaches = false
-        }
+    ): HttpURLConnection = ComfyUiHttpConnectionFactory.open(
+        baseUrl = config.normalizedBaseUrl,
+        path = path,
+        method = method,
+        connectTimeoutMs = connectTimeoutMs,
+        readTimeoutMs = readTimeoutMs
+    )
 
     private fun readResponse(connection: HttpURLConnection): String {
         return try {
