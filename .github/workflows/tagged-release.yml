@@ -27,6 +27,8 @@ jobs:
           java-version: "17"
 
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
+        with:
+          gradle-version: "8.11.1"
 
       - name: Resolve and validate release metadata
         shell: bash
@@ -95,6 +97,12 @@ jobs:
           if [[ "$missing" -ne 0 ]]; then
             exit 1
           fi
+
+      - name: Verify unit tests before signing
+        run: gradle :app:testDebugUnitTest --stacktrace
+
+      - name: Verify release lint before signing
+        run: gradle :app:lintRelease --stacktrace
 
       - name: Enable KVM group permissions
         run: |
