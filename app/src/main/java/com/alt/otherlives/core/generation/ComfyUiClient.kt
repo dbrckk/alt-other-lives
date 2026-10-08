@@ -224,10 +224,16 @@ class ComfyUiClient(
             }
             TransientMediaCache.cleanupGenerationFiles(dir)
             ensureSuccess(connection)
-            val contentType = connection.contentType
+            val responseContentType = connection.contentType
+            ComfyUiDownloadResponsePolicy.validate(
+                contentLengthBytes = connection.contentLengthLong,
+                contentType = responseContentType,
+                maxBytes = MAX_GENERATED_IMAGE_BYTES
+            )
+            val contentType = responseContentType
                 ?.substringBefore(";")
                 ?.trim()
-                ?.takeIf { it.startsWith("image/") }
+                ?.takeIf { it.startsWith("image/", ignoreCase = true) }
             val extension = GeneratedImageExtension.normalize(
                 mimeExtension = contentType
                     ?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) },
