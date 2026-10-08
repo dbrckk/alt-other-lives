@@ -153,6 +153,7 @@
     <string name="settings_warning_seed">Le workflow n’utilise pas le seed partagé d’ALT ; la continuité visuelle entre chapitres peut dériver.</string>
     <string name="settings_warning_negative">Le workflow n’utilise pas le negative prompt d’ALT ; la réduction de dérive d’identité est moins forte.</string>
     <string name="settings_upload_consent">Je comprends que la génération IA envoie ma photo source sélectionnée vers le serveur ComfyUI distant configuré.</string>
+    <string name="settings_upload_consent_endpoint_changed">Le serveur ComfyUI a changé. Enregistre d’abord ce serveur, puis autorise explicitement l’envoi des photos vers celui-ci.</string>
     <string name="settings_privacy_note">ALT conserve la photo originale sur l’appareil sauf si tu actives la génération IA distante. Le serveur distant est contrôlé par l’opérateur de l’URL ci-dessus.</string>
     <string name="settings_saving">Enregistrement…</string>
     <string name="settings_save">Enregistrer les paramètres ComfyUI</string>
