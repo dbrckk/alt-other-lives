@@ -31,12 +31,31 @@ internal object TransientMediaCache {
         }
     }
 
+    /**
+     * Re-encoded photo uploads are temporary. After an abrupt process death,
+     * their finalizers may never run, so prune only owned, expired copies.
+     */
+    internal fun cleanupPreparedSourceFiles(
+        directory: File,
+        nowMs: Long = System.currentTimeMillis()
+    ) {
+        cleanupFiles(directory = directory, nowMs = nowMs) { file ->
+            file.name.startsWith("crop-") &&
+                (file.extension.equals("jpg", ignoreCase = true) ||
+                    file.extension.equals("tmp", ignoreCase = true))
+        }
+    }
+
     fun cleanup(
         context: Context,
         nowMs: Long = System.currentTimeMillis()
     ) {
         cleanupGenerationFiles(
             directory = File(context.cacheDir, "generation"),
+            nowMs = nowMs
+        )
+        cleanupPreparedSourceFiles(
+            directory = File(context.cacheDir, "generation/crops"),
             nowMs = nowMs
         )
 

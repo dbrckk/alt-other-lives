@@ -30,49 +30,58 @@ object SourcePhotoCropRenderer {
         sourceUri: Uri,
         crop: NormalizedCropRect
     ): PreparedSourcePhoto {
-        if (crop == NormalizedCropRect.Full) {
-            return PreparedSourcePhoto(sourceUri)
-        }
-
+        // Always re-encode the source photo, even for a full-frame selection.
+        // Uploading the unmodified file could expose EXIF GPS, camera details,
+        // and other embedded metadata to the remote ComfyUI server.
         val bitmap = decodeOriented(context, sourceUri)
-        val left = floor(crop.left * bitmap.width).toInt().coerceIn(0, bitmap.width - 1)
-        val top = floor(crop.top * bitmap.height).toInt().coerceIn(0, bitmap.height - 1)
-        val right = ceil(crop.right * bitmap.width).toInt().coerceIn(left + 1, bitmap.width)
-        val bottom = ceil(crop.bottom * bitmap.height).toInt().coerceIn(top + 1, bitmap.height)
-        val cropped = Bitmap.createBitmap(
-            bitmap,
-            left,
-            top,
-            right - left,
-            bottom - top
-        )
-        if (cropped !== bitmap) {
+        val preparedBitmap = try {
+            if (crop == NormalizedCropRect.Full) {
+                bitmap
+            } else {
+                val left = floor(crop.left * bitmap.width).toInt().coerceIn(0, bitmap.width - 1)
+                val top = floor(crop.top * bitmap.height).toInt().coerceIn(0, bitmap.height - 1)
+                val right = ceil(crop.right * bitmap.width).toInt().coerceIn(left + 1, bitmap.width)
+                val bottom = ceil(crop.bottom * bitmap.height).toInt().coerceIn(top + 1, bitmap.height)
+                Bitmap.createBitmap(
+                    bitmap,
+                    left,
+                    top,
+                    right - left,
+                    bottom - top
+                )
+            }
+        } catch (error: Throwable) {
+            bitmap.recycle()
+            throw error
+        }
+        if (preparedBitmap !== bitmap) {
             bitmap.recycle()
         }
 
-        val dir = File(context.cacheDir, "generation/crops").apply { mkdirs() }
+        val dir = File(context.cacheDir, "generation/crops")
         val output = File(dir, "crop-" + UUID.randomUUID() + ".jpg")
         try {
+            check(dir.isDirectory || dir.mkdirs()) {
+                "Unable to prepare temporary source photo directory"
+            }
             output.outputStream().use { stream ->
-                check(cropped.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, stream)) {
-                    "Unable to encode cropped source photo"
+                check(preparedBitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, stream)) {
+                    "Unable to encode prepared source photo"
                 }
             }
-        } finally {
-            cropped.recycle()
-        }
 
-        val uri = try {
-            FileProvider.getUriForFile(
+            val uri = FileProvider.getUriForFile(
                 context,
                 context.packageName + ".fileprovider",
                 output
             )
+            return PreparedSourcePhoto(uri = uri, temporaryFile = output)
         } catch (error: Throwable) {
             output.delete()
             throw error
+        } finally {
+            preparedBitmap.recycle()
         }
-        return PreparedSourcePhoto(uri = uri, temporaryFile = output)
     }
 
     private fun decodeOriented(context: Context, uri: Uri): Bitmap {
