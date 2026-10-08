@@ -5,14 +5,14 @@ on:
     branches: [main]
   pull_request:
 
+concurrency:
+  group: android-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      ALT_ANDROID_KEYSTORE_BASE64: ${{ secrets.ALT_ANDROID_KEYSTORE_BASE64 }}
-      ALT_KEYSTORE_PASSWORD: ${{ secrets.ALT_KEYSTORE_PASSWORD }}
-      ALT_KEY_ALIAS: ${{ secrets.ALT_KEY_ALIAS }}
-      ALT_KEY_PASSWORD: ${{ secrets.ALT_KEY_PASSWORD }}
       ALT_VERSION_CODE: ${{ vars.ALT_VERSION_CODE }}
       ALT_VERSION_NAME: ${{ vars.ALT_VERSION_NAME }}
     steps:
@@ -82,6 +82,11 @@ jobs:
           if-no-files-found: error
           path: app/src/main/generated/baselineProfiles/
       - name: Validate release signing configuration
+        env:
+          ALT_ANDROID_KEYSTORE_BASE64: ${{ secrets.ALT_ANDROID_KEYSTORE_BASE64 }}
+          ALT_KEYSTORE_PASSWORD: ${{ secrets.ALT_KEYSTORE_PASSWORD }}
+          ALT_KEY_ALIAS: ${{ secrets.ALT_KEY_ALIAS }}
+          ALT_KEY_PASSWORD: ${{ secrets.ALT_KEY_PASSWORD }}
         shell: bash
         run: |
           set -euo pipefail
@@ -111,10 +116,16 @@ jobs:
           fi
       - name: Prepare release keystore
         if: env.ALT_RELEASE_SIGNED == 'true'
+        env:
+          ALT_ANDROID_KEYSTORE_BASE64: ${{ secrets.ALT_ANDROID_KEYSTORE_BASE64 }}
         run: |
           echo "$ALT_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/alt-release.jks"
           echo "ALT_KEYSTORE_PATH=$RUNNER_TEMP/alt-release.jks" >> "$GITHUB_ENV"
       - name: Build release AAB
+        env:
+          ALT_KEYSTORE_PASSWORD: ${{ secrets.ALT_KEYSTORE_PASSWORD }}
+          ALT_KEY_ALIAS: ${{ secrets.ALT_KEY_ALIAS }}
+          ALT_KEY_PASSWORD: ${{ secrets.ALT_KEY_PASSWORD }}
         run: gradle :app:bundleRelease --stacktrace
       - name: Verify signed release AAB
         if: env.ALT_RELEASE_SIGNED == 'true'
