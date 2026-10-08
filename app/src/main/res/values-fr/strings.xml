@@ -248,6 +248,8 @@
     <string name="settings_diagnostics_clip_label">Diagnostics ALT</string>
     <string name="settings_diagnostics_copied">Diagnostics copiés</string>
     <string name="settings_diagnostics_cleared">Diagnostics effacés</string>
+    <string name="settings_diagnostics_copy_failed">Impossible de copier les diagnostics</string>
+    <string name="settings_diagnostics_clear_failed">Impossible d’effacer les diagnostics</string>
 
     <string name="settings_privacy_policy">Lire la politique de confidentialité</string>
     <string name="settings_privacy_policy_open_failed">Impossible d’ouvrir la politique de confidentialité</string>

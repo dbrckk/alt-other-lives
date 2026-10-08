@@ -75,11 +75,15 @@ class DiagnosticsRepository private constructor(
     }
 
     fun clear() {
-        runCatching {
-            synchronized(FILE_LOCK) {
-                if (file.exists()) {
-                    file.delete()
-                }
+        synchronized(FILE_LOCK) {
+            // A failed deletion must reach the caller: privacy controls must
+            // never report success while diagnostic data is still on disk.
+            val temporary = File(file.parentFile, file.name + ".tmp")
+            check(!temporary.exists() || temporary.delete()) {
+                "Unable to clear temporary diagnostics"
+            }
+            check(!file.exists() || file.delete()) {
+                "Unable to clear diagnostics"
             }
         }
     }
