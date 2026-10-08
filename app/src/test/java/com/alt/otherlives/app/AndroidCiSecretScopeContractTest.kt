@@ -51,7 +51,7 @@ class AndroidCiSecretScopeContractTest {
 
     @Test
     fun workflowUsesReadOnlyGithubToken() {
-        assertTrue(workflow.contains("permissions:\\n  contents: read"))
+        assertTrue(workflow.contains("permissions:\n  contents: read"))
         assertFalse(workflow.contains("contents: write"))
     }
 
