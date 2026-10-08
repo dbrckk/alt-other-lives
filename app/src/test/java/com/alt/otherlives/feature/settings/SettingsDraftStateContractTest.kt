@@ -15,7 +15,10 @@ class SettingsDraftStateContractTest {
         assertTrue(source.contains("import androidx.compose.runtime.saveable.rememberSaveable"))
         assertTrue(source.contains("rememberSaveable(settings.comfyUiBaseUrl)"))
         assertTrue(source.contains("rememberSaveable(settings.workflowJson)"))
-        assertTrue(source.contains("rememberSaveable(settings.remotePhotoUploadConsent)"))
+        assertTrue(
+            Regex("""rememberSaveable\(\s*settings\.comfyUiBaseUrl\s*,\s*settings\.remotePhotoUploadConsent\s*\)""")
+                .containsMatchIn(source)
+        )
 
         assertFalse(source.contains("remember(settings.comfyUiBaseUrl)"))
         assertFalse(source.contains("remember(settings.workflowJson)"))

@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,6 +33,7 @@ import com.alt.otherlives.core.designsystem.AltMuted
 import com.alt.otherlives.core.designsystem.AltBackButton
 import com.alt.otherlives.core.generation.ComfyUiWorkflowTemplate
 import com.alt.otherlives.core.generation.GenerationSettings
+import com.alt.otherlives.core.generation.RemotePhotoUploadConsentPolicy
 import com.alt.otherlives.core.generation.GenerationSettingsValidation
 import com.alt.otherlives.core.generation.messageRes
 import com.alt.otherlives.R
@@ -53,9 +55,20 @@ fun GenerationSettingsScreen(
 ) {
     var baseUrl by rememberSaveable(settings.comfyUiBaseUrl) { mutableStateOf(settings.comfyUiBaseUrl) }
     var workflow by rememberSaveable(settings.workflowJson) { mutableStateOf(settings.workflowJson) }
-    var remotePhotoUploadConsent by rememberSaveable(settings.remotePhotoUploadConsent) {
+    var remotePhotoUploadConsent by rememberSaveable(
+        settings.comfyUiBaseUrl,
+        settings.remotePhotoUploadConsent
+    ) {
+        // Reinitialize when the saved endpoint changes, even if consent
+        // remains false, so an unsaved checkbox does not reappear checked.
         mutableStateOf(settings.remotePhotoUploadConsent)
     }
+
+    val endpointChanged = RemotePhotoUploadConsentPolicy.endpointChanged(
+        previousBaseUrl = settings.comfyUiBaseUrl,
+        nextBaseUrl = baseUrl
+    )
+    val effectiveUploadConsent = remotePhotoUploadConsent && !endpointChanged
 
     val configuration = LocalConfiguration.current
     val fontScale = LocalDensity.current.fontScale
@@ -171,12 +184,22 @@ fun GenerationSettingsScreen(
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
         ) {
             Checkbox(
-                checked = remotePhotoUploadConsent,
+                checked = effectiveUploadConsent,
+                enabled = !endpointChanged &&
+                    !isSavingSettings && !isClearingSettings,
+                modifier = Modifier.testTag("remotePhotoUploadConsent"),
                 onCheckedChange = { remotePhotoUploadConsent = it }
             )
             Text(
                 stringResource(R.string.settings_upload_consent),
                 modifier = Modifier.padding(start = 8.dp),
+                color = AltMuted
+            )
+        }
+        if (endpointChanged) {
+            Spacer(Modifier.height(6.dp))
+            Text(
+                stringResource(R.string.settings_upload_consent_endpoint_changed),
                 color = AltMuted
             )
         }
@@ -194,7 +217,7 @@ fun GenerationSettingsScreen(
         }
         Spacer(Modifier.height(18.dp))
         Button(
-            onClick = { onSave(baseUrl, workflow, remotePhotoUploadConsent) },
+            onClick = { onSave(baseUrl, workflow, effectiveUploadConsent) },
             enabled = baseUrl.isNotBlank() &&
                 workflow.isNotBlank() &&
                 !isTestingConnection &&

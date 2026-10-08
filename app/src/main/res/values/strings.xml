@@ -153,6 +153,7 @@
     <string name="settings_warning_seed">Workflow does not use ALT’s shared seed; chapter-to-chapter visual continuity may drift.</string>
     <string name="settings_warning_negative">Workflow does not use ALT’s negative prompt; identity drift suppression is reduced.</string>
     <string name="settings_upload_consent">I understand that AI generation uploads my selected source photo to the configured remote ComfyUI server.</string>
+    <string name="settings_upload_consent_endpoint_changed">The ComfyUI server has changed. Save this server first, then explicitly enable photo upload for it.</string>
     <string name="settings_privacy_note">ALT keeps the original photo on-device unless you enable remote AI generation. The remote server is controlled by whoever operates the URL above.</string>
     <string name="settings_saving">Saving settings…</string>
     <string name="settings_save">Save ComfyUI settings</string>
