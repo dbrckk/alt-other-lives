@@ -114,4 +114,35 @@ class TransientMediaCacheTest {
         assertTrue(folder.isDirectory)
         assertTrue(contents.exists())
     }
+
+    @Test
+    fun expiredPreparedSourceCopiesAreReclaimedWithoutDeletingOtherFiles() {
+        val directory = temporary.newFolder("prepared-source")
+        val now = System.currentTimeMillis()
+        val expired = now - TransientMediaCache.MAX_AGE_MS - 5_000L
+
+        val staleCrop = File(directory, "crop-stale.jpg").apply {
+            writeText("temporary")
+            assertTrue(setLastModified(expired))
+        }
+        val interruptedCopy = File(directory, "copy.tmp").apply {
+            writeText("unfinished")
+            assertTrue(setLastModified(expired))
+        }
+        val recentCrop = File(directory, "crop-recent.jpg").apply {
+            writeText("still uploading")
+            assertTrue(setLastModified(now))
+        }
+        val unrelated = File(directory, "keep-original.jpg").apply {
+            writeText("unrelated")
+            assertTrue(setLastModified(expired))
+        }
+
+        TransientMediaCache.cleanupPreparedSourceFiles(directory, now)
+
+        assertFalse(staleCrop.exists())
+        assertFalse(interruptedCopy.exists())
+        assertTrue(recentCrop.exists())
+        assertTrue(unrelated.exists())
+    }
 }
