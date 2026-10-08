@@ -11,11 +11,6 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    env:
-      ALT_ANDROID_KEYSTORE_BASE64: ${{ secrets.ALT_ANDROID_KEYSTORE_BASE64 }}
-      ALT_KEYSTORE_PASSWORD: ${{ secrets.ALT_KEYSTORE_PASSWORD }}
-      ALT_KEY_ALIAS: ${{ secrets.ALT_KEY_ALIAS }}
-      ALT_KEY_PASSWORD: ${{ secrets.ALT_KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -79,6 +74,11 @@ jobs:
           echo "ALT_VERSION_CODE=$version_code" >> "$GITHUB_ENV"
 
       - name: Validate signing secrets
+        env:
+          ALT_ANDROID_KEYSTORE_BASE64: ${{ secrets.ALT_ANDROID_KEYSTORE_BASE64 }}
+          ALT_KEYSTORE_PASSWORD: ${{ secrets.ALT_KEYSTORE_PASSWORD }}
+          ALT_KEY_ALIAS: ${{ secrets.ALT_KEY_ALIAS }}
+          ALT_KEY_PASSWORD: ${{ secrets.ALT_KEY_PASSWORD }}
         shell: bash
         run: |
           set -euo pipefail
@@ -120,6 +120,8 @@ jobs:
           script: gradle :app:generateBaselineProfile -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile --stacktrace --info
 
       - name: Prepare release keystore
+        env:
+          ALT_ANDROID_KEYSTORE_BASE64: ${{ secrets.ALT_ANDROID_KEYSTORE_BASE64 }}
         shell: bash
         run: |
           set -euo pipefail
@@ -129,6 +131,10 @@ jobs:
           echo "ALT_KEYSTORE_PATH=$keystore_path" >> "$GITHUB_ENV"
 
       - name: Build signed release AAB
+        env:
+          ALT_KEYSTORE_PASSWORD: ${{ secrets.ALT_KEYSTORE_PASSWORD }}
+          ALT_KEY_ALIAS: ${{ secrets.ALT_KEY_ALIAS }}
+          ALT_KEY_PASSWORD: ${{ secrets.ALT_KEY_PASSWORD }}
         run: gradle :app:bundleRelease --stacktrace
 
       - name: Verify signed release AAB
