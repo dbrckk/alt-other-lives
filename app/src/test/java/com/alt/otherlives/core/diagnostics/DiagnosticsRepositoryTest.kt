@@ -70,6 +70,51 @@ class DiagnosticsRepositoryTest {
     }
 
     @Test
+    fun clearDeletesTemporaryJournalAsWellAsRecordedEntries() {
+        val directory = createTempDir(prefix = "alt-diagnostics-")
+        try {
+            val repository = DiagnosticsRepository.forTest(
+                directory = directory,
+                clock = { 1L }
+            )
+            repository.record(DiagnosticEvent.PHOTO_IMPORT_FAILED)
+            val temporary = File(directory, "events.log.tmp").apply {
+                writeText("interrupted diagnostic write")
+            }
+
+            repository.clear()
+
+            assertTrue(repository.entriesForTest().isEmpty())
+            assertFalse(temporary.exists())
+            assertFalse(File(directory, "events.log").exists())
+        } finally {
+            directory.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun clearPropagatesDeletionFailuresInsteadOfPretendingSuccess() {
+        val directory = createTempDir(prefix = "alt-diagnostics-")
+        try {
+            val repository = DiagnosticsRepository.forTest(
+                directory = directory,
+                clock = { 1L }
+            )
+            // A non-empty directory at the journal path cannot be deleted
+            // using File.delete(), even if the parent is writable.
+            val journal = File(directory, "events.log").apply { mkdirs() }
+            File(journal, "undeletable-child").writeText("retained")
+
+            val failure = runCatching { repository.clear() }.exceptionOrNull()
+
+            assertTrue(failure is IllegalStateException)
+            assertTrue(journal.exists())
+        } finally {
+            directory.deleteRecursively()
+        }
+    }
+
+    @Test
     fun clearRemovesAllRecordedEntries() {
         val directory = createTempDir(prefix = "alt-diagnostics-")
         try {
