@@ -11,6 +11,27 @@ import java.net.URL
  * The calling client handles redirects as unsuccessful HTTP responses.
  */
 internal object ComfyUiHttpConnectionFactory {
+    internal const val UPLOAD_CHUNK_SIZE_BYTES = 64 * 1024
+
+    /**
+     * HttpURLConnection otherwise buffers a POST request body in memory before
+     * sending it. Source photos can be large, so stream multipart bytes using
+     * bounded chunks instead of buffering the entire selected photo.
+     *
+     * Must be called before opening the request output stream.
+     */
+    fun configureMultipartUpload(connection: HttpURLConnection, boundary: String) {
+        require(boundary.matches(Regex("[A-Za-z0-9-]{1,70}"))) {
+            "Invalid multipart boundary"
+        }
+        connection.setRequestProperty(
+            "Content-Type",
+            "multipart/form-data; boundary=$boundary"
+        )
+        connection.doOutput = true
+        connection.setChunkedStreamingMode(UPLOAD_CHUNK_SIZE_BYTES)
+    }
+
     fun open(
         baseUrl: String,
         path: String,
