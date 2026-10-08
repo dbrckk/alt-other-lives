@@ -1,7 +1,11 @@
 package com.alt.otherlives.feature.settings
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -96,6 +100,50 @@ class GenerationSettingsScreenTest {
 
         composeRule.runOnIdle {
             assertEquals(false, savedConsent)
+        }
+    }
+
+    @Test
+    fun savedServerChangeResetsPreviouslyCheckedUnsavedConsent() {
+        val persistedSettings = mutableStateOf(
+            GenerationSettings(
+                comfyUiBaseUrl = "https://old.example",
+                workflowJson = """{"1":{"inputs":{"image":"__ALT_SOURCE_IMAGE__"}}}""",
+                isConfigured = true,
+                remotePhotoUploadConsent = false
+            )
+        )
+        composeRule.setContent {
+            AltTheme {
+                GenerationSettingsScreen(
+                    settings = persistedSettings.value,
+                    onBack = {},
+                    onSave = { url, workflow, consent ->
+                        persistedSettings.value = persistedSettings.value.copy(
+                            comfyUiBaseUrl = url,
+                            workflowJson = workflow,
+                            remotePhotoUploadConsent = consent
+                        )
+                    },
+                    onTestConnection = {},
+                    onClear = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("remotePhotoUploadConsent")
+            .performScrollTo().performClick()
+        composeRule.onNodeWithTag("remotePhotoUploadConsent").assertIsOn()
+        composeRule.onNodeWithText("https://old.example")
+            .performTextReplacement("https://new.example")
+        composeRule.onNodeWithTag("remotePhotoUploadConsent").assertIsOff()
+        composeRule.onNodeWithText("Save ComfyUI settings")
+            .performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("remotePhotoUploadConsent").assertIsOff()
+        composeRule.runOnIdle {
+            assertFalse(persistedSettings.value.remotePhotoUploadConsent)
+            assertEquals("https://new.example", persistedSettings.value.comfyUiBaseUrl)
         }
     }
 
