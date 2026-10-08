@@ -94,7 +94,7 @@ class ComfyUiHttpConnectionFactoryTest {
     fun multipartBoundaryRejectsHeaderInjection() {
         ComfyUiHttpConnectionFactory.configureMultipartUpload(
             connection = InspectableConnection(),
-            boundary = "ALT-safe\\r\\nX-Injected: true"
+            boundary = "ALT-safe\r\nX-Injected: true"
         )
     }
 
