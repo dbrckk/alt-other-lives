@@ -1,6 +1,9 @@
 package com.alt.otherlives.core.generation
 
 import org.junit.Assert.assertEquals
+import java.net.HttpURLConnection
+import java.net.URL
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertFalse
 import org.junit.Test
 
@@ -64,5 +67,43 @@ class ComfyUiHttpConnectionFactoryTest {
             connectTimeoutMs = 10_000,
             readTimeoutMs = 30_000
         )
+    }
+
+    @Test
+    fun multipartUploadUsesBoundedStreamingRatherThanDefaultBodyBuffering() {
+        val connection = InspectableConnection()
+
+        ComfyUiHttpConnectionFactory.configureMultipartUpload(
+            connection = connection,
+            boundary = "ALT-test-boundary"
+        )
+
+        assertEquals(
+            64 * 1024,
+            ComfyUiHttpConnectionFactory.UPLOAD_CHUNK_SIZE_BYTES
+        )
+        assertEquals(64 * 1024, connection.streamingChunkLength())
+        assertTrue(connection.doOutput)
+        assertEquals(
+            "multipart/form-data; boundary=ALT-test-boundary",
+            connection.getRequestProperty("Content-Type")
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun multipartBoundaryRejectsHeaderInjection() {
+        ComfyUiHttpConnectionFactory.configureMultipartUpload(
+            connection = InspectableConnection(),
+            boundary = "ALT-safe\\r\\nX-Injected: true"
+        )
+    }
+
+    private class InspectableConnection :
+        HttpURLConnection(URL("https://comfy.example/upload/image")) {
+        override fun connect() = Unit
+        override fun disconnect() = Unit
+        override fun usingProxy(): Boolean = false
+
+        fun streamingChunkLength(): Int = chunkLength
     }
 }
