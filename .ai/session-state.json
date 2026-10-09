@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Expose cancellation of a local photo import directly from Home, with a pending-cancellation lock and EN/FR copy.",
-  "lastKnownBlocker": "Home cancel-import UI has not yet passed full Android CI or manual slow-provider smoke checks.",
-  "fixApplied": "PR #60 integrated and fully Android-CI validated source import cancellation and cleanup; feature branch wires a visible Home cancellation action and an instrumented Compose UI regression check.",
+  "currentTask": "Validate cancellation and size rejection of photo imports against controlled slow and oversized Android ContentProvider streams on an emulator.",
+  "lastKnownBlocker": "No confirmed blocker on main; the new slow-provider instrumentation and release build are awaiting CI. Real third-party document-provider latency remains untested.",
+  "fixApplied": "PRs #60 and #61 merged after full Android CI. New instrumentation-only provider emits a deliberately stalled JPEG and a 51 MiB stream to exercise private-file cleanup and the existing 50 MiB import limit.",
   "next": [
-    "Verify existing JVM suite, debug/release lint, APK, Home UI instrumentation and release AAB",
-    "Merge if all Android CI steps succeed and PR is mergeable",
-    "Manually exercise cancellation with slow Android content providers and large photos",
-    "Review whether import speed feedback could improve UX without adding distracting progress approximations"
+    "Run and diagnose full Android CI, including newly added slow-provider emulator integration checks",
+    "Merge the scoped tests and state only after successful unit/lint/debug APK/emulator/AAB validation",
+    "Manually test actual Google Photos, Drive and cloud providers on physical Android devices before making latency claims",
+    "Review any confirmed provider-lockup failure and address cancellation/cleanup without relaxing size limits"
   ],
   "updated": "2026-10-09"
 }
