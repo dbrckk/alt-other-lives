@@ -45,6 +45,9 @@ encore présents au-delà de 24 h.
    n'appartiennent plus à une timeline sont purgées, et que celles référencées
    ailleurs restent disponibles après redémarrage.
 
-Ce protocole est une **liste de contrôles à effectuer**. Les contrôles sur
-appareil ne sont pas réalisés automatiquement par les tests unitaires ou par
-les compilations Android de GitHub Actions.
+Le test instrumenté `SourcePhotoPruneInstrumentedTest` vérifie sur émulateur
+Android le nettoyage de fichiers réels dans le stockage privé (fichier
+référencé, finalisé orphelin, temporaire récent, temporaire expiré et fichier
+étranger). Le parcours complet de **navigation simultanée** entre import et
+suppression de timeline reste un contrôle manuel à effectuer : il ne peut
+pas être présumé validé par ce test.
