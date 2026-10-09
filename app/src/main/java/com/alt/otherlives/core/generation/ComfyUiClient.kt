@@ -7,6 +7,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -55,6 +57,7 @@ class ComfyUiClient(
     }
 
     suspend fun uploadImage(uri: Uri, sourceKey: String): UploadedImage = withContext(Dispatchers.IO) {
+        val transferContext = currentCoroutineContext()
         val boundary = "ALT-" + UUID.randomUUID()
         val connection = open(
             path = "/upload/image",
@@ -86,7 +89,8 @@ class ComfyUiClient(
                     BoundedStreamCopy.copy(
                         input = input,
                         output = output,
-                        maxBytes = MAX_UPLOAD_IMAGE_BYTES
+                        maxBytes = MAX_UPLOAD_IMAGE_BYTES,
+                        checkCancelled = { transferContext.ensureActive() }
                     )
                 } ?: error("Unable to read selected image")
                 write("\r\n--$boundary\r\n")
@@ -226,6 +230,7 @@ class ComfyUiClient(
         output: OutputImage,
         index: Int
     ): Uri = withContext(Dispatchers.IO) {
+        val transferContext = currentCoroutineContext()
         val query = "?filename=" + encode(output.filename) +
             "&subfolder=" + encode(output.subfolder) +
             "&type=" + encode(output.type)
@@ -269,7 +274,8 @@ class ComfyUiClient(
                     BoundedStreamCopy.copy(
                         input = input,
                         output = outputStream,
-                        maxBytes = MAX_GENERATED_IMAGE_BYTES
+                        maxBytes = MAX_GENERATED_IMAGE_BYTES,
+                        checkCancelled = { transferContext.ensureActive() }
                     )
                 }
             }
