@@ -104,7 +104,7 @@ class SourcePhotoStore(private val context: Context) {
      * Drop only this import's just-created private photo if the caller was
      * cancelled while returning from IO to the UI dispatcher.
      */
-    fun discardCancelledImport(fileName: String) {
+    internal fun discardCancelledImport(fileName: String) {
         val file = storedFile(fileName)
         if (file.exists()) {
             check(file.delete()) { "Unable to remove cancelled photo import" }
