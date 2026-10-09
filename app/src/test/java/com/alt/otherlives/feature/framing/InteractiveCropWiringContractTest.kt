@@ -21,6 +21,7 @@ class InteractiveCropWiringContractTest {
         assertTrue(reveal.contains("sourceCrop = sourceCrop"))
         assertTrue(orchestrator.contains("sourceCrop = sourceCrop"))
         assertTrue(provider.contains("SourcePhotoCropRenderer.prepare"))
-        assertTrue(provider.contains("preparedSource.cleanup()"))
+        assertTrue(provider.contains("PreparedSourceUpload.execute("))
+        assertTrue(provider.contains("cleanup = { prepared -> prepared.cleanup() }"))
     }
 }
