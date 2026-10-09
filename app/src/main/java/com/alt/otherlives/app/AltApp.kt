@@ -134,6 +134,8 @@ fun AltApp() {
     var activeTimelineKey by rememberSaveable { mutableStateOf<String?>(null) }
     var generationSettingsMessage by remember { mutableStateOf<String?>(null) }
     var isImportingPhoto by remember { mutableStateOf(false) }
+    var isCancellingPhotoImport by remember { mutableStateOf(false) }
+    var photoImportJob by remember { mutableStateOf<Job?>(null) }
     var isTestingConnection by remember { mutableStateOf(false) }
     var isSavingGenerationSettings by remember { mutableStateOf(false) }
     var isClearingGenerationSettings by remember { mutableStateOf(false) }
@@ -428,10 +430,12 @@ fun AltApp() {
                         photoIsLikelyPremiumSource = photoIsLikelyPremiumSource,
                         photoQualityIssues = photoQualityIssues,
                         isImportingPhoto = isImportingPhoto,
+                        isCancellingPhotoImport = isCancellingPhotoImport,
                         onPhotoSelected = { selectedUri ->
                             if (!isImportingPhoto) {
                                 isImportingPhoto = true
-                                scope.launch {
+                                isCancellingPhotoImport = false
+                                photoImportJob = scope.launch {
                                     try {
                                         // Remember a completed import before returning to the
                                         // UI dispatcher: cancellation at the dispatcher
@@ -513,8 +517,16 @@ fun AltApp() {
                                         }
                                     } finally {
                                         isImportingPhoto = false
+                                        isCancellingPhotoImport = false
+                                        photoImportJob = null
                                     }
                                 }
+                            }
+                        },
+                        onCancelPhotoImport = {
+                            if (isImportingPhoto && !isCancellingPhotoImport) {
+                                isCancellingPhotoImport = true
+                                photoImportJob?.cancel()
                             }
                         },
                         onContinue = { navigation = navigation.goTo(AltScreen.FRAMING) },
