@@ -435,8 +435,7 @@ class ComfyUiClient(
                 .replace(Regex("\\s+"), " ")
                 .trim()
                 .take(MAX_ERROR_BODY_CHARS)
-            val suffix = if (safeBody.isBlank()) "" else ": " + safeBody
-            error("ComfyUI HTTP " + code + suffix)
+            throw ComfyUiHttpException(code, safeBody)
         }
     }
 
