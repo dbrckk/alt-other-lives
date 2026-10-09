@@ -2,7 +2,6 @@ package com.alt.otherlives.core.generation
 
 import android.content.Context
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.delay
 import java.security.SecureRandom
 import com.alt.otherlives.core.data.ScenarioCatalog
 import com.alt.otherlives.core.model.Scenario
@@ -70,7 +69,7 @@ class ComfyUiGenerationProvider(
                 chapterIndex = index
             )
             try {
-                val generated = generateChapterWithRetry(
+                val generated = generateChapterOnce(
                     index = index,
                     uploaded = uploaded,
                     prompt = prompt,
@@ -107,52 +106,39 @@ class ComfyUiGenerationProvider(
         return result
     }
 
-    private suspend fun generateChapterWithRetry(
+    private suspend fun generateChapterOnce(
         index: Int,
         uploaded: ComfyUiClient.UploadedImage,
         prompt: String,
         seed: Long
     ): GeneratedScene {
-        var lastError: Throwable? = null
+        val workflow = ComfyUiWorkflowTemplate.prepare(
+            templateJson = workflowTemplateJson,
+            uploaded = uploaded,
+            prompt = prompt,
+            seed = seed
+        )
+        val preferredOutputNodeId = ComfyUiWorkflowTemplate.preferredOutputNodeId(workflow)
 
-        repeat(MAX_CHAPTER_ATTEMPTS) { attempt ->
-            val attemptSeed = seed
-            try {
-                val workflow = ComfyUiWorkflowTemplate.prepare(
-                    templateJson = workflowTemplateJson,
-                    uploaded = uploaded,
-                    prompt = prompt,
-                    seed = attemptSeed
-                )
-                val preferredOutputNodeId = ComfyUiWorkflowTemplate.preferredOutputNodeId(workflow)
-                val promptId = client.queuePrompt(workflow)
+        // Keep a successful prompt ID across history polling and download failures.
+        // Retrying the whole operation could launch another expensive GPU job.
+        return ComfyUiChapterExecution.execute(
+            queue = { client.queuePrompt(workflow) },
+            await = { promptId ->
                 val outputs = client.awaitOutputs(promptId)
-                val selected = selectOutput(outputs, preferredOutputNodeId)
+                selectOutput(outputs, preferredOutputNodeId)
                     ?: error("ComfyUI returned no image for chapter " + (index + 1))
-                val uri = client.download(selected, index)
-                return GeneratedScene(chapterIndex = index, imageUri = uri)
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                lastError = error
-                if (!ComfyUiRetryPolicy.shouldRetry(error)) {
-                    throw error
-                }
-                if (attempt < MAX_CHAPTER_ATTEMPTS - 1) {
-                    delay(RETRY_DELAY_MS)
-                }
+            },
+            download = { selected ->
+                GeneratedScene(
+                    chapterIndex = index,
+                    imageUri = client.download(selected, index)
+                )
             }
-        }
-
-        throw IllegalStateException(
-            "ComfyUI failed for chapter " + (index + 1) + " after " + MAX_CHAPTER_ATTEMPTS + " attempts",
-            lastError
         )
     }
 
     internal companion object {
-        const val MAX_CHAPTER_ATTEMPTS = 2
-        const val RETRY_DELAY_MS = 750L
         private val seedRandom = SecureRandom()
 
         fun canonicalPromptScenario(scenario: Scenario): Scenario =
