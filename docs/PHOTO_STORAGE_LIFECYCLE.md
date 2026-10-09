@@ -60,6 +60,20 @@ un fournisseur de contenu externe.
    n'appartiennent plus à une timeline sont purgées, et que celles référencées
    ailleurs restent disponibles après redémarrage.
 
+Le test instrumenté `SlowPhotoProviderImportInstrumentedTest` utilise un
+`ContentProvider` **réel mais contrôlé**, déclaré uniquement dans l'APK de
+test (pas dans l'application distribuée). Il expose deux flux Android :
+- un JPEG valide envoyé par un pipe dont le producteur marque une pause
+  volontaire de 1,4 seconde en cours d'envoi ; le test annule la coroutine
+  pendant cette lecture et vérifie la fin de l'import sans fichier orphelin ;
+- un flux de 51 Mio qui doit être rejeté par la limite locale de 50 Mio,
+  sans conserver de photo ni de copie temporaire.
+
+Ces contrôles exercent réellement `ContentResolver` et le stockage privé
+sur émulateur. Ils ne mesurent **pas** la latence ou la fiabilité d'un
+fournisseur tiers (Google Photos, Drive, fournisseur réseau) ni la réactivité
+de l'écran dans une navigation utilisateur réelle.
+
 Le test instrumenté `SourcePhotoCancellationInstrumentedTest` vérifie sur
 émulateur qu'une annulation pendant la copie ou après le renommage ne
 laisse aucun fichier d'import privé, ainsi que le nettoyage explicite d'une
