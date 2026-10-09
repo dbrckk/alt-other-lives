@@ -30,7 +30,7 @@ class ComfyUiUploadIdentityTest {
         val first = filename()
         val second = filename()
         assertEquals(first, second)
-        assertEquals(43, first.length)
+        assertEquals(47, first.length)
     }
 
     @Test
