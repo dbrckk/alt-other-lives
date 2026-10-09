@@ -54,7 +54,7 @@ class ComfyUiClient(
         }
     }
 
-    suspend fun uploadImage(uri: Uri): UploadedImage = withContext(Dispatchers.IO) {
+    suspend fun uploadImage(uri: Uri, sourceKey: String): UploadedImage = withContext(Dispatchers.IO) {
         val boundary = "ALT-" + UUID.randomUUID()
         val connection = open(
             path = "/upload/image",
@@ -74,7 +74,7 @@ class ComfyUiClient(
                 ?.takeIf { it.isNotBlank() }
                 ?: "jpg"
             val filename = sourceUploadFileName(
-                sourceKey = uri.toString(),
+                sourceKey = sourceKey,
                 extension = extension
             )
             connection.outputStream.buffered().use { output ->
