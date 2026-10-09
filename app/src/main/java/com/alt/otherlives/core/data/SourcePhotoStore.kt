@@ -216,8 +216,15 @@ class SourcePhotoStore(private val context: Context) {
 
     fun deleteUnreferenced(keepFileNames: Set<String>) {
         val dir = File(context.filesDir, "source-photos")
+        // Orphan recovery has its own 24-hour policy. Never delete a hidden
+        // .source-<uuid>.tmp that another import may still be writing.
+        SourcePhotoImportCleanup.cleanup(dir)
         dir.listFiles()?.forEach { file ->
-            if (file.isFile && file.name !in keepFileNames) {
+            if (
+                file.isFile &&
+                SourcePhotoFileName.isValid(file.name) &&
+                file.name !in keepFileNames
+            ) {
                 check(file.delete()) {
                     "Unable to delete unreferenced source photo"
                 }

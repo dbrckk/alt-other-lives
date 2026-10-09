@@ -890,11 +890,16 @@ fun AltApp() {
                                             activeTimelineKey = null
                                         }
 
+                                        // A newly selected photo can be active on Home
+                                        // before it has any persisted history entry.
+                                        // Deleting an older timeline must not erase it.
+                                        val retainedSourcePhotos =
+                                            keep.photoFileNames + listOfNotNull(photoFileName)
                                         val cleanupFailures = withContext(Dispatchers.IO) {
                                             listOfNotNull(
                                                 runCatching {
                                                     sourcePhotoStore.deleteUnreferenced(
-                                                        keep.photoFileNames
+                                                        retainedSourcePhotos
                                                     )
                                                 }.exceptionOrNull(),
                                                 runCatching {
