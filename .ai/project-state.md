@@ -23,6 +23,7 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - AI generation can be cancelled cooperatively; completed chapters are persisted immediately for partial runs.
 - Source photos are copied atomically into private app storage with UUID names, validated on import and restore, restored after restart, and associated with history entries.
 - Photo imports now check coroutine cancellation during bounded copying and at commit boundaries; cancelling after the IO/UI hand-off triggers scoped rollback of the just-created private photo, while true cleanup failures remain diagnostically visible.
+- Android instrumentation covers a test-APK-only pipe-backed ContentProvider that stalls mid-JPEG and a 51 MiB oversized source; these checks exercise real ContentResolver and private-file cleanup but do not replace manual third-party-provider validation.
 - Source-photo and generated-scene orphan cleanup prevents private storage from growing indefinitely.
 - Generated-scene replacement and timeline-seed writes are rollback-safe and recover after interrupted writes.
 - Full AI regeneration commits scenes and seed in one atomic batch transaction; interrupted commits roll back together, completed commits are preserved, and rollback recovery is idempotent.
