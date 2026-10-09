@@ -6,6 +6,8 @@
     <string name="home_subtitle">One photo. One choice. A completely different timeline.</string>
     <string name="home_selected_photo">Selected photo</string>
     <string name="home_importing_photo">Importing photo…</string>
+    <string name="home_cancel_import">Cancel photo import</string>
+    <string name="home_cancelling_import">Cancelling photo import…</string>
     <string name="home_change_photo">Tap to change photo</string>
     <string name="home_choose_photo">Choose your photo</string>
     <string name="home_photo_local">Your original stays on this device.</string>

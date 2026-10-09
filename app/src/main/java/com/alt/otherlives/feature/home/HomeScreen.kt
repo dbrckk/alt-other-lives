@@ -54,7 +54,9 @@ fun HomeScreen(
     photoIsLikelyPremiumSource: Boolean?,
     photoQualityIssues: Set<SourcePhotoQualityIssue> = emptySet(),
     isImportingPhoto: Boolean,
+    isCancellingPhotoImport: Boolean,
     onPhotoSelected: (Uri) -> Unit,
+    onCancelPhotoImport: () -> Unit,
     onContinue: () -> Unit,
     onHistory: () -> Unit
 ) {
@@ -292,12 +294,30 @@ fun HomeScreen(
                 )
             }
             Spacer(Modifier.height(6.dp))
-            androidx.compose.material3.TextButton(
-                onClick = onHistory,
-                enabled = !isImportingPhoto,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(R.string.home_view_history), color = AltMuted)
+            if (isImportingPhoto) {
+                androidx.compose.material3.TextButton(
+                    onClick = onCancelPhotoImport,
+                    enabled = !isCancellingPhotoImport,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        stringResource(
+                            if (isCancellingPhotoImport) {
+                                R.string.home_cancelling_import
+                            } else {
+                                R.string.home_cancel_import
+                            }
+                        ),
+                        color = AltMuted
+                    )
+                }
+            } else {
+                androidx.compose.material3.TextButton(
+                    onClick = onHistory,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.home_view_history), color = AltMuted)
+                }
             }
         }
     }

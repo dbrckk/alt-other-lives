@@ -100,6 +100,7 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - Home persists the imported source-photo quality signal across startup/history restoration, shows non-blocking inline quality guidance, and no longer relies on a transient low-resolution toast.
 - History opening reuses its existing photo preflight cache instead of revalidating the same file synchronously on the UI thread; source quality metadata is preflighted alongside photo URIs.
 - Home is vertically scrollable so the full creation path remains reachable on small screens and with larger accessibility text.
+- Home now provides a localized Cancel photo import action while an import is in progress, keeps its busy lock until cancellation finishes, and shows a disabled cancelling state to prevent repeated taps.
 - Scenario cards now surface the narrative arc from first to last chapter and use indexed list rendering directly.
 - Generated-scene acceptance also rejects mostly transparent outputs before persistence, in addition to size/aspect/near-uniform checks.
 
