@@ -458,6 +458,11 @@ fun AltApp() {
                                                         sourcePhotoStore.discardCancelledImport(
                                                             fileName
                                                         )
+                                                    }.onFailure { failure ->
+                                                        diagnosticsRepository.record(
+                                                            event = DiagnosticEvent.PHOTO_IMPORT_FAILED,
+                                                            error = failure
+                                                        )
                                                     }
                                                 }
                                             }
