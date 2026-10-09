@@ -35,12 +35,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.first
+import java.util.concurrent.atomic.AtomicReference
 import com.alt.otherlives.core.data.HistoryRepository
 import com.alt.otherlives.core.data.SourcePhotoDimensions
 import com.alt.otherlives.core.data.SourcePhotoStore
+import com.alt.otherlives.core.data.StoredPhoto
 import com.alt.otherlives.core.diagnostics.DiagnosticEvent
 import com.alt.otherlives.core.diagnostics.DiagnosticsRepository
 import com.alt.otherlives.core.generation.GenerationSettingsRepository
@@ -427,10 +433,37 @@ fun AltApp() {
                                 isImportingPhoto = true
                                 scope.launch {
                                     try {
-                                        val imported = runCatching {
-                                            withContext(Dispatchers.IO) {
-                                                sourcePhotoStore.import(selectedUri)
+                                        // Remember a completed import before returning to the
+                                        // UI dispatcher: cancellation at the dispatcher
+                                        // boundary would otherwise leave a hidden orphan.
+                                        val committedFileName = AtomicReference<String?>(null)
+                                        val imported: Result<StoredPhoto> = try {
+                                            Result.success(
+                                                withContext(Dispatchers.IO) {
+                                                    val importContext = currentCoroutineContext()
+                                                    sourcePhotoStore.import(
+                                                        uri = selectedUri,
+                                                        checkCancelled = {
+                                                            importContext.ensureActive()
+                                                        }
+                                                    ).also { stored ->
+                                                        committedFileName.set(stored.fileName)
+                                                    }
+                                                }
+                                            )
+                                        } catch (cancelled: CancellationException) {
+                                            withContext(NonCancellable + Dispatchers.IO) {
+                                                committedFileName.get()?.let { fileName ->
+                                                    runCatching {
+                                                        sourcePhotoStore.discardCancelledImport(
+                                                            fileName
+                                                        )
+                                                    }
+                                                }
                                             }
+                                            throw cancelled
+                                        } catch (error: Throwable) {
+                                            Result.failure(error)
                                         }
 
                                         imported.onSuccess { stored ->
