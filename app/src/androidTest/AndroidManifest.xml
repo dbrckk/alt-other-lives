@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Instrumentation-only fake document provider; not included in the shipping APK. -->
+        <provider
+            android:name="com.alt.otherlives.core.data.SlowPhotoTestProvider"
+            android:authorities="com.alt.otherlives.test.slowphotos"
+            android:exported="true" />
+    </application>
+</manifest>
