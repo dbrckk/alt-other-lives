@@ -18,6 +18,7 @@ class ComfyUiGenerationProvider(
 
     private val appContext = context.applicationContext
     private val client = ComfyUiClient(appContext, config)
+    private val remoteEndpoint = config.normalizedBaseUrl
 
     override suspend fun generate(
         request: GenerationRequest,
@@ -43,6 +44,11 @@ class ComfyUiGenerationProvider(
         ComfyUiWorkflowTemplate.validateTemplate(workflowTemplateJson)
 
         val sessionSeed = resolveSessionSeed(request.seed)
+        val stableSourceKey = ComfyUiUploadIdentity.stableSourceKey(
+            endpoint = remoteEndpoint,
+            sourcePhotoUri = request.sourcePhoto.toString(),
+            crop = request.sourceCrop
+        )
         val uploaded = PreparedSourceUpload.execute(
             prepare = {
                 SourcePhotoCropRenderer.prepare(
@@ -51,7 +57,9 @@ class ComfyUiGenerationProvider(
                     crop = request.sourceCrop
                 )
             },
-            upload = { prepared -> client.uploadImage(prepared.uri) },
+            upload = { prepared ->
+                client.uploadImage(prepared.uri, sourceKey = stableSourceKey)
+            },
             cleanup = { prepared -> prepared.cleanup() }
         )
         val result = mutableListOf<GeneratedScene>()
