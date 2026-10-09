@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory
 import android.media.ExifInterface
 import java.io.File
 import java.util.UUID
+import kotlinx.coroutines.CancellationException
 import com.alt.otherlives.core.io.BoundedStreamCopy
 import com.alt.otherlives.core.diagnostics.DiagnosticEvent
 import com.alt.otherlives.core.diagnostics.DiagnosticsRepository
@@ -88,10 +89,12 @@ class SourcePhotoStore(private val context: Context) {
         } catch (error: Throwable) {
             temporary.delete()
             target.delete()
-            diagnostics.record(
-                event = DiagnosticEvent.PHOTO_IMPORT_FAILED,
-                error = error
-            )
+            if (error !is CancellationException) {
+                diagnostics.record(
+                    event = DiagnosticEvent.PHOTO_IMPORT_FAILED,
+                    error = error
+                )
+            }
             throw error
         }
 
