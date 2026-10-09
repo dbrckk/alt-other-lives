@@ -2,6 +2,14 @@ package com.alt.otherlives.feature.home
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -23,7 +31,9 @@ class HomeScreenTest {
                     photoUri = Uri.parse("content://alt/test-photo"),
                     photoIsLikelyPremiumSource = false,
                     isImportingPhoto = false,
+                    isCancellingPhotoImport = false,
                     onPhotoSelected = {},
+                    onCancelPhotoImport = {},
                     onContinue = {},
                     onHistory = {}
                 )
@@ -48,7 +58,9 @@ class HomeScreenTest {
                     photoIsLikelyPremiumSource = false,
                     photoQualityIssues = setOf(SourcePhotoQualityIssue.EXTREME_ASPECT_RATIO),
                     isImportingPhoto = false,
+                    isCancellingPhotoImport = false,
                     onPhotoSelected = {},
+                    onCancelPhotoImport = {},
                     onContinue = {},
                     onHistory = {}
                 )
@@ -68,7 +80,9 @@ class HomeScreenTest {
                     photoUri = null,
                     photoIsLikelyPremiumSource = null,
                     isImportingPhoto = false,
+                    isCancellingPhotoImport = false,
                     onPhotoSelected = {},
+                    onCancelPhotoImport = {},
                     onContinue = {},
                     onHistory = {}
                 )
@@ -82,4 +96,39 @@ class HomeScreenTest {
         composeRule.onAllNodesWithText("AI generation settings")
             .assertCountEquals(0)
     }
+    @Test
+    fun homeCanCancelAnInProgressImportAndLocksRepeatedTaps() {
+        var cancelClicks = 0
+        composeRule.setContent {
+            var cancelling by remember { mutableStateOf(false) }
+            AltTheme {
+                HomeScreen(
+                    photoUri = null,
+                    photoIsLikelyPremiumSource = null,
+                    isImportingPhoto = true,
+                    isCancellingPhotoImport = cancelling,
+                    onPhotoSelected = {},
+                    onCancelPhotoImport = {
+                        cancelClicks++
+                        cancelling = true
+                    },
+                    onContinue = {},
+                    onHistory = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Cancel photo import")
+            .performScrollTo()
+            .assertIsDisplayed()
+            .performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Cancelling photo import…")
+            .assertIsDisplayed()
+            .assertIsNotEnabled()
+        composeRule.onNodeWithText("View my other lives")
+            .assertDoesNotExist()
+        org.junit.Assert.assertEquals(1, cancelClicks)
+    }
+
 }
