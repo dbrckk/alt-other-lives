@@ -37,7 +37,7 @@ class SourcePhotoStore(private val context: Context) {
             .getExtensionFromMimeType(mimeType)
             ?.takeIf { it.isNotBlank() }
             ?: "jpg"
-        cleanupInterruptedImports(dir)
+        SourcePhotoImportCleanup.cleanup(dir)
         val id = UUID.randomUUID().toString()
         val fileName = "source-" + id + "." + extension
         val target = File(dir, fileName)
@@ -154,7 +154,7 @@ class SourcePhotoStore(private val context: Context) {
 
     fun latestStoredPhoto(): StoredPhoto? {
         val dir = File(context.filesDir, "source-photos")
-        cleanupInterruptedImports(dir)
+        SourcePhotoImportCleanup.cleanup(dir)
         val files = dir.listFiles()
             ?.filter { it.isFile && SourcePhotoFileName.isValid(it.name) }
             ?.sortedByDescending { it.lastModified() }
@@ -212,12 +212,6 @@ class SourcePhotoStore(private val context: Context) {
                 height = bounds.outHeight
             )
         }
-    }
-
-    private fun cleanupInterruptedImports(dir: File) {
-        dir.listFiles()
-            ?.filter { it.isFile && it.name.startsWith(".source-") && it.name.endsWith(".tmp") }
-            ?.forEach { it.delete() }
     }
 
     fun deleteUnreferenced(keepFileNames: Set<String>) {
