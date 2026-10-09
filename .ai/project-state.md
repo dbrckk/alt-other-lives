@@ -17,7 +17,7 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - Optional workflow placeholder: __ALT_SEED__.
 - Generated scenes are persisted privately per timeline and restored without cross-contaminating different lives that share a scenario.
 - Scenario-specific prompt profiles and a persisted per-timeline seed improve sequence continuity across partial retries and app restarts.
-- Per-chapter ComfyUI generation retries once on transient failure.
+- Each ComfyUI chapter is queued at most once per attempt to avoid duplicate GPU jobs after ambiguous queue, history or download failures; history and download requests retry transient errors against the original prompt/output.
 - Partial generation keeps successful chapters and supports targeted generation of only missing chapters.
 - Full regeneration requires confirmation, uses a fresh seed, and is atomic: the current timeline is replaced only if every requested chapter succeeds.
 - AI generation can be cancelled cooperatively; completed chapters are persisted immediately for partial runs.
@@ -45,7 +45,7 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - Completed MP4 exports are invalidated when timeline visuals change, and AI generation/media export actions are mutually locked to prevent stale mixed-state exports.
 - ComfyUI endpoints require HTTPS, support a short-timeout validated connection test, preserve source and output image formats, reject invalid downloaded images, and surface configuration errors in the UI.
 - Cross-chapter prompts now use an explicit immutable identity anchor, stronger anti-drift constraints, and optional __ALT_NEGATIVE_PROMPT__ injection for workflows with a negative conditioning path.
-- Partial AI generation reports failed chapter indexes in Reveal, keeps existing scenes during failed full-regeneration attempts, and retries transient chapter failures after a short deterministic backoff.
+- Partial AI generation reports failed chapter indexes in Reveal and keeps existing scenes during failed full-regeneration attempts; failed chapters can be retried explicitly without automatically requeueing a submitted GPU job.
 - AI cancellation keeps generation locked until the coroutine actually finishes, preventing overlapping generation mutations.
 - ComfyUI source uploads and generated-image downloads are size-bounded; generated images also enforce shared dimension/pixel limits before persistence or rendering.
 - Repeated generation from the same private source reuses a deterministic opaque ComfyUI upload name instead of accumulating UUID-named duplicate uploads on the server.
@@ -69,6 +69,9 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - Partial-generation downloads are released even when private persistence fails, avoiding leaked cache files.
 - Explicit AI seeds are validated before any ComfyUI source upload; invalid requested chapter indexes and invalid workflow templates also fail before network work.
 - ComfyUI history polling surfaces execution errors immediately instead of waiting for a later generic error status.
+- ComfyUI history outputs are accepted only after the server marks the prompt completed, preventing early selection of intermediate previews.
+- Source-photo interrupted-import recovery deletes only app-owned expired temporary copies, preserving active imports even during concurrent startup and photo selection.
+- ComfyUI photo uploads and image downloads check coroutine cancellation between bounded stream chunks, promptly stopping transfer work after the next I/O chunk finishes (socket reads remain subject to network timeouts).
 - Generated scenes count as accepted only after the persistence callback succeeds.
 - ComfyUI source uploads reject missing or non-image MIME types instead of silently treating them as JPEG.
 - Generated-scene chapter indexes are bounded to the supported 0..4 range across batch validation, filename encoding and restore.

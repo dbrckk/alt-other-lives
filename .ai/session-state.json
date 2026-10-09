@@ -2,15 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Continue premium UX hardening after Reveal progress/fallback polish, persistent source-quality guidance, History preflight reuse, adaptive short-form video pacing, and stricter generated-scene acceptance.",
-  "lastKnownBlocker": "No confirmed active blocker. Reveal action hierarchy has passed unit/lint/debug/instrumentation compile and is finishing AAB; transparency, scenario-arc, Home accessibility and latest UI tests are still completing CI.",
-  "fixApplied": "Reveal now communicates AI readiness and handles missing visuals editorially; Home keeps source quality visible and scrollable; History avoids duplicate UI-thread photo validation; ComfyUI rejects undersized/extreme-ratio/near-uniform/mostly-transparent outputs and warns about ambiguous image outputs.",
+  "currentTask": "Improve cooperative cancellation of ComfyUI upload/download streams while retaining bounded transfers, EXIF privacy and at-most-once remote prompt submission.",
+  "lastKnownBlocker": "None confirmed on main: PR #56 and PR #57 passed full Android CI and were merged; chunk-level stream cancellation on the current feature branch is awaiting full Android CI.",
+  "fixApplied": "PR #56 waits for completed ComfyUI history before accepting final images; PR #57 preserves active imports during stale-file cleanup. The open change checks coroutine cancellation before/after bounded image-transfer chunks; pending CI verification.",
   "next": [
-    "Verify cumulative CI for Home accessibility, scenario narrative arc, transparency rejection and Reveal action hierarchy",
-    "Polish remaining cross-screen typography/spacing only where it improves readability",
-    "Audit generated output acceptance for objective corruption/artifact signals without subjective aesthetic scoring",
-    "Keep video pacing within the tested 12–16 second localized short-form budget",
-    "Keep all changes gated by unit tests, lint, debug APK, instrumentation compile and release AAB"
+    "Verify existing Android unit tests, debug/release lint, debug APK, instrumentation emulator and release AAB on cooperative-stream branch",
+    "Confirm no new tests or dependencies were introduced and the transfer cleanup still runs on cancellation",
+    "Merge only after full green CI and update status; acknowledge socket reads cannot be interrupted until an I/O operation returns",
+    "Run device-level end-to-end image generation/cancel smoke check with a real ComfyUI server before claiming real-world cancellation latency"
   ],
-  "updated": "2026-09-27"
+  "updated": "2026-10-09"
 }
