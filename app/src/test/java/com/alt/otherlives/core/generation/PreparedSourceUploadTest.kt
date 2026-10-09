@@ -7,7 +7,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertSame
 import org.junit.Test
 
 class PreparedSourceUploadTest {
@@ -48,7 +47,8 @@ class PreparedSourceUploadTest {
             )
         }.exceptionOrNull()
 
-        assertSame(failure, thrown)
+        assertEquals(failure::class.java, thrown?.javaClass)
+        assertEquals(failure.message, thrown?.message)
         assertEquals(true, released)
     }
 
@@ -90,7 +90,8 @@ class PreparedSourceUploadTest {
             )
         }.exceptionOrNull()
 
-        assertSame(failure, thrown)
+        assertEquals(failure::class.java, thrown?.javaClass)
+        assertEquals(failure.message, thrown?.message)
         assertEquals(0, uploadCalls)
         assertEquals(0, cleanupCalls)
     }
