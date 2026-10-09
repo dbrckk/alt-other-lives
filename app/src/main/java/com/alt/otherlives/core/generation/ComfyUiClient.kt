@@ -150,16 +150,31 @@ class ComfyUiClient(
         require(timeoutMs > 0L) { "ComfyUI generation timeout must be positive" }
         val startedNanos = System.nanoTime()
 
-        while ((System.nanoTime() - startedNanos) / 1_000_000L < timeoutMs) {
+        fun remainingBudgetMs(): Long = ComfyUiPollingTiming.remainingMs(
+            timeoutMs = timeoutMs,
+            elapsedMs = (System.nanoTime() - startedNanos) / 1_000_000L
+        )
+
+        suspend fun delayUntilNextPoll() {
+            val waitMs = ComfyUiPollingTiming.nextDelayMs(
+                remainingMs = remainingBudgetMs(),
+                pollIntervalMs = POLL_INTERVAL_MS
+            )
+            if (waitMs > 0L) delay(waitMs)
+        }
+
+        while (true) {
+            val remainingMs = remainingBudgetMs()
+            if (remainingMs == 0L) break
             val snapshot = try {
-                historySnapshot(promptId)
+                historySnapshot(promptId, remainingMs)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Throwable) {
                 if (!ComfyUiRetryPolicy.shouldRetry(error)) {
                     throw error
                 }
-                delay(POLL_INTERVAL_MS)
+                delayUntilNextPoll()
                 continue
             }
 
@@ -171,7 +186,7 @@ class ComfyUiClient(
             if (snapshot.completed) {
                 error("ComfyUI completed without image outputs")
             }
-            delay(POLL_INTERVAL_MS)
+            delayUntilNextPoll()
         }
         error("ComfyUI generation timed out")
     }
@@ -316,12 +331,15 @@ class ComfyUiClient(
         val outputs: List<OutputImage>
     )
 
-    private suspend fun historySnapshot(promptId: String): HistorySnapshot = withContext(Dispatchers.IO) {
+    private suspend fun historySnapshot(
+        promptId: String,
+        remainingBudgetMs: Long
+    ): HistorySnapshot = withContext(Dispatchers.IO) {
         val connection = open(
             path = "/history/" + ComfyUiPromptId.validate(promptId),
             method = "GET",
-            connectTimeoutMs = 8_000,
-            readTimeoutMs = 15_000
+            connectTimeoutMs = ComfyUiPollingTiming.networkTimeoutMs(remainingBudgetMs, 8_000),
+            readTimeoutMs = ComfyUiPollingTiming.networkTimeoutMs(remainingBudgetMs, 15_000)
         )
         val json = parseJsonObject(readResponse(connection), "history")
         val prompt = json.optJSONObject(promptId)
