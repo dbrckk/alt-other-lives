@@ -1,24 +1,22 @@
 package com.alt.otherlives.core.generation
 
 import java.io.IOException
-import java.net.SocketTimeoutException
+import javax.net.ssl.SSLHandshakeException
+import javax.net.ssl.SSLPeerUnverifiedException
 
 internal object ComfyUiRetryPolicy {
-    private val httpCodePattern = Regex("""ComfyUI HTTP (\d{3})""")
+    fun shouldRetry(error: Throwable): Boolean = when (error) {
+        // A certificate, hostname, or TLS trust failure needs a configuration
+        // change. Never retry it as a transient connectivity error.
+        is SSLHandshakeException, is SSLPeerUnverifiedException -> false
 
-    fun shouldRetry(error: Throwable): Boolean {
-        if (error is SocketTimeoutException) return true
-        if (error is IOException) return true
+        is ComfyUiHttpException -> error.statusCode == 408 ||
+            error.statusCode == 425 ||
+            error.statusCode == 429 ||
+            error.statusCode in 500..599
 
-        val message = error.message.orEmpty()
-        val httpCode = httpCodePattern.find(message)
-            ?.groupValues
-            ?.getOrNull(1)
-            ?.toIntOrNull()
-
-        return httpCode == 408 ||
-            httpCode == 425 ||
-            httpCode == 429 ||
-            httpCode in 500..599
+        // Includes socket timeouts and temporary broken connections.
+        is IOException -> true
+        else -> false
     }
 }
