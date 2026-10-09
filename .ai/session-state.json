@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Improve cooperative cancellation of ComfyUI upload/download streams while retaining bounded transfers, EXIF privacy and at-most-once remote prompt submission.",
-  "lastKnownBlocker": "None confirmed on main: PR #56 and PR #57 passed full Android CI and were merged; chunk-level stream cancellation on the current feature branch is awaiting full Android CI.",
-  "fixApplied": "PR #56 waits for completed ComfyUI history before accepting final images; PR #57 preserves active imports during stale-file cleanup. The open change checks coroutine cancellation before/after bounded image-transfer chunks; pending CI verification.",
+  "currentTask": "Implement safe cooperative cancellation of local photo import: interrupt bounded copy, remove partial or committed file when cancelled, and preserve accurate diagnostics.",
+  "lastKnownBlocker": "No confirmed main branch blocker; the local-import cancellation feature branch requires a fresh Android CI and real-device navigation/cancellation smoke check.",
+  "fixApplied": "PRs #56–#59 merged with full Android CI: final ComfyUI history gating, stale import safety, ComfyUI transfer cancellation, and active photo retention. Current branch implements cancellation-safe local photo import and Android instrumentation checks; CI pending.",
   "next": [
-    "Verify existing Android unit tests, debug/release lint, debug APK, instrumentation emulator and release AAB on cooperative-stream branch",
-    "Confirm no new tests or dependencies were introduced and the transfer cleanup still runs on cancellation",
-    "Merge only after full green CI and update status; acknowledge socket reads cannot be interrupted until an I/O operation returns",
-    "Run device-level end-to-end image generation/cancel smoke check with a real ComfyUI server before claiming real-world cancellation latency"
+    "Validate Android CI including the new SourcePhotoCancellationInstrumentedTest on an API 35 emulator",
+    "Verify existing unit tests and debug/release lints and APK/AAB packaging, then merge only when all checks pass",
+    "Check cancellation while Android document providers stall during open/read and while Home navigates away",
+    "Review Home navigation behavior for imports started before switching screens"
   ],
   "updated": "2026-10-09"
 }
