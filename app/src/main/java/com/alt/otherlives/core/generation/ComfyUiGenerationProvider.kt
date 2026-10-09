@@ -44,16 +44,17 @@ class ComfyUiGenerationProvider(
         ComfyUiWorkflowTemplate.validateTemplate(workflowTemplateJson)
 
         val sessionSeed = resolveSessionSeed(request.seed)
-        val preparedSource = SourcePhotoCropRenderer.prepare(
-            context = appContext,
-            sourceUri = request.sourcePhoto,
-            crop = request.sourceCrop
+        val uploaded = PreparedSourceUpload.execute(
+            prepare = {
+                SourcePhotoCropRenderer.prepare(
+                    context = appContext,
+                    sourceUri = request.sourcePhoto,
+                    crop = request.sourceCrop
+                )
+            },
+            upload = { prepared -> client.uploadImage(prepared.uri) },
+            cleanup = { prepared -> prepared.cleanup() }
         )
-        val uploaded = try {
-            client.uploadImage(preparedSource.uri)
-        } finally {
-            preparedSource.cleanup()
-        }
         val result = mutableListOf<GeneratedScene>()
 
         val failures = mutableListOf<String>()
