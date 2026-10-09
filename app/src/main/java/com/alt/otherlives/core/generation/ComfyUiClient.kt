@@ -182,11 +182,17 @@ class ComfyUiClient(
                 status = snapshot.status,
                 errorMessage = snapshot.errorMessage
             )?.let { error(it) }
-            if (snapshot.outputs.isNotEmpty()) return snapshot.outputs
-            if (snapshot.completed) {
-                error("ComfyUI completed without image outputs")
+            when (
+                ComfyUiHistoryReadiness.decide(
+                    completed = snapshot.completed,
+                    imageCount = snapshot.outputs.size
+                )
+            ) {
+                ComfyUiHistoryReadiness.Decision.READY -> return snapshot.outputs
+                ComfyUiHistoryReadiness.Decision.COMPLETED_WITHOUT_IMAGES ->
+                    error("ComfyUI completed without image outputs")
+                ComfyUiHistoryReadiness.Decision.KEEP_POLLING -> delayUntilNextPoll()
             }
-            delayUntilNextPoll()
         }
         error("ComfyUI generation timed out")
     }
