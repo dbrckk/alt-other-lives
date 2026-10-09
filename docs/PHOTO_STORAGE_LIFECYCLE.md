@@ -18,7 +18,7 @@ un envoi distant explicitement autorisé.
 | --- | --- |
 | Erreur pendant l'import actif | Suppression immédiate de sa copie temporaire et de sa cible partielle |
 | Redémarrage ou nouvel import | Purge des fichiers `.source-<uuid>.tmp` de plus de 24 h, jamais des imports récents |
-| Suppression d'une timeline ou création d'une nouvelle timeline | `deleteUnreferenced` ne purge que des **photos finalisées**, reconnues par `SourcePhotoFileName`, non référencées ; les fichiers d'import actifs sont préservés |
+| Suppression d'une timeline ou création d'une nouvelle timeline | `deleteUnreferenced` ne purge que des **photos finalisées**, reconnues par `SourcePhotoFileName`, non référencées ; les imports temporaires et la photo actuellement sélectionnée mais pas encore enregistrée sont préservés |
 | Suppression explicite de tout l'historique | `clearAll` efface le répertoire source privé ; cette opération est destructive et ne doit pas être lancée en parallèle d'un import utilisateur |
 | Nettoyage du cache IA | Nettoyage indépendant selon l'âge des fichiers et leur propriétaire |
 
@@ -38,7 +38,10 @@ encore présents au-delà de 24 h.
 4. Avec des imports interrompus artificiellement datés de moins puis de plus
    de 24 h, vérifier que seuls les anciens fichiers temporaires correspondant
    exactement au motif propriétaire sont supprimés lors de la récupération.
-5. Supprimer une timeline ancienne ; vérifier que les photos finalisées qui
+5. Importer une nouvelle photo **sans** encore créer de timeline, puis ouvrir
+   l'historique et supprimer une ancienne timeline. Revenir à l'accueil :
+   la photo active doit toujours être visible et utilisable.
+6. Supprimer une timeline ancienne ; vérifier que les photos finalisées qui
    n'appartiennent plus à une timeline sont purgées, et que celles référencées
    ailleurs restent disponibles après redémarrage.
 
