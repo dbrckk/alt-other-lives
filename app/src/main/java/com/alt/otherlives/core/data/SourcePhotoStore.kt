@@ -29,7 +29,7 @@ data class StoredPhoto(
 
 class SourcePhotoStore(private val context: Context) {
     private val diagnostics = DiagnosticsRepository(context.applicationContext)
-    fun import(uri: Uri): StoredPhoto {
+    fun import(uri: Uri, checkCancelled: () -> Unit = {}): StoredPhoto {
         val dir = File(context.filesDir, "source-photos").apply { mkdirs() }
         val mimeType = context.contentResolver.getType(uri)
         require(mimeType?.startsWith("image/") == true) { "Selected file is not an image" }
@@ -47,21 +47,25 @@ class SourcePhotoStore(private val context: Context) {
         var qualityIssues: Set<SourcePhotoQualityIssue> = emptySet()
 
         try {
+            checkCancelled()
             context.contentResolver.openInputStream(uri)?.use { input ->
                 temporary.outputStream().use { output ->
                     BoundedStreamCopy.copy(
                         input = input,
                         output = output,
-                        maxBytes = MAX_SOURCE_PHOTO_BYTES
+                        maxBytes = MAX_SOURCE_PHOTO_BYTES,
+                        checkCancelled = checkCancelled
                     )
                 }
             } ?: error("Unable to read selected photo")
 
+            checkCancelled()
             require(temporary.length() > 0L) { "Selected image copy is empty" }
             val importedDimensions = requireNotNull(readDimensions(temporary)) {
                 "Selected image is invalid, unsupported, or too large"
             }
             dimensions = importedDimensions
+            checkCancelled()
             val qualityAssessment = ImageBoundsValidation.assessSourcePhoto(
                 importedDimensions.width,
                 importedDimensions.height
@@ -69,9 +73,18 @@ class SourcePhotoStore(private val context: Context) {
             isLikelyPremiumSource = qualityAssessment.isPremiumReady
             qualityIssues = qualityAssessment.issues
 
+            checkCancelled()
             if (!temporary.renameTo(target)) {
                 error("Unable to finalize selected photo import")
             }
+            checkCancelled()
+            return StoredPhoto(
+                fileName = fileName,
+                uri = uriFor(fileName),
+                dimensions = requireNotNull(dimensions),
+                isLikelyPremiumSource = isLikelyPremiumSource,
+                qualityIssues = qualityIssues
+            )
         } catch (error: Throwable) {
             temporary.delete()
             target.delete()
@@ -82,13 +95,17 @@ class SourcePhotoStore(private val context: Context) {
             throw error
         }
 
-        return StoredPhoto(
-            fileName = fileName,
-            uri = uriFor(fileName),
-            dimensions = requireNotNull(dimensions),
-            isLikelyPremiumSource = isLikelyPremiumSource,
-            qualityIssues = qualityIssues
-        )
+    }
+
+    /**
+     * Drop only this import's just-created private photo if the caller was
+     * cancelled while returning from IO to the UI dispatcher.
+     */
+    fun discardCancelledImport(fileName: String) {
+        val file = storedFile(fileName)
+        if (file.exists()) {
+            check(file.delete()) { "Unable to remove cancelled photo import" }
+        }
     }
 
     fun uriFor(fileName: String): Uri {
