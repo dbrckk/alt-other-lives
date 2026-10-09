@@ -28,6 +28,19 @@ Les imports provisoires trop récents peuvent subsister en cas d'arrêt brutal.
 Ils seront éliminés lors d'un passage de nettoyage ultérieur, s'ils sont
 encore présents au-delà de 24 h.
 
+## Annulation depuis l’accueil
+
+Pendant qu'une photo est importée, le bouton situé sous l'action principale
+propose **Annuler l’importation de la photo** au lieu de l'accès à l'historique.
+Après la demande, l'interface affiche **Annulation de l’importation…** et
+désactive les nouvelles demandes jusqu'à la fin effective de l'opération.
+
+Le bouton annule le job de coroutine ; le stockage privé interrompt la copie
+au prochain point de contrôle et retire ses fichiers de préparation. Une
+lecture déjà bloquée dans un fournisseur de documents Android peut nécessiter
+un délai supplémentaire : le bouton ne prétend pas arrêter instantanément
+un fournisseur de contenu externe.
+
 ## Vérification fonctionnelle sur appareil
 
 1. Sélectionner une photo via le sélecteur Android ; vérifier qu'un fichier
