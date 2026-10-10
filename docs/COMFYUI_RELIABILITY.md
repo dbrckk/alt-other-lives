@@ -21,6 +21,35 @@ La vérification entre les blocs n'interrompt pas nécessairement **une lecture/
 5. Sur un réseau limité, annuler explicitement une génération pendant l'envoi ou le téléchargement de l'image. Vérifier le retour de l'interface à un état non bloqué, l'absence de fuite de téléchargement dans le cache local et l'absence de lancement automatique d'un nouveau prompt GPU.
 6. Répéter avec une coupure réseau temporaire et avec un certificat TLS invalide. La coupure peut entraîner une erreur récupérable ; l'erreur de certificat ne doit pas provoquer des tentatives automatiques.
 
+
+## Annulation pendant la persistance privée
+
+Après téléchargement, ALT copie les images générées dans son stockage privé.
+Cette copie vérifie désormais l'annulation **entre les blocs transférés** et
+**avant de remplacer un chapitre existant**. Une copie partielle interrompue
+est supprimée. Lors d'une régénération complète, l'annulation est contrôlée
+pendant la préparation des images et avant le début de la transaction :
+dès le déplacement des sauvegardes et le début du commit atomique, ALT laisse
+cette courte phase s'achever pour préserver l'intégrité de l'ancienne ou
+de la nouvelle version de la timeline.
+
+Ces points de contrôle ne garantissent pas l'interruption immédiate d'un
+`ContentProvider` bloqué en lecture, ni une annulation après que le commit
+atomique a commencé. Le résultat doit être confirmé sur appareil avec un
+flux lent et, pour l'ensemble du parcours, un vrai serveur ComfyUI.
+
+### Vérification manuelle ciblée
+
+1. Avec plusieurs scènes déjà générées, relancer un chapitre sur une
+   image volontairement volumineuse et annuler pendant la persistance locale.
+   Vérifier que le chapitre précédent reste lisible et qu'aucun fichier
+   `.scene-*.tmp` ne subsiste après récupération.
+2. Lancer une régénération complète avec cinq scènes, annuler pendant la
+   préparation de la dernière scène et rouvrir la timeline. Les scènes
+   précédentes et l'ancienne seed doivent rester intactes.
+3. Répéter avec une interruption proche du commit final et redémarrer
+   l'application pour vérifier que les scènes et la seed restent cohérentes.
+
 ## Vérifications automatisées existantes
 
 Le workflow `.github/workflows/android.yml` exécute les tests JVM préexistants, les lints debug/release, la compilation APK, les tests instrumentés sur émulateur et le build release AAB. Il ne remplace **pas** les tests de bout en bout avec un serveur ComfyUI réel.
