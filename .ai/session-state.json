@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Validate cancellation while preparing re-encoded JPEG source photos for ComfyUI.",
-  "lastKnownBlocker": "PR #63 merged (018dc632) after green JVM, lint, APK, emulator and release AAB CI; real ComfyUI/device cancellation tests remain unverified. New JPEG-preparation cancellation branch awaits CI.",
-  "fixApplied": "PR #63 merged. Source JPEG preparation now checks coroutine cancellation at image-processing boundaries, releases in-memory bitmaps on cancelled decode, removes cancelled temporary JPEGs and prevents subsequent upload.",
+  "currentTask": "Device-level reliability validation of ComfyUI source JPEG preparation and generated-scene persistence after merged PRs #63 and #64.",
+  "lastKnownBlocker": "No confirmed Android CI blocker. PR #63 and #64 both merged after green Android CI, including emulator instrumentation and unsigned release AAB. Real ComfyUI/server and third-party Android content-provider latency still lack physical-device verification.",
+  "fixApplied": "PR #63 merged (018dc632): cooperative cancellation while persisting generated scenes and staging atomic full regeneration. PR #64 merged (489a63f2): cancellation-aware source JPEG preprocessing, cleanup before upload, and emulator instrumentation checking cancelled post-encode JPEG deletion.",
   "next": [
-    "Run full Android CI for source photo JPEG preparation cancellation and merge only after green checks",
-    "Verify cancellation during source decode / compression on an Android device with a slow provider and a real ComfyUI endpoint",
-    "Verify cancellation during scene persistence and full regeneration after PR #63 on device",
-    "Test Google Photos / Drive provider latency on physical Android devices"
+    "Manually run full 5-chapter generation with real HTTPS ComfyUI and a physical Android device; verify images, save, restart and share",
+    "Cancel during source decode/JPEG compression, upload, downloaded-scene persistence and full-regeneration staging; ensure no source or scene corruption",
+    "Test slow Google Photos / Drive photo providers on physical Android; distinguish blocked provider reads from app-controlled cancellation",
+    "Use observed device failures, not assumptions, to select the next reliability fix"
   ],
   "updated": "2026-10-10"
 }
