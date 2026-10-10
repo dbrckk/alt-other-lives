@@ -1,6 +1,8 @@
 package com.alt.otherlives.core.generation
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 
 /**
@@ -16,8 +18,13 @@ internal object PreparedSourceUpload {
         upload: suspend (Source) -> Uploaded,
         cleanup: (Source) -> Unit
     ): Uploaded = withContext(Dispatchers.IO) {
+        val preparationContext = currentCoroutineContext()
+        preparationContext.ensureActive()
         val source = prepare()
         try {
+            // If cancellation happened during synchronous image preparation,
+            // release the prepared file without attempting any remote upload.
+            preparationContext.ensureActive()
             upload(source)
         } finally {
             cleanup(source)

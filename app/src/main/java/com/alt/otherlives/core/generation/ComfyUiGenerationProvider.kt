@@ -2,6 +2,8 @@ package com.alt.otherlives.core.generation
 
 import android.content.Context
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import java.security.SecureRandom
 import com.alt.otherlives.core.data.ScenarioCatalog
 import com.alt.otherlives.core.model.Scenario
@@ -49,12 +51,14 @@ class ComfyUiGenerationProvider(
             sourcePhotoUri = request.sourcePhoto.toString(),
             crop = request.sourceCrop
         )
+        val preparationContext = currentCoroutineContext()
         val uploaded = PreparedSourceUpload.execute(
             prepare = {
                 SourcePhotoCropRenderer.prepare(
                     context = appContext,
                     sourceUri = request.sourcePhoto,
-                    crop = request.sourceCrop
+                    crop = request.sourceCrop,
+                    checkCancelled = { preparationContext.ensureActive() }
                 )
             },
             upload = { prepared ->
