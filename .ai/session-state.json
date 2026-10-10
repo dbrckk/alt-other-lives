@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Run and review Android instrumentation validating cancellation-safe chapter and full-regeneration scene persistence.",
-  "lastKnownBlocker": "Main CI is green (38079507341). The scene persistence integration checks are on a new branch and await CI, while real ComfyUI/third-party provider verification remains unavailable.",
-  "fixApplied": "Merged PRs #63/#64 remain stable. Added deterministic on-emulator instrumentation using real FileProvider and private generated-scene files to verify old chapter bytes, seed retention and aborted batch cleanup during cancellation.",
+  "currentTask": "Validate real-device ComfyUI end-to-end generation and source-provider cancellation; emulator storage integrity gate is complete.",
+  "lastKnownBlocker": "No Android CI blocker: PR #65 merged after full successful Android CI run 38081073724, including real FileProvider/private-storage cancellation tests, APK, lint, emulator and unsigned release AAB. Physical-device ComfyUI and third-party cloud-provider behavior remain unverified.",
+  "fixApplied": "PR #65 merged (10c49aae): instrumented cancellation integrity checks confirm that interrupted single-scene updates retain old JPEG bytes and interrupted five-scene full-regeneration staging preserves all prior chapters and the seed; no abandoned transaction remains. No production-code changes in #65.",
   "next": [
-    "Run full Android CI on the scene persistence integration branch, including the new emulator tests",
-    "Investigate and repair any failed check before merging to main",
-    "Validate a five-chapter generation/export/restart with real ComfyUI HTTPS and a physical Android device",
-    "Exercise cancellation with third-party cloud photo providers on Android and record latency/error evidence"
+    "Validate a real five-chapter ComfyUI HTTPS generation on Android: import, generate, persist, restart, gallery save and share JPEG/MP4",
+    "On a physical device, cancel at photo preparation, upload, scene persistence and full-regeneration stages and verify the previous timeline remains intact",
+    "Exercise slow Google Photos / Drive ContentProvider imports; collect timing and cleanup evidence and address only reproduced issues",
+    "Audit release signing, Play internal track install/update and privacy/data-safety declarations before publication"
   ],
   "updated": "2026-10-10"
 }
