@@ -6,6 +6,7 @@ import android.media.ExifInterface
 import androidx.core.content.FileProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import java.io.File
+import kotlinx.coroutines.CancellationException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -120,6 +121,53 @@ class SourcePhotoCropRendererTest {
             assertTrue(source.exists())
         } finally {
             prepared?.cleanup()
+            bitmap.recycle()
+            source.delete()
+        }
+    }
+
+
+    @Test
+    fun cancellationAfterEncodingDeletesPreparedJpegWithoutTouchingSource() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val generationDir = File(context.cacheDir, "generation").apply { mkdirs() }
+        val cropDir = File(context.cacheDir, "generation/crops").apply { mkdirs() }
+        val source = File(generationDir, "crop-cancel-test-source-" + System.nanoTime() + ".jpg")
+        val bitmap = Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888)
+        val existing = cropDir.listFiles().orEmpty().map { it.name }.toSet()
+
+        try {
+            source.outputStream().use { output ->
+                assertTrue(bitmap.compress(Bitmap.CompressFormat.JPEG, 95, output))
+            }
+            val uri = FileProvider.getUriForFile(
+                context,
+                context.packageName + ".fileprovider",
+                source
+            )
+
+            val failure = runCatching {
+                SourcePhotoCropRenderer.prepare(
+                    context = context,
+                    sourceUri = uri,
+                    crop = NormalizedCropRect.Full,
+                    checkCancelled = {
+                        // The new JPEG appears only during the final encoding
+                        // step; cancel at its next cooperative checkpoint.
+                        if (cropDir.listFiles().orEmpty().any {
+                                it.name !in existing && it.name.startsWith("crop-") &&
+                                    it.extension == "jpg" && it.length() > 0L
+                            }) {
+                            throw CancellationException("cancel after JPEG encoding")
+                        }
+                    }
+                )
+            }.exceptionOrNull()
+
+            assertTrue("Expected source preparation cancellation", failure is CancellationException)
+            assertEquals(existing, cropDir.listFiles().orEmpty().map { it.name }.toSet())
+            assertTrue("Source photo must remain unchanged", source.exists())
+        } finally {
             bitmap.recycle()
             source.delete()
         }
