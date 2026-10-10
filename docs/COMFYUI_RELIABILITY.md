@@ -22,6 +22,21 @@ La vérification entre les blocs n'interrompt pas nécessairement **une lecture/
 6. Répéter avec une coupure réseau temporaire et avec un certificat TLS invalide. La coupure peut entraîner une erreur récupérable ; l'erreur de certificat ne doit pas provoquer des tentatives automatiques.
 
 
+## Annulation pendant la préparation JPEG
+
+Avant l'envoi vers ComfyUI, ALT décode, oriente, recadre puis réencode
+la photo en JPEG pour ne pas transférer les métadonnées EXIF de l'original.
+La préparation est faite sur le dispatcher IO et vérifie désormais
+l'annulation entre l'inspection des dimensions, le décodage, l'orientation,
+le recadrage et la compression. Si l'annulation intervient pendant une
+opération de décodage ou de compression synchrone, ALT vérifie son état
+immédiatement après et supprime la copie JPEG avant toute tentative d'envoi.
+Les bitmaps décodés sont libérés en cas d'annulation après décodage.
+
+Une opération système déjà bloquée dans un fournisseur de documents Android
+ne peut pas toujours être interrompue immédiatement ; tester la latence
+sur des appareils et fournisseurs réels.
+
 ## Annulation pendant la persistance privée
 
 Après téléchargement, ALT copie les images générées dans son stockage privé.
