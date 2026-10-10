@@ -28,13 +28,16 @@ object SourcePhotoCropRenderer {
     fun prepare(
         context: Context,
         sourceUri: Uri,
-        crop: NormalizedCropRect
+        crop: NormalizedCropRect,
+        checkCancelled: () -> Unit = {}
     ): PreparedSourcePhoto {
+        checkCancelled()
         // Always re-encode the source photo, even for a full-frame selection.
         // Uploading the unmodified file could expose EXIF GPS, camera details,
         // and other embedded metadata to the remote ComfyUI server.
-        val bitmap = decodeOriented(context, sourceUri)
+        val bitmap = decodeOriented(context, sourceUri, checkCancelled)
         val preparedBitmap = try {
+            checkCancelled()
             if (crop == NormalizedCropRect.Full) {
                 bitmap
             } else {
@@ -61,6 +64,7 @@ object SourcePhotoCropRenderer {
         val dir = File(context.cacheDir, "generation/crops")
         val output = File(dir, "crop-" + UUID.randomUUID() + ".jpg")
         try {
+            checkCancelled()
             check(dir.isDirectory || dir.mkdirs()) {
                 "Unable to prepare temporary source photo directory"
             }
@@ -69,6 +73,9 @@ object SourcePhotoCropRenderer {
                     "Unable to encode prepared source photo"
                 }
             }
+            // Compression can be long-running; discard an encoded JPEG if
+            // cancellation happened while the encoder was working.
+            checkCancelled()
 
             val uri = FileProvider.getUriForFile(
                 context,
@@ -84,7 +91,12 @@ object SourcePhotoCropRenderer {
         }
     }
 
-    private fun decodeOriented(context: Context, uri: Uri): Bitmap {
+    private fun decodeOriented(
+        context: Context,
+        uri: Uri,
+        checkCancelled: () -> Unit
+    ): Bitmap {
+        checkCancelled()
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         val inspected = context.contentResolver.openFileDescriptor(uri, "r")?.use { descriptor ->
             BitmapFactory.decodeFileDescriptor(descriptor.fileDescriptor, null, bounds)
@@ -97,6 +109,7 @@ object SourcePhotoCropRenderer {
         require(bounds.outWidth > 0 && bounds.outHeight > 0) {
             "Unable to decode source photo"
         }
+        checkCancelled()
 
         var sampleSize = 1
         while (
@@ -114,31 +127,38 @@ object SourcePhotoCropRenderer {
             )
         } ?: error("Unable to decode source photo")
 
-        val orientation = runCatching {
-            context.contentResolver.openFileDescriptor(uri, "r")?.use { descriptor ->
-                ExifInterface(descriptor.fileDescriptor).getAttributeInt(
-                    ExifInterface.TAG_ORIENTATION,
-                    ExifInterface.ORIENTATION_NORMAL
-                )
-            } ?: ExifInterface.ORIENTATION_NORMAL
-        }.getOrDefault(ExifInterface.ORIENTATION_NORMAL)
+        try {
+            checkCancelled()
+            val orientation = runCatching {
+                context.contentResolver.openFileDescriptor(uri, "r")?.use { descriptor ->
+                    ExifInterface(descriptor.fileDescriptor).getAttributeInt(
+                        ExifInterface.TAG_ORIENTATION,
+                        ExifInterface.ORIENTATION_NORMAL
+                    )
+                } ?: ExifInterface.ORIENTATION_NORMAL
+            }.getOrDefault(ExifInterface.ORIENTATION_NORMAL)
 
-        val matrix = orientationMatrix(orientation)
-        if (matrix.isIdentity) return bitmap
+            checkCancelled()
+            val matrix = orientationMatrix(orientation)
+            if (matrix.isIdentity) return bitmap
 
-        val oriented = Bitmap.createBitmap(
-            bitmap,
-            0,
-            0,
-            bitmap.width,
-            bitmap.height,
-            matrix,
-            true
-        )
-        if (oriented !== bitmap) {
+            val oriented = Bitmap.createBitmap(
+                bitmap,
+                0,
+                0,
+                bitmap.width,
+                bitmap.height,
+                matrix,
+                true
+            )
+            if (oriented !== bitmap) {
+                bitmap.recycle()
+            }
+            return oriented
+        } catch (error: Throwable) {
             bitmap.recycle()
+            throw error
         }
-        return oriented
     }
 
     internal fun orientationMatrix(orientation: Int): Matrix =
