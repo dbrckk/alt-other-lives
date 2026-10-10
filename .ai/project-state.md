@@ -104,6 +104,7 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 - Home now provides a localized Cancel photo import action while an import is in progress, keeps its busy lock until cancellation finishes, and shows a disabled cancelling state to prevent repeated taps.
 - Scenario cards now surface the narrative arc from first to last chapter and use indexed list rendering directly.
 - Generated-scene acceptance also rejects mostly transparent outputs before persistence, in addition to size/aspect/near-uniform checks.
+- Local persistence of generated chapters now checks coroutine cancellation between bounded stream-copy chunks and before changing an existing scene; full-regeneration staging checks cancellation before the atomic commit boundary and never inserts cancellation checkpoints mid-commit. Device/server behavior still requires manual validation.
 
 ## Current priority
 Keep the end-to-end AI generation path reliable while raising ALT to premium consumer-product quality. The active product direction is cinematic, social-first and highly shareable: Reveal, 9:16 image exports and MP4 exports must feel polished enough to publish directly to Reels, Shorts and Stories. Reliability remains the gate: visual work must not regress generation, persistence, cancellation, cleanup or export safety.
