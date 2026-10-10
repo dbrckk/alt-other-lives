@@ -65,6 +65,26 @@ flux lent et, pour l'ensemble du parcours, un vrai serveur ComfyUI.
 3. Répéter avec une interruption proche du commit final et redémarrer
    l'application pour vérifier que les scènes et la seed restent cohérentes.
 
+## Intégrité des scènes lors d'une annulation sur émulateur
+
+Le test instrumenté Android
+`GeneratedScenePersistenceCancellationInstrumentedTest` utilise
+le vrai `ContentResolver`, le vrai `FileProvider` de l'application
+et son dossier privé `files/generated/`. Il couvre deux opérations :
+
+- Annulation au cours de la copie d'un nouveau chapitre : les octets
+  de l'ancien chapitre sont préservés et le fichier `.scene-*.tmp`
+  de préparation est supprimé.
+- Annulation après préparation des cinq images d'une régénération, juste
+  avant le commit atomique : les cinq anciennes images et la seed
+  d'origine restent inchangées, sans dossier `.batch-*` résiduel.
+
+Le point d'annulation est injecté de façon déterministe après l'écriture
+de données dans de **vrais fichiers Android** ; cela vérifie le rollback
+et la conservation des médias sans simuler le système de stockage.
+Ce test ne remplace pas une annulation au milieu d'une lecture bloquante
+d'un fournisseur tiers, ni une vérification avec un serveur ComfyUI réel.
+
 ## Vérifications automatisées existantes
 
 Le workflow `.github/workflows/android.yml` exécute les tests JVM préexistants, les lints debug/release, la compilation APK, les tests instrumentés sur émulateur et le build release AAB. Il ne remplace **pas** les tests de bout en bout avec un serveur ComfyUI réel.
