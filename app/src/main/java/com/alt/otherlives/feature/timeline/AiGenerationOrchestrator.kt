@@ -16,6 +16,8 @@ import com.alt.otherlives.core.media.NormalizedCropRect
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 
 data class AiGenerationOutcome(
@@ -80,11 +82,13 @@ class AiGenerationOrchestrator(
                         pendingResetDownloads += generated.imageUri
                     } else {
                         val currentScenes = withContext(Dispatchers.IO) {
+                            val persistContext = currentCoroutineContext()
                             GenerationDownloadLifecycle.persistAndRelease(
                                 persist = {
                                     sceneStore.persist(
-                                        timelineKey,
-                                        listOf(generated)
+                                        timelineKey = timelineKey,
+                                        scenes = listOf(generated),
+                                        checkCancelled = { persistContext.ensureActive() }
                                     )
                                 },
                                 release = {
@@ -122,10 +126,12 @@ class AiGenerationOrchestrator(
             val finalScenes = if (policy.shouldCommitFreshVariation) {
                 withContext(Dispatchers.IO) {
                     if (resetSeed) {
+                        val persistContext = currentCoroutineContext()
                         sceneStore.replaceBatchAtomically(
                             timelineKey = timelineKey,
                             scenes = newScenes,
-                            seed = generationSeed
+                            seed = generationSeed,
+                            checkCancelled = { persistContext.ensureActive() }
                         )
                         releasePendingDownloads(pendingResetDownloads)
                     }

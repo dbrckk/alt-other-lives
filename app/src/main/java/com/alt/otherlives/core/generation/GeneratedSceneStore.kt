@@ -85,7 +85,12 @@ class GeneratedSceneStore(private val context: Context) {
         }
     }
 
-    fun persist(timelineKey: String, scenes: List<GeneratedScene>): List<GeneratedScene> {
+    fun persist(
+        timelineKey: String,
+        scenes: List<GeneratedScene>,
+        checkCancelled: () -> Unit = {}
+    ): List<GeneratedScene> {
+        checkCancelled()
         SceneBatchValidation.validateChapterIndexes(
             scenes.map { it.chapterIndex }
         )
@@ -119,7 +124,8 @@ class GeneratedSceneStore(private val context: Context) {
                     BoundedStreamCopy.copy(
                         input = input,
                         output = output,
-                        maxBytes = MAX_PERSISTED_SCENE_BYTES
+                        maxBytes = MAX_PERSISTED_SCENE_BYTES,
+                        checkCancelled = checkCancelled
                     )
                 }
                 } ?: error("Unable to persist generated scene " + scene.chapterIndex)
@@ -129,6 +135,8 @@ class GeneratedSceneStore(private val context: Context) {
                 require(isValidImage(temporary)) {
                     "Generated scene is invalid for chapter " + (scene.chapterIndex + 1)
                 }
+                // Cancellation remains safe before modifying existing scene files.
+                checkCancelled()
 
                 backup.delete()
                 val currentTarget = previousFiles.firstOrNull { it.absolutePath == target.absolutePath }
@@ -176,8 +184,10 @@ class GeneratedSceneStore(private val context: Context) {
     fun replaceBatchAtomically(
         timelineKey: String,
         scenes: List<GeneratedScene>,
-        seed: Long? = null
+        seed: Long? = null,
+        checkCancelled: () -> Unit = {}
     ): List<GeneratedScene> {
+        checkCancelled()
         if (scenes.isEmpty()) return emptyList()
         SceneBatchValidation.validateChapterIndexes(
             scenes.map { it.chapterIndex }
@@ -203,7 +213,8 @@ class GeneratedSceneStore(private val context: Context) {
                         BoundedStreamCopy.copy(
                             input = input,
                             output = output,
-                            maxBytes = MAX_PERSISTED_SCENE_BYTES
+                            maxBytes = MAX_PERSISTED_SCENE_BYTES,
+                            checkCancelled = checkCancelled
                         )
                     }
                 } ?: error("Unable to stage generated scene " + scene.chapterIndex)
@@ -213,6 +224,9 @@ class GeneratedSceneStore(private val context: Context) {
                 staged += scene.chapterIndex to stagedFile
             }
 
+            // Once backups move or the commit marker is written, complete the
+            // atomic transaction without cancellation checkpoints.
+            checkCancelled()
             val affectedIndexes = staged.map { it.first }.toSet()
             File(transaction, "affected.txt").writeText(
                 affectedIndexes.sorted().joinToString(",")

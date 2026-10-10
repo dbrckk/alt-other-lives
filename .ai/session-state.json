@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Validate cancellation and size rejection of photo imports against controlled slow and oversized Android ContentProvider streams on an emulator.",
-  "lastKnownBlocker": "No confirmed blocker on main; the new slow-provider instrumentation and release build are awaiting CI. Real third-party document-provider latency remains untested.",
-  "fixApplied": "PRs #60 and #61 merged after full Android CI. New instrumentation-only provider emits a deliberately stalled JPEG and a 51 MiB stream to exercise private-file cleanup and the existing 50 MiB import limit.",
+  "currentTask": "Validate cooperative cancellation during private generated-scene persistence and atomic full-regeneration staging.",
+  "lastKnownBlocker": "Main CI was green for PR #62 (2026-10-09). The generated-scene cancellation patch is on a separate branch and awaits Android CI plus manual ComfyUI/device verification.",
+  "fixApplied": "Source-photo stalled/oversized provider tests are merged (#62). GeneratedSceneStore persistence and full-regeneration staging now accept bounded-copy cancellation checks propagated from AiGenerationOrchestrator; atomic commit remains uninterrupted once started.",
   "next": [
-    "Run and diagnose full Android CI, including newly added slow-provider emulator integration checks",
-    "Merge the scoped tests and state only after successful unit/lint/debug APK/emulator/AAB validation",
-    "Manually test actual Google Photos, Drive and cloud providers on physical Android devices before making latency claims",
-    "Review any confirmed provider-lockup failure and address cancellation/cleanup without relaxing size limits"
+    "Run Android CI for cooperative scene-persistence cancellation (existing JVM tests, lint, debug APK, emulator instrumentation, release AAB)",
+    "Merge only after green checks; re-read branch/main refs to avoid overwriting concurrent work",
+    "Manually cancel persistence and full-regeneration staging on Android with a real ComfyUI endpoint and verify surviving chapters/seed",
+    "Test external slow photo providers (Google Photos, Drive) on physical Android devices; emulator provider checks do not replace them"
   ],
-  "updated": "2026-10-09"
+  "updated": "2026-10-10"
 }
