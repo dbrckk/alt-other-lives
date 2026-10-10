@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Validate cooperative cancellation during private generated-scene persistence and atomic full-regeneration staging.",
-  "lastKnownBlocker": "Main CI was green for PR #62 (2026-10-09). The generated-scene cancellation patch is on a separate branch and awaits Android CI plus manual ComfyUI/device verification.",
-  "fixApplied": "Source-photo stalled/oversized provider tests are merged (#62). GeneratedSceneStore persistence and full-regeneration staging now accept bounded-copy cancellation checks propagated from AiGenerationOrchestrator; atomic commit remains uninterrupted once started.",
+  "currentTask": "Validate cancellation while preparing re-encoded JPEG source photos for ComfyUI.",
+  "lastKnownBlocker": "PR #63 merged (018dc632) after green JVM, lint, APK, emulator and release AAB CI; real ComfyUI/device cancellation tests remain unverified. New JPEG-preparation cancellation branch awaits CI.",
+  "fixApplied": "PR #63 merged. Source JPEG preparation now checks coroutine cancellation at image-processing boundaries, releases in-memory bitmaps on cancelled decode, removes cancelled temporary JPEGs and prevents subsequent upload.",
   "next": [
-    "Run Android CI for cooperative scene-persistence cancellation (existing JVM tests, lint, debug APK, emulator instrumentation, release AAB)",
-    "Merge only after green checks; re-read branch/main refs to avoid overwriting concurrent work",
-    "Manually cancel persistence and full-regeneration staging on Android with a real ComfyUI endpoint and verify surviving chapters/seed",
-    "Test external slow photo providers (Google Photos, Drive) on physical Android devices; emulator provider checks do not replace them"
+    "Run full Android CI for source photo JPEG preparation cancellation and merge only after green checks",
+    "Verify cancellation during source decode / compression on an Android device with a slow provider and a real ComfyUI endpoint",
+    "Verify cancellation during scene persistence and full regeneration after PR #63 on device",
+    "Test Google Photos / Drive provider latency on physical Android devices"
   ],
   "updated": "2026-10-10"
 }
