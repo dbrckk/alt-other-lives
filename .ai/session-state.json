@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Verify cinematic MP4 scene preparation cancellation on Android, including cleanup after multiple encoded chapter JPEGs.",
-  "lastKnownBlocker": "CI on main is green for PR #66 (run 38132534287). New cancellation-safe cinematic scene render branch awaits Android CI, while physical-device/real HTTPS ComfyUI validation remains unverified.",
-  "fixApplied": "Cinematic timeline frame renderer checks coroutine cancellation between chapter/intro/outro bitmap stages and after JPEG compression, deleting all output files when aborted. Reveal cleans completed frames lost during Dispatchers.Default→Main cancellation and ignores stale callbacks from an export cancelled before an immediate retry. Android instrumentation tests cleanup after two finalized chapter JPEGs.",
+  "currentTask": "Validate cancelled MP4 frame preparation on physical Android and the complete ComfyUI-to-JPEG/MP4 export/share path.",
+  "lastKnownBlocker": "No confirmed CI blocker. PR #67 was merged after successful full Android CI run 38134158246 (JVM tests, debug/release lint, APK, instrumented Android cancellation check, unsigned release AAB). Real physical-device Media3 cancellation and HTTPS ComfyUI full-generation tests remain unverified.",
+  "fixApplied": "PR #67 merged (e41f80d): cooperative cancellation during cinematic chapter/intro/outro JPEG frame creation; removes pending and finalized frames if cancelled, including Default-to-Main dispatcher handoff; stale cancelled-export results cannot mutate a new immediate retry. Android instrumentation validated cleanup after two encoded chapter JPEGs.",
   "next": [
-    "Wait for full Android CI on the latest #67 head and merge only if all checks pass",
-    "Validate cancel/retry and screen exit during 9:16 pre-render plus Media3 export on physical Android",
-    "Validate full five-chapter ComfyUI HTTPS generation, restart, 9:16 exports and Android Sharesheet",
-    "Exercise Google Photos/Drive provider cancellation and Play signing/install/update path"
+    "On a physical Android device cancel MP4 preparation mid-render, cancel Media3 transcoding, immediately retry and ensure the resulting file shares successfully",
+    "Run a real five-chapter HTTPS ComfyUI generation, restore after app restart and test JPEG/MP4 export plus Android Sharesheet",
+    "Check Google Photos and Drive slow provider import/cancel behavior on a physical device and record measurable evidence",
+    "Audit gallery save cancellation and MediaStore pending-item cleanup, release signing, Play internal testing and privacy declarations"
   ],
   "updated": "2026-10-11"
 }
