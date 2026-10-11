@@ -45,6 +45,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalConfiguration
@@ -1181,11 +1183,13 @@ fun RevealScreen(
                             exportJob = scope.launch {
                                 val prepared = runCatching {
                                     withContext(Dispatchers.Default) {
+                                        val renderContext = currentCoroutineContext()
                                         TimelineSceneRenderer.render(
                                             context = context,
                                             photoUri = photoUri,
                                             scenario = scenario,
-                                            chapterImages = generatedScenes.associate { it.chapterIndex to it.imageUri }
+                                            chapterImages = generatedScenes.associate { it.chapterIndex to it.imageUri },
+                                            checkCancelled = { renderContext.ensureActive() }
                                         )
                                     }
                                 }
