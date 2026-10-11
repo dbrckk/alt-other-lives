@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Validate actual social/JPEG ShareSheet handoff on physical Android, full ComfyUI generation and first signed Play internal-track build.",
-  "lastKnownBlocker": "No confirmed Android CI blocker: PR #70 merged after successful full Android CI run 38158595498 (JVM, debug/release lint, APK, Android emulator share JPEG acceptance/cancellation checks, generated baseline profile, unsigned release AAB). Physical-device social-app sharing, real HTTPS ComfyUI and signed Google Play install/update remain unverified.",
-  "fixApplied": "PR #70 merged (4f8d7f2): single-life and comparison share JPEG render now check cancellation during bitmap stages and after encoding, discard temporary/complete images if cancelled, and clean completed images dropped during coroutine handoff to Reveal or History. Emulator integration verified actual 1080x1920 FileProvider JPEG MIME and cleanup after completed image compression for both share flows.",
+  "currentTask": "Validate real Android Sharesheet behavior on physical devices and first signed Play internal-track release.",
+  "lastKnownBlocker": "PR #70 passed complete Android CI run 38158595498 and merged as 4f8d7f2. No known PR CI blocker; physical-device Sharesheet, real HTTPS ComfyUI generation and signed Play internal-track install/update remain unverified.",
+  "fixApplied": "PR #70 merged (4f8d7f2): cancellation-safe social JPEG and comparison encoding with cleanup across Default-to-Main handoff; Android instrumentation verified 1080x1920 FileProvider JPEG and post-encoding cancellation cleanup for both modes.",
   "next": [
-    "On physical Android render and share single-life and comparison JPEGs to actual targets, cancel and retry during slow render",
-    "Generate five chapters using a real HTTPS ComfyUI endpoint; verify local restoration, 9:16 JPEG/MP4 exports, gallery and Sharesheet",
-    "Create an authorized semver tag with configured upload signing secrets; verify signed AAB and Play internal-track install/update",
-    "Test slow Google Photos/Drive imports, cancellation, source privacy and Play privacy disclosures"
+    "Check post-merge main CI and physical Android Sharesheet handoff for JPEG single/comparison exports",
+    "Test full real HTTPS ComfyUI five-chapter generation and restore",
+    "Build first legitimately tagged signed AAB with authorized Play upload key and verify Play internal-track install/update",
+    "Verify photo-picker cloud providers and gallery saves on physical Android"
   ],
   "updated": "2026-10-11"
 }
