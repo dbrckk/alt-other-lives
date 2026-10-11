@@ -55,7 +55,7 @@ class TimelineSceneRendererCancellationInstrumentedTest {
         } finally {
             cache.listFiles().orEmpty()
                 .filter { it.name !in namesBefore }
-                .forEach(File::delete)
+                .forEach { it.delete() }
         }
     }
 }
