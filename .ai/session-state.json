@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Harden signed tagged release gating: Android integration before signing, PR signing-secret isolation and Play internal-track checklist.",
-  "lastKnownBlocker": "Latest main Android CI 38137845788 passed. Tagged release pipeline still requires a release tag and configured upload-key secrets, and physical-device/real HTTPS ComfyUI/Play internal-track install remain unverified. Release CI gate changes await validation on a PR.",
-  "fixApplied": "Tagged Android Release now reuses real emulator instrumentation + baseline profile generation before loading the upload key, with failure diagnostics uploaded. Ordinary Android CI no longer provides release signing secrets to pull_request runs through its normal bindings. Existing JVM contract assertions extended; docs/RELEASE_READINESS.md documents signing, Play upload and physical-device checks.",
+  "currentTask": "Validate first real signed tagged Android release and Play internal-track update, then full physical-device ComfyUI-to-share workflow.",
+  "lastKnownBlocker": "No Android CI blocker: PR #69 merged after successful full Android CI run 38156007751 (382 JVM diagnostics, release/debug lint, APK, emulator integration, generated baseline profile and unsigned release AAB). The tagged signed workflow cannot be exercised without a version tag and upload-key secrets; real Play install/update and physical HTTPS ComfyUI tests remain unverified.",
+  "fixApplied": "PR #69 merged (8ede831e): tagged Android releases now execute the same emulator instrumentation and baseline profile script as normal CI before loading keystore/signing; release instrumentation diagnostics are uploaded for failures. Ordinary PR CI no longer injects signing secrets by default; existing release contract tests were updated. docs/RELEASE_READINESS.md documents real signing and Play verification.",
   "next": [
-    "Pass latest full Android CI for release gating changes and merge if green",
-    "Run a real tagged signed AAB build using Play upload-key secrets; verify artifact and upload certificate against Play Console",
-    "Install via Play internal track and test upgrade/persistence on a physical device",
-    "Complete real HTTPS ComfyUI five-chapter generation and Android JPEG/MP4 save/share/cancel flows"
+    "Create a legitimate new semantic release tag on a validated main commit with the configured Google Play upload key, then verify signed AAB and upload certificate",
+    "Install and update via Google Play internal testing on a physical Android device; confirm local history/media survive an upgrade",
+    "Generate all five chapters with a real HTTPS ComfyUI server, then restart and verify JPEG/MP4 gallery saves, Sharesheet and cancellation/retry",
+    "Verify Android photo picker, Google Photos/Drive slow-source imports and privacy/data safety declarations before publication"
   ],
   "updated": "2026-10-11"
 }
