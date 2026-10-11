@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Validate cooperative cancellation during ComfyUI HTTP text responses and post-download image quality inspection.",
-  "lastKnownBlocker": "Main CI completed successfully for PR #65 (run 38081739303). New ComfyUI response cancellation patch awaits CI; real external HTTPS ComfyUI/device test remains unavailable.",
-  "fixApplied": "Added cancellation checks around bounded HTTP text response reads, including HTTP error bodies, to avoid swallowing cancellation as a retryable error. Post-download bitmap quality inspection checks cancellation and removes the cached file when aborted.",
+  "currentTask": "Validate full real-device ComfyUI HTTPS generation and Android export after merged HTTP response cancellation hardening.",
+  "lastKnownBlocker": "No confirmed Android CI blocker. PR #66 merged after successful full Android CI run 38132115401 (JVM tests, lint, debug APK, emulator instrumentation, release AAB). Slow HTTPS ComfyUI responses and full five-chapter generation on a physical device remain unverified.",
+  "fixApplied": "PR #66 merged (ce01c1a): ComfyUI HTTP text bodies for health, upload, queue and history now check cancellation before/after bounded reads; cancelled error responses propagate cancellation rather than becoming retryable HTTP errors. Post-download bitmap quality inspection checks cancellation and cleans the cached image.",
   "next": [
-    "Run full Android CI on HTTP response cancellation branch and merge only after checks succeed",
-    "Manually test slow/trickled /history and HTTP error bodies via a real HTTPS ComfyUI instance and Android device",
-    "Manually cancel after downloading a generated image and confirm cache cleanup",
-    "Complete real five-chapter generation, restart, share JPEG and MP4 verification before Play release"
+    "Perform real five-chapter generation over HTTPS on Android; verify source photo privacy, timeline persistence across restart and 9:16 JPEG/MP4 exports",
+    "Exercise slow/trickled history/error responses on a controllable ComfyUI server and verify cancellation latency and cache cleanup",
+    "Validate Google Photos / Drive provider cancellation on physical Android and capture reproducible failures",
+    "Before release, audit signed AAB install/update path, Play internal test and data-safety declarations"
   ],
   "updated": "2026-10-11"
 }
