@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Verify cancellation-safe MediaStore JPEG/MP4 gallery save and cleanup in Android instrumentation.",
-  "lastKnownBlocker": "Latest main CI is green (38134711003). Gallery write hardening awaits CI on the branch; physical-device ComfyUI/Media3/gallery save remain unverified.",
-  "fixApplied": "ShareCardRenderer and CinematicVideoExporter route gallery saves through a shared pending-MediaStore publisher that verifies coroutine cancellation across real ContentResolver I/O chunks and removes unfinished or cancelled rows. Android instrumentation exercises cancelled JPEG/MP4 gallery entries and a complete readable JPEG save.",
+  "currentTask": "Validate physical-device JPEG/MP4 gallery cancellation and full real ComfyUI-to-export/share journey after merged MediaStore hardening.",
+  "lastKnownBlocker": "No confirmed Android CI blocker: PR #68 merged after successful full Android CI run 38137370334, including real emulator MediaStore cancellation tests, JVM tests, debug/release lint, APK, baseline profile and unsigned release AAB. Physical-device MediaStore and real HTTPS ComfyUI/Media3 remain unverified.",
+  "fixApplied": "PR #68 merged (9296d136): the JPEG/MP4 gallery paths now share one cooperative, cancellation-safe pending MediaStore publisher; pending or just-published items are deleted on cancellation or error while private sources remain untouched. Android emulator integration confirmed JPEG and MP4 row cleanup including pending entries and byte-for-byte readability of a published JPEG.",
   "next": [
-    "Verify latest full Android CI including instrumented MediaStore JPEG/MP4 cancellation tests before merging",
-    "Physically test save/cancel/retry in the Android gallery and check visibility/pending media on multiple Android versions",
-    "Validate five-chapter real HTTPS ComfyUI generation, restart, share-card JPEG and cinematic MP4 end to end",
-    "Audit release signing and Play internal testing before publication"
+    "On physical Android, cancel gallery JPEG/MP4 saves during copy and immediately retry; confirm no invisible pending or incomplete media survives",
+    "Run a full five-chapter generation against real HTTPS ComfyUI; close/restart, verify saved chapters, create social JPEG and cinematic MP4, share via Android Sharesheet",
+    "Test slow Google Photos / Drive photo provider imports, cancel mid-read, document device latency and error behavior",
+    "Before Play release, validate signed install/update via internal track, media permissions and privacy/data safety disclosures"
   ],
   "updated": "2026-10-11"
 }
