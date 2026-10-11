@@ -110,14 +110,28 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Generate baseline profile
+      - name: Verify Android integration and generate baseline profile
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
           api-level: 35
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          script: gradle :app:generateBaselineProfile -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile --stacktrace --info
+          # Reuse the proven main CI runner: first exercise real Android
+          # ContentResolver/MediaStore and Compose instrumentation, then
+          # generate the baseline profile. Fail closed before loading keys.
+          script: bash .github/scripts/run-instrumentation-tests.sh
+
+      - name: Upload tagged-release instrumentation diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: alt-tagged-release-instrumentation-diagnostics
+          if-no-files-found: warn
+          path: |
+            app/build/reports/androidTests/connected/
+            app/build/outputs/androidTest-results/connected/
+            app/build/instrumentation-logcat.txt
 
       - name: Prepare release keystore
         env:

@@ -24,5 +24,13 @@ class ReleaseSigningWorkflowContractTest {
         assertTrue(source.contains("jarsigner -verify -strict"))
         assertTrue(source.contains("alt-release-aab-signed"))
         assertTrue(source.contains("alt-release-aab-unsigned"))
+        // PR checks can compile AABs but must not normally inject the
+        // repository's production upload-key secrets into their jobs.
+        val mainPushOnly = "github.event_name == 'push' && github.ref == 'refs/heads/main'"
+        assertTrue(source.contains(mainPushOnly))
+        assertTrue(
+            "Every signing-secret environment binding must be main-push scoped",
+            Regex(Regex.escape(mainPushOnly)).findAll(source).count() == 8
+        )
     }
 }

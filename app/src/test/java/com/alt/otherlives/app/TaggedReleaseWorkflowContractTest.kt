@@ -39,6 +39,11 @@ class TaggedReleaseWorkflowContractTest {
         assertTrue(releaseLint > unitTests)
         assertTrue(signing > releaseLint)
         assertTrue(bundle > signing)
+        val integration = source.indexOf("script: bash .github/scripts/run-instrumentation-tests.sh")
+        val diagnostics = source.indexOf("Upload tagged-release instrumentation diagnostics")
+        assertTrue("Tagged releases must run emulator integration before signing", integration > releaseLint)
+        assertTrue("Integration failures must have downloadable diagnostics", diagnostics > integration)
+        assertTrue("Signing must follow successful integration", signing > diagnostics)
     }
 
     @Test

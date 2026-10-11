@@ -84,12 +84,15 @@ jobs:
           name: alt-baseline-profile
           if-no-files-found: error
           path: app/src/main/generated/baselineProfiles/
+      # PR jobs compile unsigned artifacts only. Signing secrets are supplied
+      # only for push events on main; official Play releases use the
+      # dedicated tag-only workflow below.
       - name: Validate release signing configuration
         env:
-          ALT_ANDROID_KEYSTORE_BASE64: ${{ secrets.ALT_ANDROID_KEYSTORE_BASE64 }}
-          ALT_KEYSTORE_PASSWORD: ${{ secrets.ALT_KEYSTORE_PASSWORD }}
-          ALT_KEY_ALIAS: ${{ secrets.ALT_KEY_ALIAS }}
-          ALT_KEY_PASSWORD: ${{ secrets.ALT_KEY_PASSWORD }}
+          ALT_ANDROID_KEYSTORE_BASE64: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.ALT_ANDROID_KEYSTORE_BASE64 || '' }}
+          ALT_KEYSTORE_PASSWORD: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.ALT_KEYSTORE_PASSWORD || '' }}
+          ALT_KEY_ALIAS: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.ALT_KEY_ALIAS || '' }}
+          ALT_KEY_PASSWORD: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.ALT_KEY_PASSWORD || '' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -120,15 +123,15 @@ jobs:
       - name: Prepare release keystore
         if: env.ALT_RELEASE_SIGNED == 'true'
         env:
-          ALT_ANDROID_KEYSTORE_BASE64: ${{ secrets.ALT_ANDROID_KEYSTORE_BASE64 }}
+          ALT_ANDROID_KEYSTORE_BASE64: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.ALT_ANDROID_KEYSTORE_BASE64 || '' }}
         run: |
           echo "$ALT_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/alt-release.jks"
           echo "ALT_KEYSTORE_PATH=$RUNNER_TEMP/alt-release.jks" >> "$GITHUB_ENV"
       - name: Build release AAB
         env:
-          ALT_KEYSTORE_PASSWORD: ${{ secrets.ALT_KEYSTORE_PASSWORD }}
-          ALT_KEY_ALIAS: ${{ secrets.ALT_KEY_ALIAS }}
-          ALT_KEY_PASSWORD: ${{ secrets.ALT_KEY_PASSWORD }}
+          ALT_KEYSTORE_PASSWORD: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.ALT_KEYSTORE_PASSWORD || '' }}
+          ALT_KEY_ALIAS: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.ALT_KEY_ALIAS || '' }}
+          ALT_KEY_PASSWORD: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.ALT_KEY_PASSWORD || '' }}
         run: gradle :app:bundleRelease --stacktrace
       - name: Verify signed release AAB
         if: env.ALT_RELEASE_SIGNED == 'true'

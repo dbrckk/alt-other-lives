@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Validate physical-device JPEG/MP4 gallery cancellation and full real ComfyUI-to-export/share journey after merged MediaStore hardening.",
-  "lastKnownBlocker": "No confirmed Android CI blocker: PR #68 merged after successful full Android CI run 38137370334, including real emulator MediaStore cancellation tests, JVM tests, debug/release lint, APK, baseline profile and unsigned release AAB. Physical-device MediaStore and real HTTPS ComfyUI/Media3 remain unverified.",
-  "fixApplied": "PR #68 merged (9296d136): the JPEG/MP4 gallery paths now share one cooperative, cancellation-safe pending MediaStore publisher; pending or just-published items are deleted on cancellation or error while private sources remain untouched. Android emulator integration confirmed JPEG and MP4 row cleanup including pending entries and byte-for-byte readability of a published JPEG.",
+  "currentTask": "Harden signed tagged release gating: Android integration before signing, PR signing-secret isolation and Play internal-track checklist.",
+  "lastKnownBlocker": "Latest main Android CI 38137845788 passed. Tagged release pipeline still requires a release tag and configured upload-key secrets, and physical-device/real HTTPS ComfyUI/Play internal-track install remain unverified. Release CI gate changes await validation on a PR.",
+  "fixApplied": "Tagged Android Release now reuses real emulator instrumentation + baseline profile generation before loading the upload key, with failure diagnostics uploaded. Ordinary Android CI no longer provides release signing secrets to pull_request runs through its normal bindings. Existing JVM contract assertions extended; docs/RELEASE_READINESS.md documents signing, Play upload and physical-device checks.",
   "next": [
-    "On physical Android, cancel gallery JPEG/MP4 saves during copy and immediately retry; confirm no invisible pending or incomplete media survives",
-    "Run a full five-chapter generation against real HTTPS ComfyUI; close/restart, verify saved chapters, create social JPEG and cinematic MP4, share via Android Sharesheet",
-    "Test slow Google Photos / Drive photo provider imports, cancel mid-read, document device latency and error behavior",
-    "Before Play release, validate signed install/update via internal track, media permissions and privacy/data safety disclosures"
+    "Pass latest full Android CI for release gating changes and merge if green",
+    "Run a real tagged signed AAB build using Play upload-key secrets; verify artifact and upload certificate against Play Console",
+    "Install via Play internal track and test upgrade/persistence on a physical device",
+    "Complete real HTTPS ComfyUI five-chapter generation and Android JPEG/MP4 save/share/cancel flows"
   ],
   "updated": "2026-10-11"
 }
