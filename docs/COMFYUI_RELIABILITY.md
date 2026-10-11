@@ -120,7 +120,10 @@ est exécutée hors du thread UI et vérifie maintenant l'annulation entre
 les chapitres, après les décodages et avant/après l'encodage JPEG synchrone.
 
 Une annulation à ce stade ne démarre pas le transcodeur vidéo et supprime
-les JPEG temporaires de cet export, y compris ceux déjà finalisés. Le test
+les JPEG temporaires de cet export, y compris ceux déjà finalisés.
+Cette libération couvre aussi l'annulation juste après le rendu, pendant le
+retour de la tâche de fond vers l'interface. Un export annulé ne doit pas
+réinitialiser l'état d'un second export lancé immédiatement après. Le test
 d'intégration Android `TimelineSceneRendererCancellationInstrumentedTest`
 force une annulation après deux vrais JPEG de chapitres, puis contrôle
 que le dossier privé ne contient pas de nouveaux fichiers d'export.
