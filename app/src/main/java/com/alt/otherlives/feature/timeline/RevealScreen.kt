@@ -1181,6 +1181,10 @@ fun RevealScreen(
                             exportProgress = null
                             completedVideoUri = null
                             exportJob = scope.launch {
+                                // Keep an ownership handle across the Default-to-Main
+                                // dispatch: withContext may drop a completed result
+                                // if the user cancels during the dispatcher handoff.
+                                var completedFrames: RenderedTimelineScenes? = null
                                 val prepared = runCatching {
                                     withContext(Dispatchers.Default) {
                                         val renderContext = currentCoroutineContext()
@@ -1190,11 +1194,12 @@ fun RevealScreen(
                                             scenario = scenario,
                                             chapterImages = generatedScenes.associate { it.chapterIndex to it.imageUri },
                                             checkCancelled = { renderContext.ensureActive() }
-                                        )
+                                        ).also { completedFrames = it }
                                     }
                                 }
 
                                 prepared.onSuccess { renderedScenes ->
+                                    completedFrames = null
                                     activeRenderedScenes = renderedScenes
                                     runCatching {
                                         CinematicVideoExporter.export(
@@ -1261,6 +1266,7 @@ fun RevealScreen(
                                         }
                                     }
                                 }.onFailure {
+                                    completedFrames?.deleteCacheFiles()
                                     isExporting = false
                                     exportProgress = null
                                     activeTransformer = null
