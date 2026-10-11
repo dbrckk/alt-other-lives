@@ -1,6 +1,7 @@
 package com.alt.otherlives.core.media
 
 import android.content.Context
+import android.content.ClipData
 import android.content.Intent
 import android.graphics.*
 import android.net.Uri
@@ -481,6 +482,7 @@ object ShareCardRenderer {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "image/jpeg"
             putExtra(Intent.EXTRA_STREAM, uri)
+            clipData = ClipData.newUri(context.contentResolver, "ALT shared media", uri)
             putExtra(
                 Intent.EXTRA_TEXT,
                 context.getString(R.string.share_compare_text)
@@ -554,6 +556,7 @@ object ShareCardRenderer {
         val intent=Intent(Intent.ACTION_SEND).apply {
             type = "image/jpeg"
             putExtra(Intent.EXTRA_STREAM, uri)
+            clipData = ClipData.newUri(context.contentResolver, "ALT shared media", uri)
             putExtra(
                 Intent.EXTRA_TEXT,
                 context.getString(
