@@ -41,13 +41,14 @@ class ComfyUiClient(
     )
 
     suspend fun testConnection(): Unit = withContext(Dispatchers.IO) {
+        val responseContext = currentCoroutineContext()
         val connection = open(
             path = "/system_stats",
             method = "GET",
             connectTimeoutMs = 8_000,
             readTimeoutMs = 10_000
         )
-        val body = readResponse(connection)
+        val body = readResponse(connection) { responseContext.ensureActive() }
         require(body.isNotBlank()) { "ComfyUI returned an empty response" }
         val json = runCatching { JSONObject(body) }
             .getOrElse { error("ComfyUI returned an invalid health response") }
@@ -99,7 +100,7 @@ class ComfyUiClient(
                 write("--$boundary--\r\n")
             }
 
-            val body = readResponse(connection)
+            val body = readResponse(connection) { transferContext.ensureActive() }
             val json = parseJsonObject(body, "upload")
             val name = json.optString("name").takeIf { it.isNotBlank() }
                 ?: error("ComfyUI upload response is missing image name")
@@ -118,6 +119,7 @@ class ComfyUiClient(
     }
 
     suspend fun queuePrompt(workflow: JSONObject): String = withContext(Dispatchers.IO) {
+        val requestContext = currentCoroutineContext()
         val connection = open(
             path = "/prompt",
             method = "POST",
@@ -134,7 +136,7 @@ class ComfyUiClient(
                 .toString()
             try {
                 connection.outputStream.use { it.write(payload.toByteArray(Charsets.UTF_8)) }
-                val body = readResponse(connection)
+                val body = readResponse(connection) { requestContext.ensureActive() }
                 val json = parseJsonObject(body, "queue")
                 val promptId = json.optString("prompt_id").takeIf { it.isNotBlank() }
                     ?: error("ComfyUI queue response is missing prompt_id")
@@ -249,7 +251,7 @@ class ComfyUiClient(
                 "Unable to prepare private generation cache"
             }
             TransientMediaCache.cleanupGenerationFiles(dir)
-            ensureSuccess(connection)
+            ensureSuccess(connection) { transferContext.ensureActive() }
             val responseContentType = connection.contentType
             ComfyUiDownloadResponsePolicy.validate(
                 contentLengthBytes = connection.contentLengthLong,
@@ -280,8 +282,10 @@ class ComfyUiClient(
                 }
             }
 
+            transferContext.ensureActive()
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(file.absolutePath, bounds)
+            transferContext.ensureActive()
             if (!ImageBoundsValidation.isReasonable(bounds.outWidth, bounds.outHeight)) {
                 throw GeneratedSceneQualityException(
                     "ComfyUI returned an invalid or unreasonable image for chapter " +
@@ -327,6 +331,9 @@ class ComfyUiClient(
                 sampleBitmap.recycle()
             }
 
+            // Cancellation during synchronous bitmap inspection must delete
+            // the downloaded file rather than leak it into the cache.
+            transferContext.ensureActive()
             FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
         } catch (error: Throwable) {
             file?.delete()
@@ -347,13 +354,17 @@ class ComfyUiClient(
         promptId: String,
         remainingBudgetMs: Long
     ): HistorySnapshot = withContext(Dispatchers.IO) {
+        val responseContext = currentCoroutineContext()
         val connection = open(
             path = "/history/" + ComfyUiPromptId.validate(promptId),
             method = "GET",
             connectTimeoutMs = ComfyUiPollingTiming.networkTimeoutMs(remainingBudgetMs, 8_000),
             readTimeoutMs = ComfyUiPollingTiming.networkTimeoutMs(remainingBudgetMs, 15_000)
         )
-        val json = parseJsonObject(readResponse(connection), "history")
+        val json = parseJsonObject(
+            readResponse(connection) { responseContext.ensureActive() },
+            "history"
+        )
         val prompt = json.optJSONObject(promptId)
             ?: return@withContext HistorySnapshot(null, false, null, emptyList())
 
@@ -424,25 +435,48 @@ class ComfyUiClient(
         readTimeoutMs = readTimeoutMs
     )
 
-    private fun readResponse(connection: HttpURLConnection): String {
+    private fun readResponse(
+        connection: HttpURLConnection,
+        checkCancelled: () -> Unit
+    ): String {
         return try {
-            ensureSuccess(connection)
+            ensureSuccess(connection, checkCancelled)
             connection.inputStream.bufferedReader().use {
-                BoundedTextRead.read(it, MAX_RESPONSE_BODY_CHARS)
+                BoundedTextRead.read(
+                    reader = it,
+                    maxChars = MAX_RESPONSE_BODY_CHARS,
+                    checkCancelled = checkCancelled
+                )
             }
         } finally {
             connection.disconnect()
         }
     }
 
-    private fun ensureSuccess(connection: HttpURLConnection) {
+    private fun ensureSuccess(
+        connection: HttpURLConnection,
+        checkCancelled: () -> Unit
+    ) {
+        checkCancelled()
         val code = connection.responseCode
+        checkCancelled()
         if (code !in 200..299) {
-            val body = runCatching {
+            val body = try {
                 connection.errorStream?.bufferedReader()?.use {
-                    BoundedTextRead.read(it, MAX_ERROR_BODY_READ_CHARS)
-                }
-            }.getOrNull().orEmpty()
+                    BoundedTextRead.read(
+                        reader = it,
+                        maxChars = MAX_ERROR_BODY_READ_CHARS,
+                        checkCancelled = checkCancelled
+                    )
+                }.orEmpty()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: IOException) {
+                ""
+            } catch (_: IllegalArgumentException) {
+                // Oversized error body: the HTTP status remains authoritative.
+                ""
+            }
             val safeBody = body
                 .replace(Regex("\\s+"), " ")
                 .trim()
