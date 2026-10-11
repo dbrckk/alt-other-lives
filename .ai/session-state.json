@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Verify cancellation and deletion of an already-published JPEG/MP4 MediaStore row using Android instrumentation.",
-  "lastKnownBlocker": "PR #71 merged as f962e1d after successful full Android CI 38163968919; main post-merge CI 38174166195 was running at last check. New MediaStore post-publication rollback integration coverage is staged pending validation.",
-  "fixApplied": "PR #71 adds centralized ClipData/FileProvider URI grants to JPEG single/comparison and MP4 Sharesheet actions. New Android instrumentation forces JPEG/MP4 cancellation only after real MediaStore reports IS_PENDING=0, then asserts no row remains.",
+  "currentTask": "Validate physical-device Android JPEG/MP4 Sharesheet and gallery end-to-end, then first authorized signed Google Play internal-track release.",
+  "lastKnownBlocker": "No current Android CI blocker: PR #71 merged as f962e1d (successful PR CI 38163968919 and post-merge main CI 38174166195); PR #72 merged as 2a124cc after successful full Android CI 38174278223, including real MediaStore cancellation after publication for JPEG/MP4. Signed Play AAB, physical Sharesheet/gallery, and real HTTPS ComfyUI flow remain unverified.",
+  "fixApplied": "PR #71 centralizes explicit FileProvider ClipData read grants on all JPEG/MP4 Sharesheet sends; PR #72 adds emulator instrumentation that waits until MediaStore IS_PENDING=0 before cancelling a JPEG/MP4 gallery export and confirms public and pending rows are removed, preserving the private source file.",
   "next": [
-    "Run and verify full PR Android CI including new MediaStore publication rollback tests; fix any emulator failures before merge",
-    "Review post-merge main CI and physical Android gallery save/share, including cancellation and retry",
-    "Test real HTTPS ComfyUI five-chapter generation and restoration on physical Android",
-    "Run authorized signed version-tag release and Google Play internal-track install/update"
+    "Verify JPEG single/comparison and real cinematic MP4 through third-party Sharesheet targets on a physical Android device",
+    "Confirm gallery JPEG/MP4 save/cancel/retry and Android photo-picker cloud-source imports on a physical device",
+    "Run an authorized five-chapter real HTTPS ComfyUI generation, restart/history recovery, and cleanup test",
+    "Create first legitimate signed version-tag release with registered Play upload key and verify internal-track install/update, versionCode and user media preservation"
   ],
   "updated": "2026-10-11"
 }
