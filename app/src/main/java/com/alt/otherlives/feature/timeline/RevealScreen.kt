@@ -1181,6 +1181,7 @@ fun RevealScreen(
                             exportProgress = null
                             completedVideoUri = null
                             exportJob = scope.launch {
+                                val thisExportJob = currentCoroutineContext()[Job]
                                 // Keep an ownership handle across the Default-to-Main
                                 // dispatch: withContext may drop a completed result
                                 // if the user cancels during the dispatcher handoff.
@@ -1196,6 +1197,13 @@ fun RevealScreen(
                                             checkCancelled = { renderContext.ensureActive() }
                                         ).also { completedFrames = it }
                                     }
+                                }
+
+                                // A previous cancelled preparation must not reset the
+                                // state of a newly started export after Cancel/Retry.
+                                if (exportJob !== thisExportJob) {
+                                    completedFrames?.deleteCacheFiles()
+                                    return@launch
                                 }
 
                                 prepared.onSuccess { renderedScenes ->
