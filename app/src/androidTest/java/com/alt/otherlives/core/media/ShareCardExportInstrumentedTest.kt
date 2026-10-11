@@ -67,6 +67,20 @@ class ShareCardExportInstrumentedTest {
     }
 
     @Test
+    fun videoSharesheetIntentGrantsMediaUri() = withShareCache { context, _, _ ->
+        val scenario = ScenarioCatalog.scenarios.first()
+        val uri = ShareCardRenderer.render(context, null, scenario)
+        // Intent contract is identical for MP4 and JPEG; no Media3 encoder
+        // or misleading synthetic MP4 is needed to verify URI grants.
+        val intent = ShareMediaIntent.create(context, uri, "video/mp4", "ALT video")
+        assertEquals("video/mp4", intent.type)
+        assertEquals(uri, intent.clipData?.getItemAt(0)?.uri)
+        assertTrue(
+            intent.flags and android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION != 0
+        )
+    }
+
+    @Test
     fun cancellationAfterJpegEncodingRemovesShareTempFile() = withShareCache {
         context, cache, previous ->
         val scenario = ScenarioCatalog.scenarios.first()
