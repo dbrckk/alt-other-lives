@@ -19,7 +19,6 @@ object ShareCardRenderer {
     private const val WIDTH = 1080
     private const val HEIGHT = 1920
     private const val CACHE_MAX_AGE_MS = 24L * 60L * 60L * 1000L
-    private const val PENDING_MEDIA_EXPIRY_SECONDS = 24L * 60L * 60L
     fun render(
         context: Context,
         photoUri: Uri?,
@@ -459,54 +458,30 @@ object ShareCardRenderer {
         context: Context,
         photoUri: Uri?,
         scenario: Scenario,
-        fallbackImageUri: Uri? = null
+        fallbackImageUri: Uri? = null,
+        checkCancelled: () -> Unit = {}
     ): Uri {
         require(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             "Direct gallery save requires Android 10 or newer"
         }
+        checkCancelled()
         val rendered = renderArtifact(context, photoUri, scenario, fallbackImageUri)
-        val values = android.content.ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, "ALT-" + scenario.id + "-" + System.currentTimeMillis() + ".jpg")
-            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ALT")
-            put(MediaStore.Images.Media.IS_PENDING, 1)
-            put(
-                MediaStore.MediaColumns.DATE_EXPIRES,
-                System.currentTimeMillis() / 1000L + PENDING_MEDIA_EXPIRY_SECONDS
+        return try {
+            checkCancelled()
+            GalleryMediaSaver.save(
+                context = context,
+                sourceUri = rendered.uri,
+                collectionUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                displayName = "ALT-" + scenario.id + "-" + System.currentTimeMillis() + ".jpg",
+                mimeType = "image/jpeg",
+                relativePath = "Pictures/ALT",
+                checkCancelled = checkCancelled
             )
-        }
-        var target: Uri? = null
-        try {
-            target = requireNotNull(
-                context.contentResolver.insert(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    values
-                )
-            ) { "Unable to create image gallery item" }
-
-            val copiedBytes = context.contentResolver.openOutputStream(target)?.use { output ->
-                val input = context.contentResolver.openInputStream(rendered.uri)
-                    ?: error("Unable to open rendered share image")
-                input.use { it.copyTo(output) }
-            } ?: error("Unable to open gallery output")
-            require(copiedBytes > 0L) { "Rendered share image copy was empty" }
-
-            values.clear()
-            values.put(MediaStore.Images.Media.IS_PENDING, 0)
-            values.putNull(MediaStore.MediaColumns.DATE_EXPIRES)
-            require(
-                context.contentResolver.update(target, values, null, null) > 0
-            ) {
-                "Unable to finalize image gallery item"
-            }
-            return target
-        } catch (error: Throwable) {
-            target?.let { context.contentResolver.delete(it, null, null) }
-            throw error
         } finally {
             rendered.file.delete()
         }
     }
+
     fun share(context: Context, uri: Uri, scenario: Scenario) {
         val length = context.contentResolver.openAssetFileDescriptor(uri, "r")
             ?.use { it.length }
