@@ -1,6 +1,7 @@
 package com.alt.otherlives.core.media
 
 import android.content.Context
+import android.content.ClipData
 import android.content.Intent
 import android.os.Build
 import android.provider.MediaStore
@@ -205,6 +206,7 @@ object CinematicVideoExporter {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "video/mp4"
             putExtra(Intent.EXTRA_STREAM, uri)
+            clipData = ClipData.newUri(context.contentResolver, "ALT shared media", uri)
             putExtra(
                 Intent.EXTRA_TEXT,
                 context.getString(R.string.video_share_text, scenario.title)
