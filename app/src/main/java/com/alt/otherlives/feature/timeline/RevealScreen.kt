@@ -1132,11 +1132,13 @@ fun RevealScreen(
                                 scope.launch {
                                     val saved = runCatching {
                                         withContext(Dispatchers.IO) {
+                                            val saveContext = currentCoroutineContext()
                                             ShareCardRenderer.saveToGallery(
                                                 context = context,
                                                 photoUri = primaryGeneratedSceneUri ?: photoUri,
                                                 scenario = scenario,
-                                                fallbackImageUri = photoUri
+                                                fallbackImageUri = photoUri,
+                                                checkCancelled = { saveContext.ensureActive() }
                                             )
                                         }
                                     }
@@ -1417,10 +1419,12 @@ fun RevealScreen(
                                     scope.launch {
                                         runCatching {
                                             withContext(Dispatchers.IO) {
+                                                val saveContext = currentCoroutineContext()
                                                 CinematicVideoExporter.saveToGallery(
-                                                    context,
-                                                    videoUri,
-                                                    scenario
+                                                    context = context,
+                                                    uri = videoUri,
+                                                    scenario = scenario,
+                                                    checkCancelled = { saveContext.ensureActive() }
                                                 )
                                             }
                                         }.onSuccess {
