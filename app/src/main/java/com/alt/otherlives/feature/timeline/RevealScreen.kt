@@ -45,6 +45,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalConfiguration
@@ -1179,18 +1181,33 @@ fun RevealScreen(
                             exportProgress = null
                             completedVideoUri = null
                             exportJob = scope.launch {
+                                val thisExportJob = currentCoroutineContext()[Job]
+                                // Keep an ownership handle across the Default-to-Main
+                                // dispatch: withContext may drop a completed result
+                                // if the user cancels during the dispatcher handoff.
+                                var completedFrames: RenderedTimelineScenes? = null
                                 val prepared = runCatching {
                                     withContext(Dispatchers.Default) {
+                                        val renderContext = currentCoroutineContext()
                                         TimelineSceneRenderer.render(
                                             context = context,
                                             photoUri = photoUri,
                                             scenario = scenario,
-                                            chapterImages = generatedScenes.associate { it.chapterIndex to it.imageUri }
-                                        )
+                                            chapterImages = generatedScenes.associate { it.chapterIndex to it.imageUri },
+                                            checkCancelled = { renderContext.ensureActive() }
+                                        ).also { completedFrames = it }
                                     }
                                 }
 
+                                // A previous cancelled preparation must not reset the
+                                // state of a newly started export after Cancel/Retry.
+                                if (exportJob !== thisExportJob) {
+                                    completedFrames?.deleteCacheFiles()
+                                    return@launch
+                                }
+
                                 prepared.onSuccess { renderedScenes ->
+                                    completedFrames = null
                                     activeRenderedScenes = renderedScenes
                                     runCatching {
                                         CinematicVideoExporter.export(
@@ -1257,6 +1274,7 @@ fun RevealScreen(
                                         }
                                     }
                                 }.onFailure {
+                                    completedFrames?.deleteCacheFiles()
                                     isExporting = false
                                     exportProgress = null
                                     activeTransformer = null

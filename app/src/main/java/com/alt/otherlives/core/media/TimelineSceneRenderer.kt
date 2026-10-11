@@ -38,14 +38,18 @@ object TimelineSceneRenderer {
         context: Context,
         photoUri: Uri?,
         scenario: Scenario,
-        chapterImages: Map<Int, Uri> = emptyMap()
+        chapterImages: Map<Int, Uri> = emptyMap(),
+        checkCancelled: () -> Unit = {}
     ): RenderedTimelineScenes {
+        checkCancelled()
         cleanupOldScenes(context)
         val createdFiles = mutableListOf<File>()
         return try {
             val chapterScenes = scenario.chapters.take(5).mapIndexed { index, chapter ->
+                checkCancelled()
                 val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
                 recycleOnFailure(bitmap) {
+                    checkCancelled()
                     val canvas = Canvas(bitmap)
             canvas.drawColor(Color.rgb(8, 8, 10))
 
@@ -75,6 +79,7 @@ object TimelineSceneRenderer {
                     error("Unable to decode visual for chapter " + (index + 1))
                 }
                 try {
+                    checkCancelled()
                     drawCover(canvas, source, Rect(0, 0, WIDTH, 1180), index)
                 } finally {
                     source.recycle()
@@ -166,7 +171,8 @@ object TimelineSceneRenderer {
             val file = writeJpegAtomically(
                 context = context,
                 bitmap = bitmap,
-                baseName = "alt-${scenario.id}-scene-$index"
+                baseName = "alt-${scenario.id}-scene-$index",
+                checkCancelled = checkCancelled
             ).also(createdFiles::add)
 
                     FileProvider.getUriForFile(
@@ -184,11 +190,11 @@ object TimelineSceneRenderer {
 
             RenderedTimelineScenes(
                 imageUris =
-                    listOf(renderIntro(context, introImages, scenario, createdFiles)) +
+                    listOf(renderIntro(context, introImages, scenario, createdFiles, checkCancelled)) +
                         chapterScenes +
-                        listOf(renderOutro(context, scenario, createdFiles)),
+                        listOf(renderOutro(context, scenario, createdFiles, checkCancelled)),
                 cacheFiles = createdFiles.toList()
-            )
+            ).also { checkCancelled() }
         } catch (error: Throwable) {
             createdFiles.forEach { it.delete() }
             throw error
@@ -199,10 +205,13 @@ object TimelineSceneRenderer {
         context: Context,
         photoUris: List<Uri?>,
         scenario: Scenario,
-        createdFiles: MutableList<File>
+        createdFiles: MutableList<File>,
+        checkCancelled: () -> Unit
     ): Uri {
+        checkCancelled()
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
         return recycleOnFailure(bitmap) {
+            checkCancelled()
             val canvas = Canvas(bitmap)
             canvas.drawColor(Color.rgb(8, 8, 10))
 
@@ -217,6 +226,7 @@ object TimelineSceneRenderer {
                 error("Unable to decode timeline intro visual")
             }
             try {
+                checkCancelled()
                 drawCover(canvas, source, Rect(0, 0, WIDTH, 1260), 0)
             } finally {
                 source.recycle()
@@ -296,7 +306,8 @@ object TimelineSceneRenderer {
         val file = writeJpegAtomically(
             context = context,
             bitmap = bitmap,
-            baseName = "alt-${scenario.id}-intro"
+            baseName = "alt-${scenario.id}-intro",
+            checkCancelled = checkCancelled
         ).also(createdFiles::add)
             FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
         }
@@ -305,10 +316,13 @@ object TimelineSceneRenderer {
     private fun renderOutro(
         context: Context,
         scenario: Scenario,
-        createdFiles: MutableList<File>
+        createdFiles: MutableList<File>,
+        checkCancelled: () -> Unit
     ): Uri {
+        checkCancelled()
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
         return recycleOnFailure(bitmap) {
+            checkCancelled()
             val canvas = Canvas(bitmap)
             canvas.drawColor(Color.rgb(8, 8, 10))
 
@@ -363,7 +377,8 @@ object TimelineSceneRenderer {
         val file = writeJpegAtomically(
             context = context,
             bitmap = bitmap,
-            baseName = "alt-${scenario.id}-outro"
+            baseName = "alt-${scenario.id}-outro",
+            checkCancelled = checkCancelled
         ).also(createdFiles::add)
             FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
         }
@@ -384,21 +399,27 @@ object TimelineSceneRenderer {
     private fun writeJpegAtomically(
         context: Context,
         bitmap: Bitmap,
-        baseName: String
+        baseName: String,
+        checkCancelled: () -> Unit
     ): File {
         val dir = File(context.cacheDir, "shares/scenes").apply { mkdirs() }
         val file = File(dir, "$baseName-${UUID.randomUUID()}.jpg")
         val temporary = File(dir, "." + file.name + ".tmp")
         try {
+            checkCancelled()
             FileOutputStream(temporary).use { output ->
                 check(bitmap.compress(Bitmap.CompressFormat.JPEG, 94, output)) {
                     "Unable to encode timeline scene"
                 }
             }
+            // Bitmap.compress is synchronous. Cancellation during encoding
+            // must discard the just-written JPEG instead of finalizing it.
+            checkCancelled()
             require(temporary.length() > 0L) { "Timeline scene is empty" }
             if (!temporary.renameTo(file)) {
                 error("Unable to finalize timeline scene")
             }
+            checkCancelled()
             return file
         } catch (error: Throwable) {
             temporary.delete()

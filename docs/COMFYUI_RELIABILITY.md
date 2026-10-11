@@ -112,6 +112,27 @@ et la conservation des médias sans simuler le système de stockage.
 Ce test ne remplace pas une annulation au milieu d'une lecture bloquante
 d'un fournisseur tiers, ni une vérification avec un serveur ComfyUI réel.
 
+## Annulation pendant la préparation des images vidéo
+
+Avant de produire un MP4, ALT prépare jusqu'à cinq images de chapitres
+et les cartes d'introduction et de conclusion au format 9:16. La préparation
+est exécutée hors du thread UI et vérifie maintenant l'annulation entre
+les chapitres, après les décodages et avant/après l'encodage JPEG synchrone.
+
+Une annulation à ce stade ne démarre pas le transcodeur vidéo et supprime
+les JPEG temporaires de cet export, y compris ceux déjà finalisés.
+Cette libération couvre aussi l'annulation juste après le rendu, pendant le
+retour de la tâche de fond vers l'interface. Un export annulé ne doit pas
+réinitialiser l'état d'un second export lancé immédiatement après. Le test
+d'intégration Android `TimelineSceneRendererCancellationInstrumentedTest`
+force une annulation après deux vrais JPEG de chapitres, puis contrôle
+que le dossier privé ne contient pas de nouveaux fichiers d'export.
+
+L'encodeur JPEG en cours ne peut pas être interrompu instantanément,
+mais son résultat est éliminé au point de contrôle suivant. Vérifier
+également sur un appareil physique l'annulation pendant la préparation
+et pendant l'encodage MP4, puis le partage du fichier final.
+
 ## Vérifications automatisées existantes
 
 Le workflow `.github/workflows/android.yml` exécute les tests JVM préexistants, les lints debug/release, la compilation APK, les tests instrumentés sur émulateur et le build release AAB. Il ne remplace **pas** les tests de bout en bout avec un serveur ComfyUI réel.

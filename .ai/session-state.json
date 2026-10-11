@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Validate full real-device ComfyUI HTTPS generation and Android export after merged HTTP response cancellation hardening.",
-  "lastKnownBlocker": "No confirmed Android CI blocker. PR #66 merged after successful full Android CI run 38132115401 (JVM tests, lint, debug APK, emulator instrumentation, release AAB). Slow HTTPS ComfyUI responses and full five-chapter generation on a physical device remain unverified.",
-  "fixApplied": "PR #66 merged (ce01c1a): ComfyUI HTTP text bodies for health, upload, queue and history now check cancellation before/after bounded reads; cancelled error responses propagate cancellation rather than becoming retryable HTTP errors. Post-download bitmap quality inspection checks cancellation and cleans the cached image.",
+  "currentTask": "Verify cinematic MP4 scene preparation cancellation on Android, including cleanup after multiple encoded chapter JPEGs.",
+  "lastKnownBlocker": "CI on main is green for PR #66 (run 38132534287). New cancellation-safe cinematic scene render branch awaits Android CI, while physical-device/real HTTPS ComfyUI validation remains unverified.",
+  "fixApplied": "Cinematic timeline frame renderer checks coroutine cancellation between chapter/intro/outro bitmap stages and after JPEG compression, deleting all output files when aborted. Reveal cleans completed frames lost during Dispatchers.Default→Main cancellation and ignores stale callbacks from an export cancelled before an immediate retry. Android instrumentation tests cleanup after two finalized chapter JPEGs.",
   "next": [
-    "Perform real five-chapter generation over HTTPS on Android; verify source photo privacy, timeline persistence across restart and 9:16 JPEG/MP4 exports",
-    "Exercise slow/trickled history/error responses on a controllable ComfyUI server and verify cancellation latency and cache cleanup",
-    "Validate Google Photos / Drive provider cancellation on physical Android and capture reproducible failures",
-    "Before release, audit signed AAB install/update path, Play internal test and data-safety declarations"
+    "Wait for full Android CI on the latest #67 head and merge only if all checks pass",
+    "Validate cancel/retry and screen exit during 9:16 pre-render plus Media3 export on physical Android",
+    "Validate full five-chapter ComfyUI HTTPS generation, restart, 9:16 exports and Android Sharesheet",
+    "Exercise Google Photos/Drive provider cancellation and Play signing/install/update path"
   ],
   "updated": "2026-10-11"
 }
