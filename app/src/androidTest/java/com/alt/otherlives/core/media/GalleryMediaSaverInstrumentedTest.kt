@@ -142,8 +142,12 @@ class GalleryMediaSaverInstrumentedTest {
 
     private fun matchingRowCount(collection: Uri, displayName: String): Int {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
+        // Collection queries hide pending rows by default. Include them so
+        // an orphaned IS_PENDING=1 item cannot make this test falsely pass.
+        @Suppress("DEPRECATION")
+        val includingPending = MediaStore.setIncludePending(collection)
         return context.contentResolver.query(
-            collection,
+            includingPending,
             arrayOf(MediaStore.MediaColumns._ID),
             "${MediaStore.MediaColumns.DISPLAY_NAME}=?",
             arrayOf(displayName),
