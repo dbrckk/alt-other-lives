@@ -47,9 +47,15 @@ class BaselineProfileContractTest {
         assertTrue(instrumentationScript.contains(":app:generateBaselineProfile"))
         assertTrue(instrumentationScript.contains("androidx.benchmark.enabledRules=BaselineProfile"))
         assertTrue(androidWorkflow.contains("alt-baseline-profile"))
-        assertTrue(releaseWorkflow.contains("Generate baseline profile"))
-        assertTrue(releaseWorkflow.contains(":app:generateBaselineProfile"))
-        assertTrue(releaseWorkflow.contains("androidx.benchmark.enabledRules=BaselineProfile"))
+        // The tagged release now uses the exact same instrumentation script
+        // as main CI. That script runs the Android suite first and generates
+        // the baseline profile only when the integration gate passes.
+        assertTrue(releaseWorkflow.contains("Verify Android integration and generate baseline profile"))
+        assertTrue(releaseWorkflow.contains("script: bash .github/scripts/run-instrumentation-tests.sh"))
+        assertTrue(
+            releaseWorkflow.indexOf("script: bash .github/scripts/run-instrumentation-tests.sh") <
+                releaseWorkflow.indexOf("- name: Prepare release keystore")
+        )
         assertTrue(
             releaseWorkflow.contains(
                 "reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d"
