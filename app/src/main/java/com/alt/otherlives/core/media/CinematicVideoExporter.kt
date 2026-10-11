@@ -2,7 +2,6 @@ package com.alt.otherlives.core.media
 
 import android.content.Context
 import android.content.Intent
-import android.content.ContentValues
 import android.os.Build
 import android.provider.MediaStore
 import android.graphics.Matrix
@@ -37,7 +36,6 @@ object CinematicVideoExporter {
     )
 
     private const val FRAME_RATE = 30
-    private const val PENDING_MEDIA_EXPIRY_SECONDS = 24L * 60L * 60L
 
     fun export(
         context: Context,
@@ -177,49 +175,25 @@ object CinematicVideoExporter {
         }
     }
 
-    fun saveToGallery(context: Context, uri: Uri, scenario: Scenario): Uri {
+    fun saveToGallery(
+        context: Context,
+        uri: Uri,
+        scenario: Scenario,
+        checkCancelled: () -> Unit = {}
+    ): Uri {
         require(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             "Direct video gallery save requires Android 10 or newer"
         }
 
-        val values = ContentValues().apply {
-            put(
-                MediaStore.Video.Media.DISPLAY_NAME,
-                "ALT-" + scenario.id + "-" + System.currentTimeMillis() + ".mp4"
-            )
-            put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-            put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/ALT")
-            put(MediaStore.Video.Media.IS_PENDING, 1)
-            put(
-                MediaStore.MediaColumns.DATE_EXPIRES,
-                System.currentTimeMillis() / 1000L + PENDING_MEDIA_EXPIRY_SECONDS
-            )
-        }
-
-        val resolver = context.contentResolver
-        val target = requireNotNull(
-            resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
+        return GalleryMediaSaver.save(
+            context = context,
+            sourceUri = uri,
+            collectionUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+            displayName = "ALT-" + scenario.id + "-" + System.currentTimeMillis() + ".mp4",
+            mimeType = "video/mp4",
+            relativePath = "Movies/ALT",
+            checkCancelled = checkCancelled
         )
-
-        try {
-            val copiedBytes = resolver.openOutputStream(target)?.use { output ->
-                val input = resolver.openInputStream(uri)
-                    ?: error("Unable to open exported video")
-                input.use { it.copyTo(output) }
-            } ?: error("Unable to open video gallery output")
-            require(copiedBytes > 0L) { "Exported video copy was empty" }
-
-            values.clear()
-            values.put(MediaStore.Video.Media.IS_PENDING, 0)
-            values.putNull(MediaStore.MediaColumns.DATE_EXPIRES)
-            require(resolver.update(target, values, null, null) > 0) {
-                "Unable to finalize video gallery item"
-            }
-            return target
-        } catch (error: Throwable) {
-            resolver.delete(target, null, null)
-            throw error
-        }
     }
 
     fun share(context: Context, uri: Uri, scenario: Scenario) {
