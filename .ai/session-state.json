@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Verify explicit Sharesheet FileProvider URI grants for JPEG single/comparison and MP4 intent, and pass Android CI.",
-  "lastKnownBlocker": "PR #70 merged and post-merge main CI 38162336856 passed. Sharesheet ClipData grant changes await PR validation. Physical social targets, HTTPS ComfyUI and signed Play release remain unverified.",
-  "fixApplied": "ShareMediaIntent centralizes ACTION_SEND URI permissions using EXTRA_STREAM plus ClipData and FLAG_GRANT_READ_URI_PERMISSION for both social JPEG modes and cinematic MP4. Android integration tests assert grants and FileProvider JPEG readability.",
+  "currentTask": "Verify cancellation and deletion of an already-published JPEG/MP4 MediaStore row using Android instrumentation.",
+  "lastKnownBlocker": "PR #71 merged as f962e1d after successful full Android CI 38163968919; main post-merge CI 38174166195 was running at last check. New MediaStore post-publication rollback integration coverage is staged pending validation.",
+  "fixApplied": "PR #71 adds centralized ClipData/FileProvider URI grants to JPEG single/comparison and MP4 Sharesheet actions. New Android instrumentation forces JPEG/MP4 cancellation only after real MediaStore reports IS_PENDING=0, then asserts no row remains.",
   "next": [
-    "Check post-merge main CI and physical Android Sharesheet handoff for JPEG single/comparison exports",
-    "Test full real HTTPS ComfyUI five-chapter generation and restore",
-    "Build first legitimately tagged signed AAB with authorized Play upload key and verify Play internal-track install/update",
-    "Verify photo-picker cloud providers and gallery saves on physical Android"
+    "Run and verify full PR Android CI including new MediaStore publication rollback tests; fix any emulator failures before merge",
+    "Review post-merge main CI and physical Android gallery save/share, including cancellation and retry",
+    "Test real HTTPS ComfyUI five-chapter generation and restoration on physical Android",
+    "Run authorized signed version-tag release and Google Play internal-track install/update"
   ],
   "updated": "2026-10-11"
 }

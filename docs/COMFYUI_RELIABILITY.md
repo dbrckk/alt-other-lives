@@ -187,3 +187,9 @@ Les modifications de ce document sont des indications de validation ; elles ne c
 ## Partage inter-applications Android
 
 Les intentions `ACTION_SEND` JPEG et MP4 utilisent `EXTRA_STREAM` **et** `ClipData.newUri` avec `FLAG_GRANT_READ_URI_PERMISSION`. Cette combinaison explicite le droit temporaire de lecture du contenu `FileProvider` pour les cibles de l'Android Sharesheet. Les tests instrumentés vérifient les attributs de l'intention et la lisibilité réelle du JPEG. Le comportement de chaque application sociale sur appareil physique reste à valider.
+
+## Annulation après publication MediaStore
+
+Le chemin `GalleryMediaSaver.save` effectue un dernier contrôle d'annulation **après** le passage de `IS_PENDING=1` à `IS_PENDING=0`. En cas d'annulation à ce point, il supprime également l'entrée devenue visible, plutôt que de laisser une sauvegarde terminée apparaître contre l'intention de l'utilisateur.
+
+Les tests instrumentés supplémentaires ciblent cette fenêtre distincte pour les collections `MediaStore.Images` et `MediaStore.Video`. Ils inspectent le vrai `IS_PENDING` sur l'émulateur, déclenchent l'annulation uniquement une fois l'élément publié puis exigent l'absence de l'entrée (y compris parmi les éléments en attente). Ils vérifient un cycle de vie MediaStore, **pas** la capacité des applications tierces à décoder les octets synthétiques du test MP4.
