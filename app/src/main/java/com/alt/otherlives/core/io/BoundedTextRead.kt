@@ -6,7 +6,8 @@ internal object BoundedTextRead {
     fun read(
         reader: Reader,
         maxChars: Int,
-        bufferSize: Int = DEFAULT_BUFFER_SIZE
+        bufferSize: Int = DEFAULT_BUFFER_SIZE,
+        checkCancelled: () -> Unit = {}
     ): String {
         require(maxChars > 0) { "Maximum text size must be positive" }
         require(bufferSize > 0) { "Buffer size must be positive" }
@@ -16,7 +17,11 @@ internal object BoundedTextRead {
         var total = 0
 
         while (true) {
+            // A socket read may block until its read timeout, but cancellation
+            // is observed before processing or reading the next response chunk.
+            checkCancelled()
             val read = reader.read(buffer)
+            checkCancelled()
             if (read < 0) break
             if (read == 0) continue
             total += read
