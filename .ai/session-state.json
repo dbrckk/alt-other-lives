@@ -2,9 +2,9 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Validate real Android Sharesheet behavior on physical devices and first signed Play internal-track release.",
-  "lastKnownBlocker": "PR #70 passed complete Android CI run 38158595498 and merged as 4f8d7f2. No known PR CI blocker; physical-device Sharesheet, real HTTPS ComfyUI generation and signed Play internal-track install/update remain unverified.",
-  "fixApplied": "PR #70 merged (4f8d7f2): cancellation-safe social JPEG and comparison encoding with cleanup across Default-to-Main handoff; Android instrumentation verified 1080x1920 FileProvider JPEG and post-encoding cancellation cleanup for both modes.",
+  "currentTask": "Verify explicit Sharesheet FileProvider URI grants for JPEG single/comparison and MP4 intent, and pass Android CI.",
+  "lastKnownBlocker": "PR #70 merged and post-merge main CI 38162336856 passed. Sharesheet ClipData grant changes await PR validation. Physical social targets, HTTPS ComfyUI and signed Play release remain unverified.",
+  "fixApplied": "ShareMediaIntent centralizes ACTION_SEND URI permissions using EXTRA_STREAM plus ClipData and FLAG_GRANT_READ_URI_PERMISSION for both social JPEG modes and cinematic MP4. Android integration tests assert grants and FileProvider JPEG readability.",
   "next": [
     "Check post-merge main CI and physical Android Sharesheet handoff for JPEG single/comparison exports",
     "Test full real HTTPS ComfyUI five-chapter generation and restore",

@@ -202,15 +202,12 @@ object CinematicVideoExporter {
             ?: error("Exported video is no longer available")
         require(length != 0L) { "Exported video is empty" }
 
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "video/mp4"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            putExtra(
-                Intent.EXTRA_TEXT,
-                context.getString(R.string.video_share_text, scenario.title)
-            )
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
+        val intent = ShareMediaIntent.create(
+            context = context,
+            uri = uri,
+            mimeType = "video/mp4",
+            message = context.getString(R.string.video_share_text, scenario.title)
+        )
         context.startActivity(
             Intent.createChooser(
                 intent,

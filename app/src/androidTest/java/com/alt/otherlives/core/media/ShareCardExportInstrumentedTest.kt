@@ -39,6 +39,48 @@ class ShareCardExportInstrumentedTest {
     }
 
     @Test
+    fun singleAndComparisonSharesheetIntentsGrantReadableUris() = withShareCache {
+        context, _, _ ->
+        val scenario = ScenarioCatalog.scenarios.first()
+        val single = ShareCardRenderer.render(context, null, scenario)
+        val comparison = ShareCardRenderer.renderComparison(
+            context, null, scenario, null, ScenarioCatalog.scenarios.last()
+        )
+        for (uri in listOf(single, comparison)) {
+            val intent = ShareMediaIntent.create(
+                context = context,
+                uri = uri,
+                mimeType = "image/jpeg",
+                message = "ALT"
+            )
+            assertEquals(uri, intent.clipData?.getItemAt(0)?.uri)
+            assertEquals(uri, intent.getParcelableExtra<android.net.Uri>(
+                android.content.Intent.EXTRA_STREAM
+            ))
+            assertTrue(
+                intent.flags and android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION != 0
+            )
+            context.contentResolver.openInputStream(uri)!!.use { input ->
+                assertTrue(input.read() >= 0)
+            }
+        }
+    }
+
+    @Test
+    fun videoSharesheetIntentGrantsMediaUri() = withShareCache { context, _, _ ->
+        val scenario = ScenarioCatalog.scenarios.first()
+        val uri = ShareCardRenderer.render(context, null, scenario)
+        // Intent contract is identical for MP4 and JPEG; no Media3 encoder
+        // or misleading synthetic MP4 is needed to verify URI grants.
+        val intent = ShareMediaIntent.create(context, uri, "video/mp4", "ALT video")
+        assertEquals("video/mp4", intent.type)
+        assertEquals(uri, intent.clipData?.getItemAt(0)?.uri)
+        assertTrue(
+            intent.flags and android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION != 0
+        )
+    }
+
+    @Test
     fun cancellationAfterJpegEncodingRemovesShareTempFile() = withShareCache {
         context, cache, previous ->
         val scenario = ScenarioCatalog.scenarios.first()

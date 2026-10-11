@@ -478,15 +478,12 @@ object ShareCardRenderer {
             ?: error("Rendered comparison image is no longer available")
         require(length != 0L) { "Rendered comparison image is empty" }
 
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "image/jpeg"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            putExtra(
-                Intent.EXTRA_TEXT,
-                context.getString(R.string.share_compare_text)
-            )
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
+        val intent = ShareMediaIntent.create(
+            context = context,
+            uri = uri,
+            mimeType = "image/jpeg",
+            message = context.getString(R.string.share_compare_text)
+        )
         context.startActivity(
             Intent.createChooser(
                 intent,
@@ -551,18 +548,15 @@ object ShareCardRenderer {
             ?: error("Rendered share image is no longer available")
         require(length != 0L) { "Rendered share image is empty" }
 
-        val intent=Intent(Intent.ACTION_SEND).apply {
-            type = "image/jpeg"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            putExtra(
-                Intent.EXTRA_TEXT,
-                context.getString(
+        val intent = ShareMediaIntent.create(
+            context = context,
+            uri = uri,
+            mimeType = "image/jpeg",
+            message = context.getString(
                     R.string.share_single_text,
                     scenario.title
                 )
-            )
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
+        )
         context.startActivity(
             Intent.createChooser(
                 intent,
