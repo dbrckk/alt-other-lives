@@ -133,6 +133,31 @@ mais son résultat est éliminé au point de contrôle suivant. Vérifier
 également sur un appareil physique l'annulation pendant la préparation
 et pendant l'encodage MP4, puis le partage du fichier final.
 
+## Enregistrement JPEG et MP4 dans la galerie Android
+
+Les deux exports vers la galerie utilisent une seule routine MediaStore
+(à partir d'Android 10). Elle insère le nouveau média avec
+`IS_PENDING=1`, copie le fichier depuis le cache privé en blocs bornés,
+vérifie l'annulation **avant et après les opérations de lecture et d'écriture**,
+puis rend le média visible uniquement après la copie complète.
+
+Une annulation détectée pendant la copie, juste avant la publication ou
+immédiatement après celle-ci déclenche la suppression de l'entrée MediaStore
+créée par cette opération. Les fichiers privés sources ne sont pas supprimés
+par cette routine. Si Android refuse la suppression, l'échec de nettoyage
+est conservé comme information supplémentaire de l'erreur initiale.
+
+Le test instrumenté `GalleryMediaSaverInstrumentedTest` exécute une
+annulation après écriture dans un vrai flux MediaStore JPEG et MP4,
+vérifie l'absence d'entrée résiduelle, puis vérifie qu'un JPEG enregistré
+avec succès est toujours lisible, octet par octet.
+
+Les I/O bloquantes de `ContentResolver` ne sont pas instantanément
+interruptibles. Le test d'émulateur ne remplace pas les essais avec une
+vraie galerie et un appareil physique. Sur appareil, annuler/fermer
+l'écran pendant une sauvegarde, puis vérifier qu'aucun média tronqué ou
+en attente n'est visible. Réessayer une sauvegarde valide ensuite.
+
 ## Vérifications automatisées existantes
 
 Le workflow `.github/workflows/android.yml` exécute les tests JVM préexistants, les lints debug/release, la compilation APK, les tests instrumentés sur émulateur et le build release AAB. Il ne remplace **pas** les tests de bout en bout avec un serveur ComfyUI réel.
