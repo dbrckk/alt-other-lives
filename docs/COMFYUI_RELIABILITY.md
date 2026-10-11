@@ -183,3 +183,7 @@ en attente n'est visible. Réessayer une sauvegarde valide ensuite.
 Le workflow `.github/workflows/android.yml` exécute les tests JVM préexistants, les lints debug/release, la compilation APK, les tests instrumentés sur émulateur et le build release AAB. Il ne remplace **pas** les tests de bout en bout avec un serveur ComfyUI réel.
 
 Les modifications de ce document sont des indications de validation ; elles ne constituent pas la preuve qu'un test manuel a été effectué.
+
+## Partage inter-applications Android
+
+Les intentions `ACTION_SEND` JPEG et MP4 utilisent `EXTRA_STREAM` **et** `ClipData.newUri` avec `FLAG_GRANT_READ_URI_PERMISSION`. Cette combinaison explicite le droit temporaire de lecture du contenu `FileProvider` pour les cibles de l'Android Sharesheet. Les tests instrumentés vérifient les attributs de l'intention et la lisibilité réelle du JPEG. Le comportement de chaque application sociale sur appareil physique reste à valider.
