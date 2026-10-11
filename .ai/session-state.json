@@ -4,12 +4,12 @@
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
   "currentTask": "Verify cinematic MP4 scene preparation cancellation on Android, including cleanup after multiple encoded chapter JPEGs.",
   "lastKnownBlocker": "CI on main is green for PR #66 (run 38132534287). New cancellation-safe cinematic scene render branch awaits Android CI, while physical-device/real HTTPS ComfyUI validation remains unverified.",
-  "fixApplied": "Cinematic timeline frame renderer now receives coroutine cancellation from Reveal, checks between bitmap stages and after JPEG compression, and releases all files created by a cancelled export; Android integration test verifies cleanup after two finalized chapter JPEGs.",
+  "fixApplied": "Cinematic timeline frame renderer checks coroutine cancellation between chapter/intro/outro bitmap stages and after JPEG compression, deleting all output files when aborted. Reveal cleans completed frames lost during Dispatchers.Default→Main cancellation and ignores stale callbacks from an export cancelled before an immediate retry. Android instrumentation tests cleanup after two finalized chapter JPEGs.",
   "next": [
-    "Run full Android CI for cinematic renderer cancellation and merge only after green checks",
-    "On real Android cancel a long video export during pre-render and Media3 encode; verify no new private-cache scenes remain and a subsequent export succeeds",
-    "Validate a five-chapter real ComfyUI generation, restart, 9:16 JPEG/MP4 export and Android share flow",
-    "Exercise Google Photos / Drive source import with slow content-provider reads on physical Android"
+    "Wait for full Android CI on the latest #67 head and merge only if all checks pass",
+    "Validate cancel/retry and screen exit during 9:16 pre-render plus Media3 export on physical Android",
+    "Validate full five-chapter ComfyUI HTTPS generation, restart, 9:16 exports and Android Sharesheet",
+    "Exercise Google Photos/Drive provider cancellation and Play signing/install/update path"
   ],
   "updated": "2026-10-11"
 }
