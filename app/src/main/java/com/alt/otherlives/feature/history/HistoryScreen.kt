@@ -43,7 +43,10 @@ import com.alt.otherlives.core.designsystem.AltSurface
 import com.alt.otherlives.core.model.Scenario
 import com.alt.otherlives.core.media.ShareCardRenderer
 import com.alt.otherlives.R
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.DateFormat
@@ -523,20 +526,24 @@ fun HistoryScreen(
                                         generatedPreviewUrisByTimelineKey[secondEntry.timelineKey]
                                             ?: secondEntry.photoFileName
                                                 ?.let { photoUrisByFileName[it] }
+                                    var pendingComparison: ShareCardRenderer.RenderedShareImage? = null
                                     val rendered = runCatching {
                                         withContext(Dispatchers.Default) {
-                                            ShareCardRenderer.renderComparison(
+                                            val renderContext = currentCoroutineContext()
+                                            ShareCardRenderer.renderComparisonForSharing(
                                                 context = context,
                                                 firstVisualUri = firstVisual,
                                                 firstScenario = firstScenario,
                                                 secondVisualUri = secondVisual,
-                                                secondScenario = secondScenario
-                                            )
+                                                secondScenario = secondScenario,
+                                                checkCancelled = { renderContext.ensureActive() }
+                                            ).also { pendingComparison = it }
                                         }
                                     }
-                                    rendered.onSuccess { uri ->
+                                    rendered.onSuccess { comparison ->
+                                        pendingComparison = null
                                         runCatching {
-                                            ShareCardRenderer.shareComparison(context, uri)
+                                            ShareCardRenderer.shareComparison(context, comparison.uri)
                                         }.onFailure {
                                             Toast.makeText(
                                                 context,
@@ -547,13 +554,16 @@ fun HistoryScreen(
                                             ).show()
                                         }
                                     }.onFailure {
-                                        Toast.makeText(
-                                            context,
-                                            context.getString(
-                                                R.string.history_compare_share_failed
-                                            ),
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                        pendingComparison?.deleteCacheFile()
+                                        if (it !is CancellationException) {
+                                            Toast.makeText(
+                                                context,
+                                                context.getString(
+                                                    R.string.history_compare_share_failed
+                                                ),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
                                     }
                                     isSharingComparison = false
                                 }
