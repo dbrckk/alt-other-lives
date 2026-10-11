@@ -12,6 +12,33 @@
 
 La vérification entre les blocs n'interrompt pas nécessairement **une lecture/écriture réseau déjà bloquée** dans `HttpURLConnection`. Sa durée reste limitée principalement par les délais de connexion et de lecture configurés ; un serveur lent ou une réponse reçue au compte-gouttes peut allonger l'arrêt. Une tâche GPU déjà acceptée côté serveur n'est pas annulée automatiquement lorsque l'utilisateur quitte la génération.
 
+## Annulation pendant les réponses HTTP et le contrôle qualité
+
+Les réponses texte de ComfyUI (`/system_stats`, `/upload/image`,
+`/prompt`, `/history/{id}`, ainsi que les corps d'erreur HTTP)
+sont lues avec une limite de taille et vérifient maintenant l'annulation
+**avant et après chaque bloc reçu**. Une annulation pendant un corps
+d'erreur ne doit pas être convertie en erreur HTTP réessayable.
+La lecture d'une image téléchargée et son inspection JPEG/PNG contrôlent
+aussi l'annulation à la fin du décodage et de l'analyse visuelle ;
+le fichier de cache est supprimé si cette analyse a été interrompue.
+
+Ces points de contrôle ne peuvent pas interrompre immédiatement
+`HttpURLConnection` bloqué à l'intérieur d'une lecture réseau.
+Le délai dépend toujours du `readTimeout` de chaque requête.
+La limite globale de polling ne constitue pas un délai réseau strict.
+
+### Vérification manuelle conseillée
+
+1. Avec un serveur ComfyUI de test en HTTPS qui renvoie une réponse
+   `/history/{id}` volumineuse ou fractionnée lentement, annuler
+   la génération et vérifier qu'elle ne reprend pas au bloc suivant.
+2. Annuler pendant une réponse d'erreur HTTP fragmentée :
+   l'interface ne doit pas annoncer un échec réessayable après l'annulation.
+3. Annuler juste après réception d'une grande image mais avant la fin
+   de l'inspection qualité, puis vérifier que le téléchargement temporaire
+   n'est pas conservé dans `cache/generation`.
+
 ## Vérification fonctionnelle sur un vrai serveur
 
 1. Configurer un serveur ComfyUI accessible en HTTPS et un workflow qui utilise les placeholders `__ALT_SOURCE_IMAGE__` et `__ALT_PROMPT__`. Activer explicitement le consentement d'envoi distant.
