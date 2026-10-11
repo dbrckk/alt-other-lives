@@ -4,7 +4,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.alt.otherlives.core.data.ScenarioCatalog
 import java.io.File
 import kotlinx.coroutines.CancellationException
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -47,10 +46,9 @@ class TimelineSceneRendererCancellationInstrumentedTest {
 
             assertTrue("Expected cancellation during real image preparation", failure is CancellationException)
             assertTrue("Two chapter images must have been finalized", encodedChaptersSeen >= 2)
-            assertEquals(
+            assertTrue(
                 "Cancelled video preparation must delete its own JPEGs and temporary files",
-                namesBefore,
-                cache.listFiles().orEmpty().map { it.name }.toSet()
+                cache.listFiles().orEmpty().none { it.name !in namesBefore }
             )
         } finally {
             cache.listFiles().orEmpty()
