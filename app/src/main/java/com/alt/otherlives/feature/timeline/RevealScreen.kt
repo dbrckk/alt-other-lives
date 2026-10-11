@@ -1070,20 +1070,26 @@ fun RevealScreen(
                         if (!isRenderingShareImage) {
                             isRenderingShareImage = true
                             scope.launch {
+                                // Preserve ownership if the Default-to-Main handoff
+                                // is cancelled after JPEG encoding has completed.
+                                var pendingShare: ShareCardRenderer.RenderedShareImage? = null
                                 val rendered = runCatching {
                                     withContext(Dispatchers.Default) {
-                                        ShareCardRenderer.render(
+                                        val renderContext = currentCoroutineContext()
+                                        ShareCardRenderer.renderForSharing(
                                             context = context,
                                             photoUri = primaryGeneratedSceneUri ?: photoUri,
                                             scenario = scenario,
-                                            fallbackImageUri = photoUri
-                                        )
+                                            fallbackImageUri = photoUri,
+                                            checkCancelled = { renderContext.ensureActive() }
+                                        ).also { pendingShare = it }
                                     }
                                 }
                                 isRenderingShareImage = false
-                                rendered.onSuccess { shareUri ->
+                                rendered.onSuccess { shareImage ->
+                                    pendingShare = null
                                     runCatching {
-                                        ShareCardRenderer.share(context, shareUri, scenario)
+                                        ShareCardRenderer.share(context, shareImage.uri, scenario)
                                     }.onFailure {
                                         Toast.makeText(
                                             context,
@@ -1098,7 +1104,8 @@ fun RevealScreen(
                                         ).show()
                                     }
                                 }.onFailure {
-                                    Toast.makeText(
+                                    pendingShare?.deleteCacheFile()
+                                    if (it !is CancellationException) Toast.makeText(
                                         context,
                                         context.getString(
                                             R.string.reveal_create_share_failed,

@@ -14,7 +14,11 @@ import java.io.FileOutputStream
 import java.util.UUID
 
 object ShareCardRenderer {
-    private data class RenderedShareImage(val uri: Uri, val file: File)
+    internal data class RenderedShareImage(val uri: Uri, val file: File) {
+        fun deleteCacheFile() {
+            file.delete()
+        }
+    }
 
     private const val WIDTH = 1080
     private const val HEIGHT = 1920
@@ -23,20 +27,38 @@ object ShareCardRenderer {
         context: Context,
         photoUri: Uri?,
         scenario: Scenario,
-        fallbackImageUri: Uri? = null
-    ): Uri = renderArtifact(
+        fallbackImageUri: Uri? = null,
+        checkCancelled: () -> Unit = {}
+    ): Uri = renderForSharing(
         context = context,
         photoUri = photoUri,
         scenario = scenario,
-        fallbackImageUri = fallbackImageUri
+        fallbackImageUri = fallbackImageUri,
+        checkCancelled = checkCancelled
     ).uri
+
+    internal fun renderForSharing(
+        context: Context,
+        photoUri: Uri?,
+        scenario: Scenario,
+        fallbackImageUri: Uri? = null,
+        checkCancelled: () -> Unit = {}
+    ): RenderedShareImage = renderArtifact(
+        context = context,
+        photoUri = photoUri,
+        scenario = scenario,
+        fallbackImageUri = fallbackImageUri,
+        checkCancelled = checkCancelled
+    )
 
     private fun renderArtifact(
         context: Context,
         photoUri: Uri?,
         scenario: Scenario,
-        fallbackImageUri: Uri? = null
+        fallbackImageUri: Uri? = null,
+        checkCancelled: () -> Unit = {}
     ): RenderedShareImage {
+        checkCancelled()
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
         try {
             val canvas = Canvas(bitmap)
@@ -50,6 +72,7 @@ object ShareCardRenderer {
                     targetHeight = HEIGHT
                 ) ?: error("Unable to decode ALT share visual")
                 try {
+                    checkCancelled()
                     drawCover(canvas, source, Rect(0, 0, WIDTH, 1180))
                 } finally {
                     source.recycle()
@@ -135,6 +158,7 @@ object ShareCardRenderer {
             }
 
             scenario.chapters.take(3).forEachIndexed { index, chapter ->
+                checkCancelled()
                 canvas.drawText(
                     (index + 1).toString().padStart(2, '0'),
                     72f,
@@ -167,6 +191,7 @@ object ShareCardRenderer {
             }
             canvas.drawText("ALT", 930f, 1812f, brand)
 
+            checkCancelled()
             val dir = File(context.cacheDir, "shares").apply { mkdirs() }
             cleanupOldShareImages(dir)
             val file = File(
@@ -176,15 +201,20 @@ object ShareCardRenderer {
             val temporary = File(dir, "." + file.name + ".tmp")
 
             try {
+                checkCancelled()
                 FileOutputStream(temporary).use { output ->
                     check(bitmap.compress(Bitmap.CompressFormat.JPEG, 94, output)) {
                         "Unable to encode ALT share image"
                     }
                 }
+                // Compression is synchronous; reject an image encoded after
+                // cancellation instead of finalizing and leaking the file.
+                checkCancelled()
                 require(temporary.length() > 0L) { "ALT share image is empty" }
                 if (!temporary.renameTo(file)) {
                     error("Unable to finalize ALT share image")
                 }
+                checkCancelled()
                 return RenderedShareImage(
                     uri = FileProvider.getUriForFile(
                         context,
@@ -210,8 +240,26 @@ object ShareCardRenderer {
         firstVisualUri: Uri?,
         firstScenario: Scenario,
         secondVisualUri: Uri?,
-        secondScenario: Scenario
-    ): Uri {
+        secondScenario: Scenario,
+        checkCancelled: () -> Unit = {}
+    ): Uri = renderComparisonForSharing(
+        context = context,
+        firstVisualUri = firstVisualUri,
+        firstScenario = firstScenario,
+        secondVisualUri = secondVisualUri,
+        secondScenario = secondScenario,
+        checkCancelled = checkCancelled
+    ).uri
+
+    internal fun renderComparisonForSharing(
+        context: Context,
+        firstVisualUri: Uri?,
+        firstScenario: Scenario,
+        secondVisualUri: Uri?,
+        secondScenario: Scenario,
+        checkCancelled: () -> Unit = {}
+    ): RenderedShareImage {
+        checkCancelled()
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
         try {
             val canvas = Canvas(bitmap)
@@ -225,6 +273,7 @@ object ShareCardRenderer {
             }
             canvas.drawText(context.getString(R.string.share_compare_header), 72f, 92f, accent)
 
+            checkCancelled()
             drawComparisonHalf(
                 context = context,
                 canvas = canvas,
@@ -234,6 +283,7 @@ object ShareCardRenderer {
                 bottom = 865,
                 label = context.getString(R.string.share_compare_life, 1)
             )
+            checkCancelled()
             drawComparisonHalf(
                 context = context,
                 canvas = canvas,
@@ -277,24 +327,31 @@ object ShareCardRenderer {
             }
             canvas.drawText("ALT", 930f, 1812f, brand)
 
+            checkCancelled()
             val dir = File(context.cacheDir, "shares").apply { mkdirs() }
             cleanupOldShareImages(dir)
             val file = File(dir, "alt-compare-" + UUID.randomUUID() + ".jpg")
             val temporary = File(dir, "." + file.name + ".tmp")
             try {
+                checkCancelled()
                 FileOutputStream(temporary).use { output ->
                     check(bitmap.compress(Bitmap.CompressFormat.JPEG, 94, output)) {
                         "Unable to encode ALT comparison image"
                     }
                 }
+                checkCancelled()
                 require(temporary.length() > 0L) { "ALT comparison image is empty" }
                 if (!temporary.renameTo(file)) {
                     error("Unable to finalize ALT comparison image")
                 }
-                return FileProvider.getUriForFile(
-                    context,
-                    context.packageName + ".fileprovider",
-                    file
+                checkCancelled()
+                return RenderedShareImage(
+                    uri = FileProvider.getUriForFile(
+                        context,
+                        context.packageName + ".fileprovider",
+                        file
+                    ),
+                    file = file
                 )
             } catch (error: Throwable) {
                 temporary.delete()
@@ -465,7 +522,13 @@ object ShareCardRenderer {
             "Direct gallery save requires Android 10 or newer"
         }
         checkCancelled()
-        val rendered = renderArtifact(context, photoUri, scenario, fallbackImageUri)
+        val rendered = renderArtifact(
+            context = context,
+            photoUri = photoUri,
+            scenario = scenario,
+            fallbackImageUri = fallbackImageUri,
+            checkCancelled = checkCancelled
+        )
         return try {
             checkCancelled()
             GalleryMediaSaver.save(

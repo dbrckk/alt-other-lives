@@ -133,6 +133,26 @@ mais son résultat est éliminé au point de contrôle suivant. Vérifier
 également sur un appareil physique l'annulation pendant la préparation
 et pendant l'encodage MP4, puis le partage du fichier final.
 
+## Préparation des JPEG sociaux
+
+Le rendu des cartes de partage (vie unique) et de la comparaison de deux vies
+vérifie l'annulation avant la composition, entre les images/chapitres, et avant
+et après la compression JPEG synchrone. En cas d'annulation, les fichiers
+`.tmp` et `.jpg` créés pendant l'encodage sont éliminés.
+
+La couche Reveal / History conserve aussi temporairement la référence au
+fichier produit pendant le transfert `Dispatchers.Default` vers l'interface.
+Si la coroutine est annulée après la fin du rendu mais avant le partage, le
+fichier est supprimé plutôt que laissé orphelin. Si le partage est lancé,
+le JPEG reste accessible au destinataire via FileProvider et l'effacement
+normal du cache obsolète s'en charge ultérieurement.
+
+`ShareCardExportInstrumentedTest` utilise le vrai décodeur Android et
+FileProvider pour confirmer la sortie **1080 × 1920 JPEG**, ainsi que le
+nettoyage après annulation de chacun des deux types de carte une fois
+l'encodage terminé. Le rendu bloqué dans le décodeur ou le compresseur
+ne peut pas être interrompu instantanément ; l'annulation est coopérative.
+
 ## Enregistrement JPEG et MP4 dans la galerie Android
 
 Les deux exports vers la galerie utilisent une seule routine MediaStore
