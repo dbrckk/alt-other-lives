@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Validate real-device ComfyUI end-to-end generation and source-provider cancellation; emulator storage integrity gate is complete.",
-  "lastKnownBlocker": "No Android CI blocker: PR #65 merged after full successful Android CI run 38081073724, including real FileProvider/private-storage cancellation tests, APK, lint, emulator and unsigned release AAB. Physical-device ComfyUI and third-party cloud-provider behavior remain unverified.",
-  "fixApplied": "PR #65 merged (10c49aae): instrumented cancellation integrity checks confirm that interrupted single-scene updates retain old JPEG bytes and interrupted five-scene full-regeneration staging preserves all prior chapters and the seed; no abandoned transaction remains. No production-code changes in #65.",
+  "currentTask": "Validate cooperative cancellation during ComfyUI HTTP text responses and post-download image quality inspection.",
+  "lastKnownBlocker": "Main CI completed successfully for PR #65 (run 38081739303). New ComfyUI response cancellation patch awaits CI; real external HTTPS ComfyUI/device test remains unavailable.",
+  "fixApplied": "Added cancellation checks around bounded HTTP text response reads, including HTTP error bodies, to avoid swallowing cancellation as a retryable error. Post-download bitmap quality inspection checks cancellation and removes the cached file when aborted.",
   "next": [
-    "Validate a real five-chapter ComfyUI HTTPS generation on Android: import, generate, persist, restart, gallery save and share JPEG/MP4",
-    "On a physical device, cancel at photo preparation, upload, scene persistence and full-regeneration stages and verify the previous timeline remains intact",
-    "Exercise slow Google Photos / Drive ContentProvider imports; collect timing and cleanup evidence and address only reproduced issues",
-    "Audit release signing, Play internal track install/update and privacy/data-safety declarations before publication"
+    "Run full Android CI on HTTP response cancellation branch and merge only after checks succeed",
+    "Manually test slow/trickled /history and HTTP error bodies via a real HTTPS ComfyUI instance and Android device",
+    "Manually cancel after downloading a generated image and confirm cache cleanup",
+    "Complete real five-chapter generation, restart, share JPEG and MP4 verification before Play release"
   ],
-  "updated": "2026-10-10"
+  "updated": "2026-10-11"
 }
