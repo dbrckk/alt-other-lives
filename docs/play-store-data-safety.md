@@ -34,6 +34,7 @@ Local diagnostics contain technical event codes, exception types, internal ALT c
 - Original photos and app data are stored in app-private storage.
 - Users can clear AI settings, history, and diagnostics in-app where controls exist.
 - Android app-data clearing or uninstall removes the remaining local app data.
+- The manifest disables app backup and supplies explicit Android 12+ cloud/device-transfer exclusions for the app sandbox, plus legacy backup exclusions. OEM transfer behavior may differ; Android gallery exports and externally shared files are outside app-private data. Verify this on representative devices.
 - Remote retention is controlled by the configured ComfyUI server operator.
 
 ## Submission checklist
