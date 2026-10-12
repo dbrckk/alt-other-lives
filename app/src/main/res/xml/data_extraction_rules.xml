@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ALT stores private source photos, generated chapters, history and AI settings.
+  Exclude the complete app sandbox from Android 12+ cloud backup AND
+  device-to-device migration, including device-protected and app-external data.
+
+  On some OEM devices, transfer behavior is not fully controlled by this XML.
+  This is defense in depth alongside android:allowBackup="false".
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" path="." />
+        <exclude domain="device_root" path="." />
+        <exclude domain="external" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" path="." />
+        <exclude domain="device_root" path="." />
+        <exclude domain="external" path="." />
+    </device-transfer>
+</data-extraction-rules>
