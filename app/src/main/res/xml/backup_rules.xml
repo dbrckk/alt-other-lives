@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Legacy Android 6-11 defense in depth; the manifest also sets allowBackup=false.
+  Never back up photos, history, generated media, AI endpoints or diagnostics.
+-->
+<full-backup-content>
+    <exclude domain="root" path="." />
+    <exclude domain="device_root" path="." />
+    <exclude domain="external" path="." />
+</full-backup-content>
