@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Validate physical-device Android JPEG/MP4 Sharesheet and gallery end-to-end, then first authorized signed Google Play internal-track release.",
-  "lastKnownBlocker": "No current Android CI blocker: PR #71 merged as f962e1d (successful PR CI 38163968919 and post-merge main CI 38174166195); PR #72 merged as 2a124cc after successful full Android CI 38174278223, including real MediaStore cancellation after publication for JPEG/MP4. Signed Play AAB, physical Sharesheet/gallery, and real HTTPS ComfyUI flow remain unverified.",
-  "fixApplied": "PR #71 centralizes explicit FileProvider ClipData read grants on all JPEG/MP4 Sharesheet sends; PR #72 adds emulator instrumentation that waits until MediaStore IS_PENDING=0 before cancelling a JPEG/MP4 gallery export and confirms public and pending rows are removed, preserving the private source file.",
+  "currentTask": "Harden Android 12+ private user-data backup and phone-to-phone transfer exclusions; validate compiled manifest/resources on emulator.",
+  "lastKnownBlocker": "No Android CI blocker: main CI 38174910469 green after PR #72. Backup migration policy changes and instrumentation await PR CI. Signed Play AAB, physical Sharesheet/gallery, real OEM transfers and HTTPS ComfyUI flow remain unverified.",
+  "fixApplied": "Added explicit private-data exclusion resources for cloud backup and device-to-device transfer on Android 12+ plus legacy Android backup; manifest references both alongside allowBackup=false; Android instrumentation validates compiled XML and backup package flag.",
   "next": [
-    "Verify JPEG single/comparison and real cinematic MP4 through third-party Sharesheet targets on a physical Android device",
-    "Confirm gallery JPEG/MP4 save/cancel/retry and Android photo-picker cloud-source imports on a physical device",
-    "Run an authorized five-chapter real HTTPS ComfyUI generation, restart/history recovery, and cleanup test",
-    "Create first legitimate signed version-tag release with registered Play upload key and verify internal-track install/update, versionCode and user media preservation"
+    "Run complete PR Android CI including emulator private-data rule integration tests; merge only on green",
+    "Validate OEM Android 12+ phone-to-phone migration and cloud-restore privacy on physical devices",
+    "Verify real social Sharesheet/gallery and full HTTPS ComfyUI five-chapter workflow",
+    "Build authorized tagged signed AAB and verify Google Play internal-track install/update"
   ],
-  "updated": "2026-10-11"
+  "updated": "2026-10-12"
 }

@@ -28,6 +28,17 @@ The current ALT app does not include advertising SDKs, analytics SDKs, or automa
 
 ALT requires HTTPS for configured remote ComfyUI endpoints and disables cleartext network traffic at the Android application level.
 
+### Android backup and device migration
+
+ALT disables Android application backup and explicitly excludes its app-private
+files from both cloud backup and device-to-device migration using Android 12+
+data extraction rules, with legacy rules for earlier Android versions. This
+covers local photos, generated scenes, history, AI settings, and diagnostics.
+
+Android transfer behavior can still vary across device manufacturers. Media
+that you explicitly save into the public Android gallery or share with another
+app is managed separately from ALT's private storage.
+
 ### Retention and deletion
 
 Local photos, generated media, settings, history, and diagnostics remain on the device until you delete them through the app where an applicable control exists, clear the app's data, or uninstall the app.
@@ -70,6 +81,19 @@ La version actuelle d'ALT n'intègre pas de SDK publicitaire, de SDK analytique 
 ### Sécurité réseau
 
 ALT impose HTTPS pour les endpoints ComfyUI distants configurés et bloque le trafic réseau en clair au niveau de l'application Android.
+
+### Sauvegarde Android et transfert entre appareils
+
+ALT désactive la sauvegarde des données de l'application et exclut
+explicitement ses fichiers privés des sauvegardes cloud et des migrations entre
+appareils avec les règles d'extraction Android 12+, ainsi que les règles
+héritées pour les versions antérieures. Cette protection concerne les photos
+locales, scènes générées, historique, réglages IA et diagnostics.
+
+Le comportement des transferts Android peut toutefois varier selon les
+fabricants. Les médias volontairement enregistrés dans la galerie publique
+ou partagés avec une autre application ne font plus partie du seul stockage
+privé d'ALT.
 
 ### Conservation et suppression
 

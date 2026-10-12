@@ -37,6 +37,7 @@ The main Android CI optionally uses `ALT_VERSION_CODE` and `ALT_VERSION_NAME` re
 5. Upload the signed AAB to the **Play internal testing track**. Install it through Google Play on a real device and verify that an update from the previous installed Play version works without loss of local timelines or photos.
 6. Manually exercise importing from the Android photo picker (including Google Photos / Drive providers where applicable), optional HTTPS ComfyUI consent and complete five-chapter generation, restart/restoration, JPEG gallery save/share, Media3 MP4 export, gallery save/share, cancellation/retry and cleanup after errors.
 7. Review the current public `PRIVACY.md`, `docs/play-store-data-safety.md`, store screenshots, age/rating declarations and the configured third-party ComfyUI retention model. Do not claim that cloud processing is on-device.
+8. On representative Android 12+ devices, verify that platform/OEM backup and phone-to-phone migration do **not** copy ALT's app-private photos, history, generated scenes, AI endpoints or diagnostics. The project explicitly supplies `data_extraction_rules.xml` and legacy `backup_rules.xml`, but emulator XML tests cannot prove all manufacturer transfer implementations honor them. Public gallery saves are outside the ALT-private app sandbox.
 
 ## Known gaps
 
