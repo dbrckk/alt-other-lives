@@ -3,11 +3,14 @@ package com.alt.otherlives.app
 import android.graphics.Bitmap
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.hasScrollToIndexAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.core.content.FileProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import com.alt.otherlives.MainActivity
@@ -86,13 +89,11 @@ class AltAppHistoryRestoreInstrumentedTest {
             // the user is reading Reveal. The photo must be re-resolved from
             // private storage rather than relying on a stale in-memory URI.
             composeRule.activityRule.scenario.recreate()
-            composeRule.waitUntil(timeoutMillis = 15_000) {
-                composeRule.onAllNodesWithText(context.getString(R.string.reveal_share_life))
-                    .fetchSemanticsNodes().isNotEmpty()
-            }
             composeRule.onNodeWithText(scenario.title).assertIsDisplayed()
-            composeRule.onNodeWithText(context.getString(R.string.reveal_share_life))
-                .performScrollTo()
+            // Reveal uses LazyColumn: off-screen share controls are not in the
+            // semantics tree until the list scrolls to their owning item.
+            composeRule.onNode(hasScrollToIndexAction())
+                .performScrollToNode(hasText(context.getString(R.string.reveal_share_life)))
             composeRule.waitUntil(timeoutMillis = 15_000) {
                 runCatching {
                     composeRule.onNodeWithText(context.getString(R.string.reveal_share_life))
