@@ -42,6 +42,7 @@ The main Android CI optionally uses `ALT_VERSION_CODE` and `ALT_VERSION_NAME` re
 ## Known gaps
 
 - No signed Play Store internal-track install/update has been performed by this repository's automated CI.
+- Android instrumentation now exercises the real MainActivity and DataStore with a private photo: opening a saved timeline through History, recreating Reveal, and re-enabling JPEG sharing after restoration. It is not a test of actual process death, an app upgrade or Play delivery.
 - No physical Android device or real HTTPS ComfyUI server is exercised by the existing GitHub Actions emulators.
 - Signing credentials and Play Console access must be supplied by the release owner; successful unsigned CI alone cannot prove these are configured.
 - Google Play's current form questions and upload/signing rules must be checked when actually submitting the release.
