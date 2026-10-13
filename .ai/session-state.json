@@ -2,14 +2,14 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Validate physical-device Android backup/transfer privacy, real media Sharesheet and gallery, HTTPS ComfyUI five-chapter flow and authorized signed Play release.",
-  "lastKnownBlocker": "PR #73 merged as 60ad2a7 after complete Android PR CI run 38221525928 passed (JVM, debug/release lint, APK, emulator instrumentation and compiled backup policy checks, baseline profile, unsigned AAB). Manufacturer-specific data migration/backup behavior and real signed Play install/update remain unverified.",
-  "fixApplied": "PR #73 merged (60ad2a7): manifest now explicitly references Android 12+ cloud-backup/device-transfer and legacy full-backup exclusion resources for root/device_root/external private data alongside allowBackup=false; Android instrumentation verified package flag and compiled rule domains. Privacy/data-safety/release documents updated.",
+  "currentTask": "Verify saved private-photo timeline recovery from History through Reveal on actual MainActivity and Android Activity recreation.",
+  "lastKnownBlocker": "Main CI 38222380125 passed after PR #73. New app-level Android integration test is staged and awaits full PR CI; physical-device ComfyUI, Sharesheet, process death and signed Play release remain unverified.",
+  "fixApplied": "Added Android instrumentation that persists a real private JPEG and DataStore history entry, navigates actual Home/History/Reveal UI, recreates MainActivity while Reveal is open, and waits for social-share action to recover. No new JVM unit tests.",
   "next": [
-    "Verify OEM Android 12+ transfer/restore excludes ALT private media, credentials, history and diagnostics on physical devices",
-    "Verify real app Sharesheet JPEG/MP4 and gallery save/cancel/retry including cloud photo-provider imports",
-    "Validate real HTTPS ComfyUI five-chapter workflow, consent, restart and cache cleanup",
-    "Create authorized tagged signed AAB and test Play internal-track install/update while preserving local media"
+    "Run complete PR Android CI including new app-level history/recreation smoke; resolve failures before merging",
+    "Verify true low-memory process death and on-device Play upgrade without history/photo loss",
+    "Test physical Android Sheetsheet/gallery and cloud photo picker provider imports",
+    "Validate real HTTPS ComfyUI five chapters and first authorized signed Play AAB"
   ],
-  "updated": "2026-10-12"
+  "updated": "2026-10-13"
 }
