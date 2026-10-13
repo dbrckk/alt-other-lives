@@ -116,6 +116,8 @@ Android solo-first alternate-life generator. Core loop: photo -> What if scenari
 
 - Android app-private data is now explicitly excluded from both Android 12+ cloud backups and device-to-device migrations with `dataExtractionRules`, and from legacy backups with `fullBackupContent`, in addition to `allowBackup=false`. Instrumentation checks compiled rules and package backup flag; actual OEM transfer behavior needs device verification.
 
+- New Android app-level smoke coverage launches the real MainActivity, persists an actual JPEG via SourcePhotoStore and timeline via HistoryRepository, navigates Home → History → Reveal, recreates Activity in Reveal and checks the social share action becomes available from restored private media. This supplements isolated repository/UI tests; actual process death and Play upgrade remain manual acceptance gaps.
+
 ## Current priority
 Keep the end-to-end AI generation path reliable while raising ALT to premium consumer-product quality. The active product direction is cinematic, social-first and highly shareable: Reveal, 9:16 image exports and MP4 exports must feel polished enough to publish directly to Reels, Shorts and Stories. Reliability remains the gate: visual work must not regress generation, persistence, cancellation, cleanup or export safety.
 
