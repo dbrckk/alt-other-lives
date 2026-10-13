@@ -2,14 +2,15 @@
   "project": "ALT — See Your Other Lives",
   "repo": "dbrckk/alt-other-lives",
   "phase": "Phase 5 — Premium cinematic UX and viral creation loops",
-  "currentTask": "Verify saved private-photo timeline recovery from History through Reveal on actual MainActivity and Android Activity recreation.",
-  "lastKnownBlocker": "Main CI 38222380125 passed after PR #73. New app-level Android integration test is staged and awaits full PR CI; physical-device ComfyUI, Sharesheet, process death and signed Play release remain unverified.",
-  "fixApplied": "Added Android instrumentation that persists a real private JPEG and DataStore history entry, navigates actual Home/History/Reveal UI, recreates MainActivity while Reveal is open, and waits for social-share action to recover. No new JVM unit tests.",
+  "currentTask": "Validate physical-device end-to-end flows and strengthen low-memory process-death and Android Play upgrade recovery.",
+  "lastKnownBlocker": "No Android CI blocker: PR #74 merged as c83035a after successful final PR CI 38360544743 (JVM, lint debug/release, APK, 40 Android instrumentation tests including real History→Reveal Activity recreation, baseline profile and unsigned AAB). Real process death, Play upgrade, device/OEM media migration and HTTPS ComfyUI remain unverified.",
+  "fixApplied": "PR #74 merged (c83035a): MainActivity instrumentation imports an actual private JPEG, records a persisted timeline in DataStore, navigates Home→History→Reveal, recreates Activity and verifies the share action is restored. Initial test timed out on an off-screen LazyColumn item; updated to performScrollToNode and full rerun passed.",
   "next": [
-    "Run complete PR Android CI including new app-level history/recreation smoke; resolve failures before merging",
-    "Verify true low-memory process death and on-device Play upgrade without history/photo loss",
-    "Test physical Android Sheetsheet/gallery and cloud photo picker provider imports",
-    "Validate real HTTPS ComfyUI five chapters and first authorized signed Play AAB"
+    "Perform physical-device JPEG/MP4 Sharesheet and MediaStore save/retry verification against social target apps",
+    "Verify physical cloud photo picker imports and OEM Android backup/device migration behavior",
+    "Run real HTTPS ComfyUI consent, five chapters, history persistence and cancellation/retry end to end",
+    "Build an authorized signed version-tag AAB and test Google Play internal-track install/update with data preserved",
+    "Add explicit low-memory/process-death smoke coverage beyond Activity recreation where reproducible"
   ],
   "updated": "2026-10-13"
 }
