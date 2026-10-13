@@ -93,6 +93,13 @@ class AltAppHistoryRestoreInstrumentedTest {
             composeRule.onNodeWithText(scenario.title).assertIsDisplayed()
             composeRule.onNodeWithText(context.getString(R.string.reveal_share_life))
                 .performScrollTo()
+            composeRule.waitUntil(timeoutMillis = 15_000) {
+                runCatching {
+                    composeRule.onNodeWithText(context.getString(R.string.reveal_share_life))
+                        .assertIsEnabled()
+                }.isSuccess
+            }
+            composeRule.onNodeWithText(context.getString(R.string.reveal_share_life))
                 .assertIsEnabled()
         } finally {
             bitmap.recycle()
